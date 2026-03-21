@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="hu">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO App</title>
+    <link rel="stylesheet" href="./styles/style.css">
+    <script src="js/api.js" defer></script>
+    <script src="js/graph.js" defer></script>
+    <script src="js/ui.js" defer></script>
+    <script src="js/app.js" defer></script>
+</head>
+
+<body>
+
+    <button id="hamburger-btn">☰</button>
+
+    <aside id="sidebar">
+        <div class="groups-container">
+            <div class="groups-header" id="groups-toggle">
+                <span>Csoportok</span>
+                <span id="groups-arrow">▼</span>
+            </div>
+            <div class="groups-content open" id="groups-dropdown">
+                <input type="text" class="search-box" id="group-search" placeholder="Keresés csoportra...">
+                <button class="manage-groups-btn">Csoportok kezelése</button>
+
+                <ul class="group-list" id="group-list-container"></ul>
+            </div>
+        </div>
+
+        <div id="sidebar-entries-container"></div>
+
+        <button class="add-new-btn" id="open-modal-btn">+ Új Elem Létrehozása</button>
+    </aside>
+
+    <main id="main-content">
+        <div class="top-bar">
+            <div class="filters">
+                <button class="filter-btn active" data-type="task">Tasks</button>
+                <button class="filter-btn active" data-type="event">Events</button>
+                <button class="filter-btn active" data-type="note">Notes</button>
+            </div>
+            <select class="mode-selector" id="mode-select">
+                <option value="calendar">Naptár nézet</option>
+                <option value="graph" selected>Kapcsolatok (Gráf)</option>
+                <option value="detail">Részletes nézet</option>
+            </select>
+        </div>
+
+        <canvas id="graph-canvas"></canvas>
+    </main>
+
+    <div class="modal-overlay" id="entry-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Új elem hozzáadása</h2>
+                <button class="close-modal-btn" id="close-modal-btn">&times;</button>
+            </div>
+
+            <form id="new-entry-form">
+                <div class="form-group">
+                    <label>Cím (Title)</label>
+                    <input type="text" id="entry-title" class="form-control" placeholder="Ide írd a nevet..." required>
+                </div>
+
+                <div class="form-group">
+                    <label>Csoport (Group)</label>
+                    <select id="entry-group" class="form-control">
+                        <option value="1">Csoportosítatlan</option>
+                        <option value="2">Projekt Alpha</option>
+                        <option value="3">Személyes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Kategória (Opcionális)</label>
+                    <select id="entry-category" class="form-control">
+                        <option value="">Nincs kategória</option>
+                        <option value="1">Munka</option>
+                        <option value="2">Otthon</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Típus</label>
+                    <select id="entry-type" class="form-control">
+                        <option value="note">Jegyzet</option>
+                        <option value="todo">Feladat (TODO)</option>
+                        <option value="event">Esemény</option>
+                    </select>
+                </div>
+
+                <div id="datetime-container" style="display: none;">
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="entry-allday"> Egész napos
+                        </label>
+                    </div>
+                    <div class="date-time-row">
+                        <div class="form-group">
+                            <label>Kezdés</label>
+                            <input type="datetime-local" id="entry-start" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Befejezés (Opcionális)</label>
+                            <input type="datetime-local" id="entry-end" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">Létrehozás</button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
