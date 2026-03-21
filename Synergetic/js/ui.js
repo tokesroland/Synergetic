@@ -39,6 +39,12 @@ const UI = {
                 item.style.display = groupName.includes(searchTerm) ? 'block' : 'none';
             });
         });
+        const manageGroupsBtn = document.querySelector('.manage-groups-btn');
+        if (manageGroupsBtn) {
+            manageGroupsBtn.addEventListener('click', () => {
+                window.location.href = 'groups.html';
+            });
+        }
     },
 
 // Csoportok menü generálása
