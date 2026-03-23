@@ -16,6 +16,9 @@ try {
             if (isset($_GET['action']) && $_GET['action'] == 'get_groups') {
                 // Csoportok lekérése statisztikákkal
                 echo json_encode($controller->getGroups());
+            } elseif (isset($_GET['action']) && $_GET['action'] == 'get_calendar') {
+                // ÚJ: Naptár lekérés
+                echo json_encode($controller->getCalendarEntries());
             } elseif (isset($_GET['entry_id'])) {
                 // Egy konkrét elem lekérése a részletes nézethez
                 $result = $controller->getOne($_GET['entry_id']);

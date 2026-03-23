@@ -144,8 +144,7 @@ const UI = {
                     e.target.value = 'graph';
                 }
             } else if (e.target.value === 'calendar') {
-                alert("A naptár nézet még fejlesztés alatt!");
-                e.target.value = 'graph';
+            window.location.href = 'calendar.html';
             }
         });
     },

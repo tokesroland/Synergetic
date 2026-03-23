@@ -1,0 +1,83 @@
+Fejlesztések:
+- Tagek hozzáadása az entries-ekhez
+- Keresés tagek alapján
+- .md fájlok importálása és exportálása
+- Keresés szöveg alapján
+- Keresés dátum alapján
+- Keresés hely alapján
+- Keresés hely és dátum alapján
+- helyek megjelenítése térképen
+- ismétlődés hozzáadása az entry-hez
+- csatolmányok hozzáadása az entry-hez
+- kategóriák hozzáadása és szerkesztése az entry-hez
+- kategóriák szerinti szűrés
+- ismétlődő entry-k kezelése:
+  - ismétlődő entry-k megjelenítése a naptár nézetben
+  - ismétlődő entry-k szerkesztése
+  - ismétlődő entry-k törlése
+- Csoporthoz csatolás:
+  - gráf húzásával bele lehet húzni
+  - csoport eltávolítása (automatikusan az "összes"-be kerül a tartalom)
+  - Csoportok rendezése
+  - Csoportok színezése
+  - Csoportok szűrése
+  - Csoportok exportálása és importálása
+- UI:
+  - Redesign:
+    - Átláthatóbb, egyszerűbb, gyorsabb
+    - popup ha ráviszem az egeret az entry-rel
+    - Sidebar entries kiiratás:
+      - kategóriák szerint rendezve
+      - tagek szerint rendezve
+      - helyek szerint rendezve
+      - dátum szerint rendezve
+      - Vékonyabb design, kevésbé tolakodó
+      - gyors hozzáférés a leggyakoribb műveletekhez (új entry létrehozása, keresés, szűrés)
+      - egyszerre több szűrő alkalmazása a megjelenítéshez
+      - szűrők mentése
+  - naptár nézet:
+    - napi nézet
+    - havi nézet
+    - heti nézet
+    - éves nézet
+    - Gyorsműveletek a naptár nézetben:
+      - új entry létrehozása
+      - entry szerkesztése
+      - entry törlése
+      - kivétel hozzáadása ismétlődő entry-hez
+  - TODO details felület:
+    - Státuszok:
+      - "teendő"
+      - "folyamatban"
+      - "kész"
+    - Határidő hozzáadása
+    - Prioritás hozzáadása
+  - EVENT details felület:
+    - helyszín hozzáadása
+    - résztvevők hozzáadása
+  - Entries details felület:
+    - tagek hozzáadása
+    - kategóriák hozzáadása
+    - csatolmányok hozzáadása
+    - emlékeztetők hozzáadása
+    - ismétlődés hozzáadása
+    - Kapcsolatok hozzáadása:
+      - ha egy entry-nek van kapcsolata egy másik entry-vel, akkor megjelenik egy link, amire kattintva át lehet ugrani a másik entry-re
+      - kapcsolatok szerkesztése
+      - kapcsolatok törlése
+      - kapcsolatok szűrése
+
+Bónusz:
+  - Naptár szinkronizáció:
+    - Google Calendar szinkronizáció
+  - Fordítás támogatás
+  - Google map API helyszínhez
+  - Naptár nézetben drag and drop támogatás
+  - Naptár nézetben entry-k színezése kategória alapján
+  - kapcsolatok exportálása és importálása
+  - kapcsolatok megjelenítése a naptár nézetben
+  - Naptár nézetben entry-k színezése státusz alapján
+  - Naptár nézetben entry-k színezése prioritás alapján
+  - Naptár nézetben entry-k színezése ismétlődés
+  - Naptár nézetben entry-k színezése hely alapján
+  - Naptár nézetben entry-k színezése dátum alapján

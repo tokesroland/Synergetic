@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naptár Nézet</title>
+    <link rel="stylesheet" href="./styles/style.css">
+    <style>
+        body { overflow-y: auto; display: flex; flex-direction: column; height: 100vh; }
+        
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 30px; background-color: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        .calendar-container { max-width: 900px; margin: 30px auto; width: 100%; padding: 0 20px; }
+
+        /* Naptár Fejléc (Hónap léptető) */
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .cal-header button { background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer; transition: color 0.2s; }
+        .cal-header button:hover { color: var(--text-primary); }
+        .cal-month-year { font-size: 1.8rem; font-weight: bold; color: var(--text-primary); text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Naptár Rács */
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        .cal-day-name { text-align: center; font-size: 0.8rem; font-weight: bold; color: var(--text-secondary); margin-bottom: 10px; }
+        
+        .cal-cell {
+            aspect-ratio: 1;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 10px 5px; border-radius: 8px; cursor: pointer;
+            border: 1px solid transparent; transition: all 0.2s;
+        }
+        .cal-cell:hover { background-color: var(--bg-item); border-color: var(--border-color); }
+        .cal-cell.active { border-color: var(--accent-muted); background-color: var(--bg-item-hover); }
+        .cal-cell.empty { visibility: hidden; }
+        .cal-cell.today .cal-date-num { color: var(--accent-active); }
+
+        .cal-date-num { font-size: 1.1rem; font-weight: 600; margin-bottom: 5px; color: var(--text-primary); }
+        
+        /* Vonalak az elemekhez */
+        .cal-lines-container { width: 80%; display: flex; flex-direction: column; gap: 3px; align-items: center; }
+        .cal-line { height: 4px; border-radius: 2px; width: 100%; }
+
+        /* Kiválasztott nap részletei (Alsó szekció) */
+        .day-details-section { margin-top: 40px; border-top: 1px solid var(--border-color); padding-top: 30px; }
+        .day-details-title { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 20px; display: flex; justify-content: space-between;}
+        
+        .timeline-item { display: flex; gap: 15px; margin-bottom: 20px; align-items: stretch; cursor: pointer;}
+        .timeline-item:hover .timeline-content { background-color: var(--bg-item-hover); }
+        .timeline-time { width: 120px; font-size: 0.9rem; font-weight: bold; color: var(--text-primary); text-align: right; padding-top: 10px; }
+        .timeline-bar { width: 4px; border-radius: 2px; }
+        
+        .timeline-content { flex-grow: 1; background-color: var(--bg-item); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); transition: all 0.2s; }
+        .timeline-title { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 5px; }
+        .timeline-desc { font-size: 0.85rem; color: var(--text-secondary); font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <button class="filter-btn" onclick="window.location.href='index.html'">← Vissza a gráfhoz</button>
+    </div>
+
+    <div class="calendar-container">
+        <div class="cal-header">
+            <button id="prev-month">&lt;</button>
+            <div class="cal-month-year" id="month-year-display">MAR 2026</div>
+            <button id="next-month">&gt;</button>
+        </div>
+
+        <div class="cal-grid" id="cal-header-days">
+            <div class="cal-day-name">H</div><div class="cal-day-name">K</div><div class="cal-day-name">Sze</div>
+            <div class="cal-day-name">Cs</div><div class="cal-day-name">P</div><div class="cal-day-name">Szo</div><div class="cal-day-name">V</div>
+        </div>
+
+        <div class="cal-grid" id="cal-grid-cells"></div>
+
+        <div class="day-details-section">
+            <div class="day-details-title">
+                <span id="selected-date-display">Válassz egy napot</span>
+            </div>
+            <div id="timeline-container">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        const monthYearDisplay = document.getElementById('month-year-display');
+        const calGridCells = document.getElementById('cal-grid-cells');
+        const selectedDateDisplay = document.getElementById('selected-date-display');
+        const timelineContainer = document.getElementById('timeline-container');
+
+        let currentDate = new Date();
+        let selectedDate = new Date();
+        let allEntries = [];
+
+        // Típus színek
+        const typeColors = {
+            task: getComputedStyle(document.documentElement).getPropertyValue('--node-task').trim() || '#4caf50',
+            todo: getComputedStyle(document.documentElement).getPropertyValue('--node-task').trim() || '#4caf50',
+            event: getComputedStyle(document.documentElement).getPropertyValue('--node-event').trim() || '#ff9800'
+        };
+
+        // 1. Adatok betöltése
+        async function fetchEntries() {
+            try {
+                const res = await fetch('api.php?action=get_calendar');
+                allEntries = await res.json();
+                renderCalendar();
+                renderTimeline(selectedDate);
+            } catch (err) { console.error("Hiba a naptár betöltésekor", err); }
+        }
+
+        // 2. Naptár kirajzolása
+        function renderCalendar() {
+            calGridCells.innerHTML = '';
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            // Hónap neve kiírása
+            const monthNames = ["Január", "Február", "Március", "Április", "Május", "Június", "Július", "Augusztus", "Szeptember", "Október", "November", "December"];
+            monthYearDisplay.textContent = `${monthNames[month]} ${year}`;
+
+            // Első nap meghatározása (Hétfővel kezdődő hét)
+            let firstDay = new Date(year, month, 1).getDay();
+            firstDay = firstDay === 0 ? 6 : firstDay - 1; 
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Üres cellák a hónap elején
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'cal-cell empty';
+                calGridCells.appendChild(emptyCell);
+            }
+
+            // Napok kirajzolása
+            const today = new Date();
+            for (let i = 1; i <= daysInMonth; i++) {
+                const cellDate = new Date(year, month, i);
+                const cell = document.createElement('div');
+                cell.className = 'cal-cell';
+                
+                if (cellDate.toDateString() === today.toDateString()) cell.classList.add('today');
+                if (cellDate.toDateString() === selectedDate.toDateString()) cell.classList.add('active');
+
+                // Dátum szám
+                const num = document.createElement('div');
+                num.className = 'cal-date-num';
+                num.textContent = i;
+                cell.appendChild(num);
+
+                // Esemény vonalak keresése erre a napra
+                const linesContainer = document.createElement('div');
+                linesContainer.className = 'cal-lines-container';
+                
+                const daysEntries = getEntriesForDate(cellDate);
+                // Maximum 4 vonalat rajzolunk ki, hogy ne folyjon ki
+                daysEntries.slice(0, 4).forEach(entry => {
+                    const line = document.createElement('div');
+                    line.className = 'cal-line';
+                    line.style.backgroundColor = typeColors[entry.type] || '#ccc';
+                    linesContainer.appendChild(line);
+                });
+
+                cell.appendChild(linesContainer);
+
+                // Kattintás esemény (Nap kiválasztása)
+                cell.addEventListener('click', () => {
+                    document.querySelectorAll('.cal-cell').forEach(c => c.classList.remove('active'));
+                    cell.classList.add('active');
+                    selectedDate = cellDate;
+                    renderTimeline(selectedDate);
+                });
+
+                calGridCells.appendChild(cell);
+            }
+        }
+
+        // 3. Adott nap eseményeinek lekérése (Figyeli a mettől-meddig átnyúlást)
+        function getEntriesForDate(targetDate) {
+            return allEntries.filter(entry => {
+                if (!entry.start_datetime) return false;
+                
+                // Dátum konverziók (Safari kompatibilis T cserével)
+                const start = new Date(entry.start_datetime.replace(' ', 'T'));
+                start.setHours(0,0,0,0);
+                
+                const target = new Date(targetDate);
+                target.setHours(0,0,0,0);
+
+                if (entry.end_datetime) {
+                    const end = new Date(entry.end_datetime.replace(' ', 'T'));
+                    end.setHours(0,0,0,0);
+                    return target >= start && target <= end; // Ha a tartományban van
+                } else {
+                    return target.getTime() === start.getTime(); // Ha csak egy napos
+                }
+            });
+        }
+
+        // 4. Alsó Idővonal (Timeline) kirajzolása
+        function renderTimeline(date) {
+            const options = { month: 'short', day: 'numeric', weekday: 'long' };
+            selectedDateDisplay.textContent = date.toLocaleDateString('hu-HU', options);
+            
+            timelineContainer.innerHTML = '';
+            const entries = getEntriesForDate(date);
+
+            // Sorrendezés idő szerint
+            entries.sort((a, b) => new Date(a.start_datetime.replace(' ', 'T')) - new Date(b.start_datetime.replace(' ', 'T')));
+
+            if (entries.length === 0) {
+                timelineContainer.innerHTML = '<div style="color: var(--text-secondary);">Nincs esemény vagy feladat erre a napra.</div>';
+                return;
+            }
+
+            entries.forEach(entry => {
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                
+                // Idő formázása
+                let timeString = 'Egész nap';
+                if (entry.is_all_day == 0 || entry.type === 'todo') {
+                    const start = new Date(entry.start_datetime.replace(' ', 'T'));
+                    timeString = start.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' });
+                    
+                    if (entry.end_datetime) {
+                        const end = new Date(entry.end_datetime.replace(' ', 'T'));
+                        timeString += ` - ${end.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}`;
+                    }
+                }
+
+                const color = typeColors[entry.type] || '#ccc';
+                const desc = entry.content ? (entry.content.length > 30 ? entry.content.substring(0, 30) + '...' : entry.content) : 'Nincs leírás';
+
+                item.innerHTML = `
+                    <div class="timeline-time">${timeString}</div>
+                    <div class="timeline-bar" style="background-color: ${color};"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">${entry.title}</div>
+                        <div class="timeline-desc">${desc}</div>
+                    </div>
+                `;
+
+                // Kattintás a részletekre
+                item.addEventListener('click', () => window.location.href = `details.html?id=${entry.id}`);
+                timelineContainer.appendChild(item);
+            });
+        }
+
+        // Léptető gombok
+        document.getElementById('prev-month').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+        document.getElementById('next-month').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        fetchEntries();
+    </script>
+</body>
+</html>

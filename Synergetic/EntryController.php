@@ -20,7 +20,7 @@ class EntryController {
 
     // Csoport elemeinek lekérése a gráfhoz
     public function getAllByGroup($groupId) {
-        $stmt = $this->pdo->prepare("SELECT id, type, title, pos_x as x, pos_y as y FROM entries WHERE group_id = ?");
+        $stmt = $this->pdo->prepare("SELECT id, type, title, pos_x AS x, pos_y AS y FROM entries WHERE group_id = ?");
         $stmt->execute([$groupId]);
         $entries = $stmt->fetchAll();
 
@@ -108,6 +108,28 @@ class EntryController {
             LEFT JOIN entries e ON g.id = e.group_id
             GROUP BY g.id
             ORDER BY g.name ASC
+        ";
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetchAll();
+    }
+
+    // --- ÚJ: Naptár bejegyzések lekérése ---
+    public function getCalendarEntries() {
+        // Összefésüljük a todo és event adatokat, hogy a naptár nézetben mindkettő megjeleníthető legyen
+        $sql = "
+            SELECT 
+                e.id, 
+                e.title, 
+                e.content, 
+                e.type,
+                COALESCE(ed.start_datetime, td.start_datetime) AS start_datetime,
+                COALESCE(ed.end_datetime, td.end_datetime) AS end_datetime,
+                ed.is_all_day
+            FROM entries e
+            LEFT JOIN event_details ed ON e.id = ed.entry_id AND e.type = 'event'
+            LEFT JOIN todo_details td ON e.id = td.entry_id AND e.type = 'todo'
+            WHERE e.type IN ('todo', 'event') 
+            AND (ed.start_datetime IS NOT NULL OR td.start_datetime IS NOT NULL)
         ";
         $stmt = $this->pdo->query($sql);
         return $stmt->fetchAll();
