@@ -1,7 +1,7 @@
 <?php
 // api.php
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST, GET, PUT, OPTIONS");
+header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS"); // DELETE Hozzáadva!
 header("Access-Control-Allow-Headers: Content-Type");
 
 require_once 'EntryController.php';
@@ -13,39 +13,66 @@ $controller = new EntryController();
 try {
     switch ($method) {
         case 'GET':
+            // ... (Marad a korábbi) ...
             if (isset($_GET['action']) && $_GET['action'] == 'get_groups') {
-                // Csoportok lekérése statisztikákkal
                 echo json_encode($controller->getGroups());
             } elseif (isset($_GET['action']) && $_GET['action'] == 'get_calendar') {
-                // ÚJ: Naptár lekérés
                 echo json_encode($controller->getCalendarEntries());
             } elseif (isset($_GET['entry_id'])) {
-                // Egy konkrét elem lekérése a részletes nézethez
                 $result = $controller->getOne($_GET['entry_id']);
                 if (!$result) {
-                    http_response_code(404);
-                    echo json_encode(["error" => "Nem található"]);
+                    http_response_code(404); echo json_encode(["error" => "Nem található"]);
                 } else {
                     echo json_encode($result);
                 }
+            } elseif (isset($_GET['action']) && $_GET['action'] == 'get_categories') {
+                echo json_encode($controller->getCategories());
+            } elseif (isset($_GET['action']) && $_GET['action'] == 'get_tags') {
+                echo json_encode($controller->getTags());
             } else {
-                // Csoport elemeinek listázása a gráfhoz
-                $groupId = $_GET['group_id'] ?? 1;
-                echo json_encode($controller->getAllByGroup($groupId));
+                echo json_encode($controller->getAllByGroup($_GET['group_id'] ?? 1));
             }
             break;
+
         case 'POST':
-            // Új elem létrehozása
-            echo json_encode($controller->create($input));
+            $action = $input['action'] ?? 'create_entry';
+            
+            if ($action === 'create_category') {
+                echo json_encode($controller->createCategory($input));
+            } elseif ($action === 'create_tag') {
+                echo json_encode($controller->createTag($input));
+            } elseif ($action === 'create_location') {
+                echo json_encode($controller->createLocation($input));
+            } elseif ($action === 'create_link') {
+                echo json_encode($controller->createLink($input['source_id'], $input['target_id']));
+            } elseif ($action === 'update_position') {
+                echo json_encode($controller->updatePosition($input['id'], $input['x'], $input['y']));
+            } elseif ($action === 'assign_category') {
+                echo json_encode($controller->assignCategory($input['entry_id'], $input['category_id']));
+            } elseif ($action === 'assign_tag') {
+                echo json_encode($controller->assignTag($input['entry_id'], $input['tag_id']));
+            } else {
+                echo json_encode($controller->create($input));
+            }
             break;
 
         case 'PUT':
-            // Meglévő elem frissítése (mentés a details oldalon)
             echo json_encode($controller->update($input));
             break;
 
+        case 'DELETE':
+            $action = $_GET['action'] ?? '';
+            
+            if ($action === 'delete_link') {
+                echo json_encode($controller->deleteLink($_GET['source_id'], $_GET['target_id']));
+            } elseif ($action === 'delete_entry') {
+                echo json_encode($controller->deleteEntry($_GET['id']));
+            } else {
+                http_response_code(400); echo json_encode(["error" => "Érvénytelen törlési művelet."]);
+            }
+            break;
+
         case 'OPTIONS':
-            // Pre-flight kérések kezelése (CORS miatt)
             http_response_code(200);
             break;
 

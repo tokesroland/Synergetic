@@ -18,17 +18,44 @@ class EntryController {
         }
     }
 
-    // Csoport elemeinek lekérése a gráfhoz
+// Csoport elemeinek lekérése a gráfhoz
     public function getAllByGroup($groupId) {
-        $stmt = $this->pdo->prepare("SELECT id, type, title, pos_x AS x, pos_y AS y FROM entries WHERE group_id = ?");
+        // Hozzáadtuk a category_id lekérését is a menühöz!
+        $stmt = $this->pdo->prepare("SELECT id, type, title, category_id, pos_x AS x, pos_y AS y FROM entries WHERE group_id = ?");
         $stmt->execute([$groupId]);
         $entries = $stmt->fetchAll();
 
+        // 1. Kigyűjtjük az id-kat, hogy le tudjuk kérni hozzájuk a kapcsolatokat
+        $entryIds = array_column($entries, 'id');
+        $linksMapping = [];
+        
+        if (!empty($entryIds)) {
+            $inQuery = implode(',', array_fill(0, count($entryIds), '?'));
+            // Lekérjük az összes olyan linket, aminek a forrása vagy célja ebben a csoportban van
+            $stmtLinks = $this->pdo->prepare("SELECT source_id, target_id FROM entry_links WHERE source_id IN ($inQuery) OR target_id IN ($inQuery)");
+            $stmtLinks->execute(array_merge($entryIds, $entryIds));
+            $allLinks = $stmtLinks->fetchAll();
+
+            // Mivel a gráf irányítatlan, mindkét oldalra felvesszük a kapcsolatot
+            foreach ($allLinks as $link) {
+                $linksMapping[$link['source_id']][] = $link['target_id'];
+                $linksMapping[$link['target_id']][] = $link['source_id'];
+            }
+        }
+
+        // 2. Összefűzzük az adatokat
         foreach ($entries as &$entry) {
             $entry['x'] = (float)$entry['x'];
             $entry['y'] = (float)$entry['y'];
-            $entry['links'] = []; 
+            
+            // Ha van kapcsolat, beletesszük (array_values(array_unique(...)) a duplikációk elkerülésére)
+            if (isset($linksMapping[$entry['id']])) {
+                $entry['links'] = array_values(array_unique($linksMapping[$entry['id']]));
+            } else {
+                $entry['links'] = [];
+            }
         }
+        
         return ["entries" => $entries];
     }
 
@@ -66,7 +93,7 @@ class EntryController {
             $this->pdo->commit();
             return [
                 "message" => "Elem sikeresen létrehozva!",
-                "entry_id" => $entry_id
+                "id" => $entry_id
             ];
         } catch (Exception $e) {
             $this->pdo->rollBack();
@@ -133,5 +160,94 @@ class EntryController {
         ";
         $stmt = $this->pdo->query($sql);
         return $stmt->fetchAll();
+    }
+
+    // --- ÚJ: Kategória létrehozása ---
+    public function createCategory($data) {
+        if (empty($data['name'])) throw new Exception("A kategória neve kötelező!");
+        $stmt = $this->pdo->prepare("INSERT INTO categories (name, color_hex) VALUES (?, ?)");
+        $stmt->execute([$data['name'], $data['color_hex'] ?? '#5c6bc0']);
+        return ["message" => "Kategória sikeresen létrehozva!", "id" => $this->pdo->lastInsertId()];
+    }
+
+    // --- ÚJ: Tag (Címke) létrehozása ---
+    public function createTag($data) {
+        if (empty($data['name'])) throw new Exception("A címke neve kötelező!");
+        $stmt = $this->pdo->prepare("INSERT INTO tags (name, color_hex) VALUES (?, ?)");
+        $stmt->execute([$data['name'], $data['color_hex'] ?? '#ff9800']);
+        return ["message" => "Címke sikeresen létrehozva!", "id" => $this->pdo->lastInsertId()];
+    }
+
+    // --- ÚJ: Helyszín létrehozása ---
+    public function createLocation($data) {
+        if (empty($data['name'])) throw new Exception("A helyszín neve kötelező!");
+        $stmt = $this->pdo->prepare("INSERT INTO locations (name) VALUES (?)");
+        $stmt->execute([$data['name']]);
+        return ["message" => "Helyszín sikeresen létrehozva!", "id" => $this->pdo->lastInsertId()];
+    }
+    // --- ÚJ: Új kapcsolat (Link) mentése ---
+    public function createLink($sourceId, $targetId) {
+        if (empty($sourceId) || empty($targetId) || $sourceId == $targetId) {
+            throw new Exception("Érvénytelen kapcsolat azonosítók.");
+        }
+        // Megnézzük, létezik-e már ez a kapcsolat (bármelyik irányban)
+        $checkStmt = $this->pdo->prepare("SELECT 1 FROM entry_links WHERE (source_id = ? AND target_id = ?) OR (source_id = ? AND target_id = ?)");
+        $checkStmt->execute([$sourceId, $targetId, $targetId, $sourceId]);
+        if ($checkStmt->fetch()) {
+            return ["message" => "Ez a kapcsolat már létezik."]; // Nem dobunk hibát, csak nem csinálunk semmit
+        }
+
+        $stmt = $this->pdo->prepare("INSERT INTO entry_links (source_id, target_id) VALUES (?, ?)");
+        $stmt->execute([$sourceId, $targetId]);
+        return ["message" => "Kapcsolat sikeresen létrehozva!"];
+    }
+
+    // --- ÚJ: Kapcsolat (Link) törlése ---
+    public function deleteLink($sourceId, $targetId) {
+        if (empty($sourceId) || empty($targetId)) throw new Exception("Hiányzó azonosítók a törléshez.");
+        // Mivel a gráf irányítatlan vizuálisan, mindkét eshetőséget töröljük a biztonság kedvéért
+        $stmt = $this->pdo->prepare("DELETE FROM entry_links WHERE (source_id = ? AND target_id = ?) OR (source_id = ? AND target_id = ?)");
+        $stmt->execute([$sourceId, $targetId, $targetId, $sourceId]);
+        return ["message" => "Kapcsolat sikeresen bontva!"];
+    }
+
+    // --- ÚJ: Bejegyzés (Entry) törlése ---
+    public function deleteEntry($id) {
+        if (empty($id)) throw new Exception("Hiányzó azonosító.");
+        // A Foreign Key (ON DELETE CASCADE) beállítások miatt, ha töröljük a fő entry-t, 
+        // automatikusan törlődnek a hozzá tartozó todo_details, event_details, tags, és LINKS is!
+        $stmt = $this->pdo->prepare("DELETE FROM entries WHERE id = ?");
+        $stmt->execute([$id]);
+        return ["message" => "Bejegyzés sikeresen törölve!"];
+    }
+
+    // --- POZÍCIÓ MENTÉSE ---
+    public function updatePosition($id, $x, $y) {
+        $stmt = $this->pdo->prepare("UPDATE entries SET pos_x = ?, pos_y = ? WHERE id = ?");
+        $stmt->execute([$x, $y, $id]);
+        return ["message" => "Pozíció mentve!"];
+    }
+
+    // --- KATEGÓRIÁK ÉS TAGEK LEKÉRÉSE ---
+    public function getCategories() {
+        return $this->pdo->query("SELECT * FROM categories ORDER BY name ASC")->fetchAll();
+    }
+
+    public function getTags() {
+        return $this->pdo->query("SELECT * FROM tags ORDER BY name ASC")->fetchAll();
+    }
+
+    // --- HOZZÁRENDELÉSEK (ASSIGN) ---
+    public function assignCategory($entryId, $categoryId) {
+        $stmt = $this->pdo->prepare("UPDATE entries SET category_id = ? WHERE id = ?");
+        $stmt->execute([$categoryId, $entryId]);
+        return ["message" => "Kategória sikeresen hozzárendelve!"];
+    }
+
+    public function assignTag($entryId, $tagId) {
+        // IGNORE: Ha már hozzá van rendelve, nem dob hibát, csak átugorja
+        $stmt = $this->pdo->prepare("INSERT IGNORE INTO entry_tags (entry_id, tag_id) VALUES (?, ?)");
+        $stmt->execute([$entryId, $tagId]);
+        return ["message" => "Címke sikeresen hozzárendelve!"];
     }
 }

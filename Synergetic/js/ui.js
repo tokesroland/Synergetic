@@ -14,24 +14,23 @@ const UI = {
         const groupsArrow = document.getElementById('groups-arrow');
         const searchInput = document.getElementById('group-search');
 
-        hamburgerBtn.addEventListener('click', (e) => {
+        if (hamburgerBtn) hamburgerBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             sidebar.classList.toggle('closed');
         });
 
         document.getElementById('main-content').addEventListener('click', () => {
-            if (!sidebar.classList.contains('closed')) sidebar.classList.add('closed');
+            if (sidebar && !sidebar.classList.contains('closed')) sidebar.classList.add('closed');
         });
 
-        sidebar.addEventListener('click', (e) => e.stopPropagation());
+        if (sidebar) sidebar.addEventListener('click', (e) => e.stopPropagation());
 
-        groupsToggle.addEventListener('click', () => {
+        if (groupsToggle) groupsToggle.addEventListener('click', () => {
             groupsDropdown.classList.toggle('open');
             groupsArrow.textContent = groupsDropdown.classList.contains('open') ? '▲' : '▼';
         });
 
-        // Kereső javítva dinamikus listához
-        searchInput.addEventListener('input', (e) => {
+        if (searchInput) searchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
             const groupItems = document.querySelectorAll('.group-item');
             groupItems.forEach(item => {
@@ -39,6 +38,8 @@ const UI = {
                 item.style.display = groupName.includes(searchTerm) ? 'block' : 'none';
             });
         });
+
+        // "Csoportok kezelése" gomb átirányítás
         const manageGroupsBtn = document.querySelector('.manage-groups-btn');
         if (manageGroupsBtn) {
             manageGroupsBtn.addEventListener('click', () => {
@@ -47,12 +48,39 @@ const UI = {
         }
     },
 
-// Csoportok menü generálása
+    initFilters() {
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const type = btn.getAttribute('data-type');
+                App.state.filters[type] = !App.state.filters[type];
+                btn.classList.toggle('active');
+                if (typeof Graph !== 'undefined') Graph.draw();
+            });
+        });
+    },
+
+    initModeSelector() {
+        const modeSelect = document.getElementById('mode-select');
+        if (modeSelect) modeSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'detail') {
+                if (App.state.selectedId) {
+                    window.location.href = `details.html?id=${App.state.selectedId}`;
+                } else {
+                    alert("Kérlek először válassz ki egy elemet (kattints egy golyóra) a gráfon!");
+                    e.target.value = 'graph';
+                }
+            } else if (e.target.value === 'calendar') {
+                window.location.href = 'calendar.html';
+            }
+        });
+    },
+
     renderGroups(groups) {
         const container = document.getElementById('group-list-container');
+        if (!container) return;
         container.innerHTML = '';
         
-        // Ha üres az adatbázis
         if (!groups || groups.length === 0) {
             container.innerHTML = '<div style="color: var(--text-secondary); text-align: center; font-size: 0.85rem; padding: 10px;">Nincsenek csoportok. Hozz létre egyet!</div>';
             return;
@@ -63,11 +91,10 @@ const UI = {
             li.className = `group-item ${group.id == App.state.currentGroupId ? 'active' : ''}`;
             li.setAttribute('data-group', group.id);
             
-            // A kártya felépítése a statisztikákkal
             li.innerHTML = `
                 <div class="group-name">${group.name}</div>
                 <div class="group-stats">
-                    ${group.todo_count} Feladat | ${group.event_count} Esemény | ${group.note_count} Jegyzet
+                    ${group.todo_count || 0} Feladat | ${group.event_count || 0} Esemény | ${group.note_count || 0} Jegyzet
                 </div>
             `;
             
@@ -75,15 +102,15 @@ const UI = {
                 document.querySelector('.group-item.active')?.classList.remove('active');
                 li.classList.add('active');
                 App.state.currentGroupId = group.id;
-                App.loadCurrentGroup(); // Automatikusan betölti a gráfot és a listát!
+                App.loadCurrentGroup();
             });
             container.appendChild(li);
         });
     },
 
-    // ÚJ: Bejegyzések kilistázása a csoport alatt (Kártya Dizájn)
     renderSidebarEntries(entries) {
         const container = document.getElementById('sidebar-entries-container');
+        if (!container) return;
         container.innerHTML = '';
 
         if (!entries || entries.length === 0) {
@@ -96,12 +123,10 @@ const UI = {
         entries.forEach(entry => {
             const div = document.createElement('div');
             div.className = `sidebar-entry-item ${entry.id === App.state.selectedId ? 'active' : ''}`;
-
-            // CSS változó beállítása a kártyának (ebből kapja a színes csíkot a szélén)
+            
             const color = App.colors[entry.type] || '#fff';
             div.style.setProperty('--card-color', color);
-
-            // A title="" attribútum miatt, ha ráviszi az egeret a levágott szövegre, kiírja a teljeset
+            
             div.innerHTML = `
                 <div class="sidebar-entry-title" title="${entry.title}">${entry.title}</div>
                 <div class="sidebar-entry-type" style="color: ${color}; border: 1px solid ${color}40;">
@@ -111,8 +136,8 @@ const UI = {
 
             div.addEventListener('click', () => {
                 App.state.selectedId = entry.id;
-                Graph.draw();
-
+                if (typeof Graph !== 'undefined') Graph.draw(); 
+                
                 document.querySelectorAll('.sidebar-entry-item').forEach(el => el.classList.remove('active'));
                 div.classList.add('active');
             });
@@ -121,53 +146,44 @@ const UI = {
         });
     },
 
-    initFilters() {
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const type = btn.getAttribute('data-type');
-                App.state.filters[type] = !App.state.filters[type];
-                btn.classList.toggle('active');
-                Graph.draw(); // Vászon azonnali frissítése
-            });
-        });
-    },
-
-    initModeSelector() {
-        const modeSelect = document.getElementById('mode-select');
-        modeSelect.addEventListener('change', (e) => {
-            if (e.target.value === 'detail') {
-                if (App.state.selectedId) {
-                    window.location.href = `details.html?id=${App.state.selectedId}`;
-                } else {
-                    alert("Kérlek először válassz ki egy elemet (kattints egy golyóra) a gráfon!");
-                    e.target.value = 'graph';
-                }
-            } else if (e.target.value === 'calendar') {
-            window.location.href = 'calendar.html';
-            }
-        });
-    },
-
     initModalAndForm() {
         const modal = document.getElementById('entry-modal');
         const openModalBtn = document.getElementById('open-modal-btn');
         const closeModalBtn = document.getElementById('close-modal-btn');
         const newEntryForm = document.getElementById('new-entry-form');
+        
+        // Form blokkok
+        const creationTypeSelect = document.getElementById('creation-type');
+        const fieldsEntry = document.getElementById('fields-entry');
+        const fieldsCategory = document.getElementById('fields-category');
+        const fieldsTag = document.getElementById('fields-tag');
+        const fieldsLocation = document.getElementById('fields-location');
+
+        // Entry specifikus mezők
         const entryTypeSelect = document.getElementById('entry-type');
         const datetimeContainer = document.getElementById('datetime-container');
         const allDayCheckbox = document.getElementById('entry-allday');
         const startInput = document.getElementById('entry-start');
         const endInput = document.getElementById('entry-end');
 
-        openModalBtn.addEventListener('click', () => modal.classList.add('active'));
-        closeModalBtn.addEventListener('click', () => modal.classList.remove('active'));
-        modal.addEventListener('click', (e) => {
+        // Modal nyitás / csukás
+        if (openModalBtn) openModalBtn.addEventListener('click', () => modal.classList.add('active'));
+        if (closeModalBtn) closeModalBtn.addEventListener('click', () => modal.classList.remove('active'));
+        if (modal) modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.classList.remove('active');
         });
 
-        // Form mezők elrejtése/mutatása típus alapján
-        entryTypeSelect.addEventListener('change', (e) => {
+        // 1. Létrehozás típusának váltása (Fő menü)
+        if (creationTypeSelect) creationTypeSelect.addEventListener('change', (e) => {
+            const type = e.target.value;
+            fieldsEntry.style.display = type === 'entry' ? 'block' : 'none';
+            fieldsCategory.style.display = type === 'category' ? 'block' : 'none';
+            fieldsTag.style.display = type === 'tag' ? 'block' : 'none';
+            fieldsLocation.style.display = type === 'location' ? 'block' : 'none';
+        });
+
+        // 2. Bejegyzés típusának váltása (Jegyzet / Todo / Esemény)
+        if (entryTypeSelect) entryTypeSelect.addEventListener('change', (e) => {
             const type = e.target.value;
             if (type === 'todo' || type === 'event') {
                 datetimeContainer.style.display = 'block';
@@ -178,7 +194,8 @@ const UI = {
             }
         });
 
-        allDayCheckbox.addEventListener('change', (e) => {
+        // 3. Egész napos checkbox
+        if (allDayCheckbox) allDayCheckbox.addEventListener('change', (e) => {
             if (e.target.checked) {
                 startInput.type = 'date';
                 endInput.type = 'date';
@@ -188,55 +205,72 @@ const UI = {
             }
         });
 
-        // FORM BEKÜLDÉSE (A Hálózati kérés összekötése a Mentéssel)
-        newEntryForm.addEventListener('submit', async (e) => {
+        // 4. FORM BEKÜLDÉSE
+        if (newEntryForm) newEntryForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            const entryData = {
-                title: document.getElementById('entry-title').value,
-                group_id: document.getElementById('entry-group').value || 1,
-                category_id: document.getElementById('entry-category').value || null,
-                type: entryTypeSelect.value,
-            };
-
-            if (entryData.type === 'todo' || entryData.type === 'event') {
-                entryData.start_datetime = startInput.value || null;
-                entryData.end_datetime = endInput.value || null;
-                entryData.is_all_day = allDayCheckbox.checked ? 1 : 0;
-            }
 
             const submitBtn = newEntryForm.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Mentés...';
 
+            const creationType = creationTypeSelect.value;
+            let payload = { action: `create_${creationType}` }; 
+
+            if (creationType === 'entry') {
+                payload.title = document.getElementById('entry-title').value;
+                payload.group_id = document.getElementById('entry-group').value || 1;
+                payload.category_id = document.getElementById('entry-category').value || null;
+                payload.type = entryTypeSelect.value;
+
+                if (payload.type === 'todo' || payload.type === 'event') {
+                    payload.start_datetime = startInput.value || null;
+                    payload.end_datetime = endInput.value || null;
+                    payload.is_all_day = allDayCheckbox.checked ? 1 : 0;
+                }
+            } else if (creationType === 'category') {
+                payload.name = document.getElementById('category-name').value;
+                payload.color_hex = document.getElementById('category-color').value;
+            } else if (creationType === 'tag') {
+                payload.name = document.getElementById('tag-name').value;
+                payload.color_hex = document.getElementById('tag-color').value;
+            } else if (creationType === 'location') {
+                payload.name = document.getElementById('location-name').value;
+            }
+
             // Kérés indítása az API rétegen keresztül
-            const data = await API.createEntry(entryData);
+            const data = await API.createEntry(payload);
 
             submitBtn.disabled = false;
             submitBtn.textContent = 'Létrehozás';
 
             if (data && data.error) {
                 alert('Hiba történt: ' + data.error);
-            } else if (data && data.entry_id) {
-                // Sikeres mentés esetén új elem generálása a JS memóriába
-                const newNode = {
-                    id: data.entry_id,
-                    type: entryData.type,
-                    title: entryData.title,
-                    x: Math.random() * (Graph.canvas.width - 150) + 75,
-                    y: Math.random() * (Graph.canvas.height - 150) + 75,
-                    links: []
-                };
+            } else if (data && data.id) {
+                console.log('Sikeres mentés!', data);
 
-                App.state.nodes.push(newNode);
-                Graph.draw();
-                UI.renderSidebarEntries(App.state.nodes);
-                App.loadGroups();
+                if (creationType === 'entry') {
+                    // Sikeres bejegyzés mentés esetén új elem generálása a JS memóriába
+                    const newNode = {
+                        id: data.id, 
+                        type: payload.type,
+                        title: payload.title,
+                        x: Math.random() * (Graph.canvas.width - 150) + 75,
+                        y: Math.random() * (Graph.canvas.height - 150) + 75,
+                        links: []
+                    };
+                    App.state.nodes.push(newNode);
+                    if (typeof Graph !== 'undefined') Graph.draw();
+                    UI.renderSidebarEntries(App.state.nodes);
+                    App.loadGroups();
+                } else {
+                    alert(`Sikeresen létrehozva: ${payload.name}`);
+                }
+
                 newEntryForm.reset();
+                creationTypeSelect.dispatchEvent(new Event('change')); 
                 entryTypeSelect.dispatchEvent(new Event('change'));
                 modal.classList.remove('active');
             }
         });
     }
 };
-

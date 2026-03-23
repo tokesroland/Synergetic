@@ -506,3 +506,76 @@
             margin-left: 6px;
             letter-spacing: 0.5px;
         }
+
+        /* --- LEBEGŐ GYORSMŰVELET MENÜ A GRÁFON --- */
+.quick-action-overlay {
+    position: absolute;
+    display: none; /* JS fogja kapcsolgatni */
+    z-index: 100;
+}
+
+#quick-action-plus {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--accent-muted);
+    color: #fff;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.1s;
+}
+
+#quick-action-plus:hover {
+    transform: scale(1.1);
+    background-color: var(--accent-active);
+}
+
+.quick-action-menu {
+    display: none; /* Alapból rejtett, pluszra kattintva nyílik */
+    position: absolute;
+    top: -10px;
+    left: 35px;
+    background-color: var(--bg-item);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    list-style: none;
+    padding: 5px 0;
+    min-width: 200px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.quick-action-menu li {
+    padding: 8px 15px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: background 0.2s;
+}
+
+.quick-action-menu li:hover {
+    background-color: var(--bg-item-hover);
+}
+
+.quick-action-menu li.danger {
+    color: #ff5252;
+    border-top: 1px solid var(--border-color);
+}
+.quick-action-menu li.danger:hover {
+    background-color: rgba(255, 82, 82, 0.1);
+}
+
+/* --- SPECIÁLIS KURZOROK (Üzemmódokhoz) --- */
+body.mode-linking {
+    cursor: crosshair !important;
+}
+
+body.mode-unlinking {
+    /* Beépített kuka ikon, vagy bármilyen custom cursor is lehetne */
+    cursor: not-allowed !important; 
+}

@@ -1,5 +1,37 @@
+#  # = kész (komment)
+#  @ = Javítandó
+#  {...} = Fejlesztés alatt
+
+Prioritás - 1:
+  # - Tagek és kategóriák hozzáadása az entries-ekhez:
+    - Módszere:
+      # - Gráf nézet gyorsművelettel
+      - Entry details felületen 
+  # - Új elem létrehozása gomb módosítás:
+  #   - Opciók:
+  #     - Új tag
+  #     - Új kategória
+  #     - Új hely
+  #     - Új entry
+  # - Szükséges módosítások hozzá:
+  #   - Nagyobb gráfok
+    # - Gráf Hover az entryre: 
+    #   - megjelenik egy plusjel és rákattintva előjönnek a gyorsműveletek:
+    #     - új kapcsolat létrehozása
+    #     - kapcsolat bontása: (Ha a bontás lett kiválasztva, megjelenik az egér helyén egy kuka icon a vonalra (kapcsolatra) ráviszi a user az egeret és azzal törli a két entry között a kapcsolatot)
+    #     - entry szerkesztése
+    #     - entry törlése
+    #     - Kategória hozzáadása (Ha már van, akkor szerkesztése)
+    #     - Tag hozzáadása
+
+Prioritás - 2:
+
+
 Fejlesztések:
-- Tagek hozzáadása az entries-ekhez
+- Tagek és kategóriák hozzáadása az entries-ekhez:
+  - Módszere:
+    - Entry details felületen
+    # - Gyorsműveletek a gráf nézetben
 - Keresés tagek alapján
 - .md fájlok importálása és exportálása
 - Keresés szöveg alapján
@@ -11,6 +43,13 @@ Fejlesztések:
 - csatolmányok hozzáadása az entry-hez
 - kategóriák hozzáadása és szerkesztése az entry-hez
 - kategóriák szerinti szűrés
+- Gráf nézet és poziciónálás:
+  # - Huzogatás auto mentése
+  # - Gyorsműveletek a gráf nézetben:
+    # - új entry létrehozása
+    # - entry szerkesztése
+    # - entry törlése
+    # - kapcsolatok szerkesztése
 - ismétlődő entry-k kezelése:
   - ismétlődő entry-k megjelenítése a naptár nézetben
   - ismétlődő entry-k szerkesztése
@@ -25,7 +64,11 @@ Fejlesztések:
 - UI:
   - Redesign:
     - Átláthatóbb, egyszerűbb, gyorsabb
-    - popup ha ráviszem az egeret az entry-rel
+    - popup ha ráviszem az egeret az entry-re
+    # - Nagyobb gráfok
+    - Zoomolás
+    - Drag and drop támogatás
+    # - Gyorsműveletek gomb popup
     - Sidebar entries kiiratás:
       - kategóriák szerint rendezve
       - tagek szerint rendezve
@@ -40,7 +83,7 @@ Fejlesztések:
     - havi nézet
     - heti nézet
     - éves nézet
-    - Gyorsműveletek a naptár nézetben:
+    - Gyorsműveletek a naptár nézetben: (A meglévő entry gyorsművelet menü kiegészítése a naptár nézetben)
       - új entry létrehozása
       - entry szerkesztése
       - entry törlése
@@ -68,6 +111,17 @@ Fejlesztések:
       - kapcsolatok szűrése
 
 Bónusz:
+  - C#:
+    - Database cleaner:
+      - régi entry-k törlése (opcionális)
+      - ismétlődő entry-k törlése (opcionális)
+      - kapcsolatok törlése, amiknek az egyik fele már nem létezik
+      - Csatolmány ismétlődés:
+        - ha az entryk-nek több csatolmány is ugyanazzal a névvel rendelkezik, akkor törölje a duplikált csatolmányokat és helyettesítse a töröltet a megmaradt csatolmányra mutató linkkel.
+    - Notification engine:
+      - Alkalmazásban megjelenő értesítések
+      - Weboldal által generált notification a telefonra és számítógépre
+      - email értesítések
   - Naptár szinkronizáció:
     - Google Calendar szinkronizáció
   - Fordítás támogatás
@@ -81,3 +135,11 @@ Bónusz:
   - Naptár nézetben entry-k színezése ismétlődés
   - Naptár nézetben entry-k színezése hely alapján
   - Naptár nézetben entry-k színezése dátum alapján
+  - Hasonló elemek összegyűjtése:
+    - ...
+
+Javítandó:
+  @ Ha nincs kapcsolat és úgy akar a felhasználó törölni egy linket, akkor egy végtelen ciklusba kerül.
+  @ A gyorsműveleteknél a "Kapcsolat bontása" opció ne jelenjen meg, ha nincs kapcsolat.
+  @ A TODO type entry nem szineződik el és nem jön létre.
+  @ Naptár nézetben a többnapos entry-k nem érnek össze kirajzolásnál.

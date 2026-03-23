@@ -49,6 +49,27 @@
             </select>
         </div>
 
+        <!-- Quick Action Overlay -->
+        <div id="quick-action-overlay" class="quick-action-overlay">
+            <button id="quick-action-plus">+</button>
+            <ul id="quick-action-menu" class="quick-action-menu">
+                <li data-action="link">🔗 Új kapcsolat</li>
+                <li data-action="unlink">✂️ Kapcsolat bontása</li>
+                <li data-action="edit">✏️ Szerkesztés</li>
+                <li data-action="category">📁 Kategória hozzáadása</li>
+                <li data-action="tag">🏷️ Címke (Tag) hozzáadása</li>
+                <li data-action="delete" class="danger">🗑️ Törlés</li>
+            </ul>
+
+            <div id="sub-action-menu" class="quick-action-menu" style="left: 210px; min-width: 220px; z-index: 101;">
+                <div style="padding: 10px; border-bottom: 1px solid var(--border-color);">
+                    <input type="text" id="sub-action-search" class="form-control" placeholder="Keresés..." style="margin-bottom: 10px; padding: 6px; font-size: 0.85rem;">
+                    <button id="sub-action-create-new" class="btn-primary" style="width: 100%; padding: 6px; font-size: 0.85rem;">+ Új létrehozása</button>
+                </div>
+                <ul id="sub-action-list" style="list-style: none; padding: 5px 0; max-height: 180px; overflow-y: auto;">
+                </ul>
+            </div>
+        </div>        
         <canvas id="graph-canvas"></canvas>
     </main>
 
@@ -58,55 +79,94 @@
                 <h2>Új elem hozzáadása</h2>
                 <button class="close-modal-btn" id="close-modal-btn">&times;</button>
             </div>
-
+            
             <form id="new-entry-form">
-                <div class="form-group">
-                    <label>Cím (Title)</label>
-                    <input type="text" id="entry-title" class="form-control" placeholder="Ide írd a nevet..." required>
-                </div>
-
-                <div class="form-group">
-                    <label>Csoport (Group)</label>
-                    <select id="entry-group" class="form-control">
-                        <option value="1">Csoportosítatlan</option>
-                        <option value="2">Projekt Alpha</option>
-                        <option value="3">Személyes</option>
+                <div class="form-group" style="padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
+                    <label style="color: var(--accent-active); font-weight: bold;">Létrehozás típusa</label>
+                    <select id="creation-type" class="form-control">
+                        <option value="entry">Új Bejegyzés (Jegyzet/Feladat/Esemény)</option>
+                        <option value="category">Új Kategória</option>
+                        <option value="tag">Új Címke (Tag)</option>
+                        <option value="location">Új Helyszín</option>
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label>Kategória (Opcionális)</label>
-                    <select id="entry-category" class="form-control">
-                        <option value="">Nincs kategória</option>
-                        <option value="1">Munka</option>
-                        <option value="2">Otthon</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Típus</label>
-                    <select id="entry-type" class="form-control">
-                        <option value="note">Jegyzet</option>
-                        <option value="todo">Feladat (TODO)</option>
-                        <option value="event">Esemény</option>
-                    </select>
-                </div>
-
-                <div id="datetime-container" style="display: none;">
+                <div id="fields-entry">
                     <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="entry-allday"> Egész napos
-                        </label>
+                        <label>Cím (Title)</label>
+                        <input type="text" id="entry-title" class="form-control" placeholder="Ide írd a nevet...">
                     </div>
-                    <div class="date-time-row">
+
+                    <div class="form-group">
+                        <label>Csoport (Group)</label>
+                        <select id="entry-group" class="form-control">
+                            <option value="1">Csoportosítatlan</option>
+                            <option value="2">Projekt Alpha</option>
+                            <option value="3">Személyes</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Kategória (Opcionális)</label>
+                        <select id="entry-category" class="form-control">
+                            <option value="">Nincs kategória</option>
+                            <option value="1">Munka</option> 
+                            <option value="2">Otthon</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Típus</label>
+                        <select id="entry-type" class="form-control">
+                            <option value="note">Jegyzet</option>
+                            <option value="todo">Feladat (TODO)</option>
+                            <option value="event">Esemény</option>
+                        </select>
+                    </div>
+
+                    <div id="datetime-container" style="display: none;">
                         <div class="form-group">
-                            <label>Kezdés</label>
-                            <input type="datetime-local" id="entry-start" class="form-control">
+                            <label><input type="checkbox" id="entry-allday"> Egész napos</label>
                         </div>
-                        <div class="form-group">
-                            <label>Befejezés (Opcionális)</label>
-                            <input type="datetime-local" id="entry-end" class="form-control">
+                        <div class="date-time-row">
+                            <div class="form-group">
+                                <label>Kezdés</label>
+                                <input type="datetime-local" id="entry-start" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Befejezés (Opcionális)</label>
+                                <input type="datetime-local" id="entry-end" class="form-control">
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                <div id="fields-category" style="display: none;">
+                    <div class="form-group">
+                        <label>Kategória neve</label>
+                        <input type="text" id="category-name" class="form-control" placeholder="Pl. Pénzügy, Fejlesztés...">
+                    </div>
+                    <div class="form-group">
+                        <label>Kategória színe (HEX)</label>
+                        <input type="color" id="category-color" value="#5c6bc0" class="form-control" style="height: 40px; cursor: pointer;">
+                    </div>
+                </div>
+
+                <div id="fields-tag" style="display: none;">
+                    <div class="form-group">
+                        <label>Címke neve</label>
+                        <input type="text" id="tag-name" class="form-control" placeholder="Pl. Sürgős, Frontend...">
+                    </div>
+                    <div class="form-group">
+                        <label>Címke színe (HEX)</label>
+                        <input type="color" id="tag-color" value="#ff9800" class="form-control" style="height: 40px; cursor: pointer;">
+                    </div>
+                </div>
+
+                <div id="fields-location" style="display: none;">
+                    <div class="form-group">
+                        <label>Helyszín neve</label>
+                        <input type="text" id="location-name" class="form-control" placeholder="Pl. Iroda, Tárgyaló 1...">
                     </div>
                 </div>
 
@@ -115,5 +175,4 @@
         </div>
     </div>
 </body>
-
 </html>
