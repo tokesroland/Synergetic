@@ -1,0 +1,728 @@
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
+        * {
+            font-family: 'DM Sans', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--bg-app);
+        }
+
+        /* --- NAVBAR --- */
+        .cal-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+            z-index: 100;
+            gap: 12px;
+        }
+
+        .cal-nav-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cal-back-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .cal-back-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--accent-muted);
+            background: var(--bg-item);
+        }
+
+        .cal-nav-arrows {
+            display: flex;
+            gap: 2px;
+        }
+
+        .cal-arrow {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .cal-arrow:hover {
+            color: var(--text-primary);
+            background: var(--bg-item);
+        }
+
+        .cal-today-btn {
+            background: var(--accent-muted);
+            border: none;
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            transition: all 0.15s;
+        }
+
+        .cal-today-btn:hover {
+            background: var(--accent-active);
+        }
+
+        .cal-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .cal-view-tabs {
+            display: flex;
+            background: var(--bg-app);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .cal-view-tab {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 16px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            letter-spacing: 0.2px;
+        }
+
+        .cal-view-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .cal-view-tab.active {
+            background: var(--accent-muted);
+            color: #fff;
+        }
+
+        /* ===== FŐ TARTALOM ===== */
+        .cal-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* =========================================================
+           HAVI NÉZET — Samsung Calendar stílusú
+           Felső: kompakt dátumrács pontokkal
+           Alsó: agenda lista a kiválasztott naphoz
+           ========================================================= */
+        .mv {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .mv-grid-wrap {
+            padding: 8px 16px 0;
+            flex: 0 0 55%;
+            overflow-y: auto;
+            transition: height 0.1s ease-out, flex 0.1s ease-out;
+        }
+
+        .mv-daynames {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            margin-bottom: 4px;
+            position: sticky;
+            top: 0;
+            background: var(--bg-app);
+            z-index: 10;
+        }
+
+        .mv-dayname {
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 6px 0;
+        }
+
+        .mv-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0;
+        }
+
+        .mv-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2px 0;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background 0.12s;
+            gap: 2px;
+            justify-content: flex-start;
+        }
+
+        .mv-cell:hover {
+            background: var(--bg-item);
+        }
+
+        .mv-cell-num {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-radius: 50%;
+            transition: all 0.15s;
+        }
+
+        .mv-cell.other .mv-cell-num {
+            color: var(--border-color);
+        }
+
+        .mv-cell.today .mv-cell-num {
+            background: var(--accent-muted);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .mv-cell.selected .mv-cell-num {
+            outline: 2px solid var(--accent-active);
+            outline-offset: 2px;
+        }
+
+        .mv-cell.selected.today .mv-cell-num {
+            outline-color: #fff;
+        }
+
+        .mv-dots {
+            display: flex;
+            gap: 3px;
+            height: 6px;
+            align-items: center;
+        }
+
+        .mv-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+        }
+
+        .mv-divider {
+            height: 12px;
+            background: transparent;
+            margin: 0;
+            flex-shrink: 0;
+            cursor: row-resize;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            user-select: none;
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        .mv-divider:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .mv-divider::before {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: background 0.2s;
+        }
+
+        .mv-divider:hover::before {
+            background: var(--accent-muted);
+            height: 5px;
+        }
+
+        .mv-divider.dragging {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .mv-divider.dragging::before {
+            background: var(--accent-active);
+            height: 5px;
+        }
+
+        /* Agenda lista */
+        .mv-agenda {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+        }
+
+        .mv-agenda::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .mv-agenda::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .mv-agenda-header {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .mv-agenda-day {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .mv-agenda-meta {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .mv-agenda-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .mv-agenda-item {
+            display: flex;
+            align-items: stretch;
+            gap: 12px;
+            padding: 10px 14px;
+            background: var(--bg-item);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
+            border-left: 4px solid transparent;
+        }
+
+        .mv-agenda-item:hover {
+            background: var(--bg-item-hover);
+            transform: translateX(3px);
+        }
+
+        .mv-agenda-item-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .mv-agenda-item-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mv-agenda-item-time {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .mv-agenda-item-badge {
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            align-self: center;
+            flex-shrink: 0;
+            color: #fff;
+        }
+
+        .mv-agenda-empty {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            padding: 30px 0;
+            opacity: 0.7;
+        }
+
+        /* =========================================================
+           HETI NÉZET — Saját stílus
+           Fejléc napokkal, alatta kártya-sávos idővonal
+           ========================================================= */
+        .wv {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .wv-header {
+            display: grid;
+            grid-template-columns: 52px repeat(7, 1fr);
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .wv-header-corner {
+            border-right: 1px solid var(--border-color);
+        }
+
+        .wv-header-day {
+            text-align: center;
+            padding: 8px 2px;
+            cursor: pointer;
+            transition: background 0.12s;
+            border-right: 1px solid #1a1a1a;
+        }
+
+        .wv-header-day:last-child {
+            border-right: none;
+        }
+
+        .wv-header-day:hover {
+            background: var(--bg-item);
+        }
+
+        .wv-header-dayname {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .wv-header-daynum {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 1px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+        }
+
+        .wv-header-day.today .wv-header-daynum {
+            background: var(--accent-muted);
+            color: #fff;
+            border-radius: 50%;
+        }
+
+        /* Egész napos sáv */
+        .wv-allday {
+            display: grid;
+            grid-template-columns: 52px repeat(7, 1fr);
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+            min-height: 0;
+        }
+
+        .wv-allday.has-items {
+            min-height: 30px;
+        }
+
+        .wv-allday.day-mode {
+            grid-template-columns: 52px 1fr;
+        }
+
+        .wv-allday-label {
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            line-height: 1.3;
+            text-align: center;
+        }
+
+        .wv-allday-cell {
+            padding: 2px 3px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+        }
+
+        .wv-allday-chip {
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            transition: filter 0.12s;
+        }
+
+        .wv-allday-chip:hover {
+            filter: brightness(1.2);
+        }
+
+        /* Idővonal */
+        .wv-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 52px repeat(7, 1fr);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .wv-body::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .wv-body::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .wv-gutter {
+            position: relative;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .wv-hour-label {
+            position: absolute;
+            right: 6px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #555;
+            transform: translateY(-50%);
+        }
+
+        .wv-col {
+            position: relative;
+            border-right: 1px solid #1a1a1a;
+        }
+
+        .wv-col:last-child {
+            border-right: none;
+        }
+
+        .wv-hour-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            border-top: 1px solid #1e1e1e;
+        }
+
+        .wv-half-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            border-top: 1px solid #151515;
+        }
+
+        .wv-now {
+            position: absolute;
+            left: -2px;
+            right: 0;
+            height: 2px;
+            background: #e53935;
+            z-index: 20;
+            border-radius: 1px;
+        }
+
+        .wv-now::before {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: -3px;
+            width: 8px;
+            height: 8px;
+            background: #e53935;
+            border-radius: 50%;
+        }
+
+        /* Esemény blokkok (heti + napi) */
+        .ev-block {
+            position: absolute;
+            left: 2px;
+            right: 2px;
+            border-radius: 6px;
+            padding: 3px 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #fff;
+            cursor: pointer;
+            z-index: 10;
+            overflow: hidden;
+            min-height: 18px;
+            transition: filter 0.12s, box-shadow 0.12s;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .ev-block:hover {
+            filter: brightness(1.15);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
+            z-index: 15;
+        }
+
+        .ev-block-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+
+        .ev-block-time {
+            font-size: 0.58rem;
+            opacity: 0.8;
+            font-weight: 400;
+            margin-top: 1px;
+        }
+
+        /* =========================================================
+           NAPI NÉZET
+           ========================================================= */
+        .dv {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .dv-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 0 10px;
+            flex-shrink: 0;
+            gap: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .dv-header-dayname {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .dv-header-num {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+        }
+
+        .dv-header.today .dv-header-num {
+            background: var(--accent-muted);
+            color: #fff;
+            border-radius: 50%;
+        }
+
+        .dv-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 52px 1fr;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .dv-body::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .dv-body::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .dv-col {
+            position: relative;
+        }
+
+        /* Animáció */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .mv-agenda-item {
+            animation: fadeIn 0.25s ease both;
+        }
+
+        .mv-agenda-item:nth-child(1) {
+            animation-delay: 0.03s;
+        }
+
+        .mv-agenda-item:nth-child(2) {
+            animation-delay: 0.06s;
+        }
+
+        .mv-agenda-item:nth-child(3) {
+            animation-delay: 0.09s;
+        }
+
+        .mv-agenda-item:nth-child(4) {
+            animation-delay: 0.12s;
+        }
+
+        .mv-agenda-item:nth-child(5) {
+            animation-delay: 0.15s;
+        }

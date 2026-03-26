@@ -79,10 +79,10 @@ Fejlesztések:
       - gyors hozzáférés a leggyakoribb műveletekhez (új entry létrehozása, keresés, szűrés)
       - egyszerre több szűrő alkalmazása a megjelenítéshez
       - szűrők mentése
-  - naptár nézet:
-    - napi nézet
-    - havi nézet
-    - heti nézet
+  # - naptár nézet:
+  #   - napi nézet
+  #   - havi nézet
+  #   - heti nézet
     - éves nézet
     - Gyorsműveletek a naptár nézetben: (A meglévő entry gyorsművelet menü kiegészítése a naptár nézetben)
       - új entry létrehozása
@@ -129,6 +129,7 @@ Bónusz:
   - Google map API helyszínhez
   - Naptár nézetben drag and drop támogatás
   - Naptár nézetben entry-k színezése kategória alapján
+  # - Naptár nézetben megjelennek a rekordok
   - kapcsolatok exportálása és importálása
   - kapcsolatok megjelenítése a naptár nézetben
   - Naptár nézetben entry-k színezése státusz alapján
@@ -143,4 +144,4 @@ Javítandó:
   @ Ha nincs kapcsolat és úgy akar a felhasználó törölni egy linket, akkor egy végtelen ciklusba kerül.
   @ A gyorsműveleteknél a "Kapcsolat bontása" opció ne jelenjen meg, ha nincs kapcsolat.
   @ A TODO type entry nem szineződik el és nem jön létre.
-  @ Naptár nézetben a többnapos entry-k nem érnek össze kirajzolásnál.
+  # @ Naptár nézetben a többnapos entry-k nem érnek össze kirajzolásnál.

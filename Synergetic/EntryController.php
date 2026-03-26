@@ -256,6 +256,8 @@ class EntryController {
         return $this->pdo->query("SELECT * FROM tags ORDER BY name ASC")->fetchAll();
     }
 
+    // NEM HASZNALT EGYELŐRE, DE KÉSZEN ÁLL A KÉSŐBBI BŐVÍTÉSHEZ
+
     // --- HOZZÁRENDELÉSEK (ASSIGN) ---
     public function assignCategory($entryId, $categoryId) {
         $stmt = $this->pdo->prepare("UPDATE entries SET category_id = ? WHERE id = ?");
