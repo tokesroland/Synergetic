@@ -1,6 +1,7 @@
 #  # = kész (komment)
 #  @ = Javítandó
 #  {...} = Fejlesztés alatt
+#  X = Canceled
 
 Prioritás - 1:
   # - Tagek és kategóriák hozzáadása az entries-ekhez:
@@ -25,7 +26,11 @@ Prioritás - 1:
     #     - Tag hozzáadása
 
 Prioritás - 2:
-
+Újra kellene gondolni az Index.html user felületét. Kicsit fapadosnak érződik,
+kapjon egy letisztultabb és modernebb felépítést, de a szerkezeti elrendezés az maradjon meg!
+Csak a stílust kell átalakítani, a struktúra ne változzon!
+* A Canvas legyen zoomolható, lehessen benne a bal egérgömb lenyomásával húzni a képet.
+* Drag & drop támogatás: A gráfot, meg lehessen ragadni és áthúzni a sidebar-ba, ha közelit a sidebar-hoz a megragadott gráf, akkor nyiljon ki, azzal együtt a groups menü is, ahova be lehet húzni egy megjelenített csoport valamelyikébe és a backendbe íródjon hogy a megragadott gráf entry belekerült a csoportba. VISZONT: A gráf koordinátája ilyenkor ne változzon meg, ha behúztuk a csoportba.
 
 Fejlesztések:
 - Tagek és kategóriák hozzáadása az entries-ekhez:
@@ -66,6 +71,7 @@ Fejlesztések:
   - Redesign:
     - Átláthatóbb, egyszerűbb, gyorsabb
     - popup ha ráviszem az egeret az entry-re
+    - Kibővített filters menü gráf nézetben.
     # - Nagyobb gráfok
     - Zoomolás
     - Drag and drop támogatás
@@ -79,12 +85,12 @@ Fejlesztések:
       - gyors hozzáférés a leggyakoribb műveletekhez (új entry létrehozása, keresés, szűrés)
       - egyszerre több szűrő alkalmazása a megjelenítéshez
       - szűrők mentése
-  # - naptár nézet:
+  - naptár nézet:
   #   - napi nézet
   #   - havi nézet
   #   - heti nézet
-    - éves nézet
-    - Gyorsműveletek a naptár nézetben: (A meglévő entry gyorsművelet menü kiegészítése a naptár nézetben)
+      - éves nézet
+  - Gyorsműveletek a naptár nézetben: (A meglévő entry gyorsművelet menü kiegészítése a naptár nézetben)
       - új entry létrehozása
       - entry szerkesztése
       - entry törlése
@@ -110,6 +116,15 @@ Fejlesztések:
       - kapcsolatok szerkesztése
       - kapcsolatok törlése
       - kapcsolatok szűrése
+  - Routine tervező:
+#    - Napi/heti tervező nézet gyorsműveletekkel.
+#    - Idősávban kitöltő érték, hogy a nap tartalmát mi tölti ki
+     - Ha az aktuális nap van kiválasztva, akkor automatikusan csak az ahhoz tartozó idővonal jelenik meg.
+     - Statisztikák számítása chart.js-szel
+     - Popup a teendőre, ami részletes megjegyzést ad (komment)
+     - Database normalizálása
+     - Több rutin elmentése egyszerre, amit be lehet tölteni.
+     - Toggle opció naptárnézetnél, hogy a rutinok is megjelenjenek a naptárban.
 
 Bónusz:
   - C#:
@@ -137,11 +152,21 @@ Bónusz:
   - Naptár nézetben entry-k színezése ismétlődés
   - Naptár nézetben entry-k színezése hely alapján
   - Naptár nézetben entry-k színezése dátum alapján
-  - Hasonló elemek összegyűjtése:
-    - ...
+
+Jövőbeli bővíthetőségek:
+  - A rutin tervezőben már elvégzett feladatok adataiból adatvizualizálás machine learninggel.
+  - Statisztikák és előrejelzések, mintázatok felismerése.
 
 Javítandó:
   @ Ha nincs kapcsolat és úgy akar a felhasználó törölni egy linket, akkor egy végtelen ciklusba kerül.
   @ A gyorsműveleteknél a "Kapcsolat bontása" opció ne jelenjen meg, ha nincs kapcsolat.
   @ A TODO type entry nem szineződik el és nem jön létre.
   # @ Naptár nézetben a többnapos entry-k nem érnek össze kirajzolásnál.
+  # @  Routine tervező:
+  #   - A heti rutinon egységes idősáv legyen a navbar alatt
+  #   - Nehezen olvasható felület, kevés a térköz
+  #   - Minden területet kitölt a tartalom, zsúfolt
+  #   - Az entry jobboldalán lévő pontra lóg a törlés "x"
+  #   - nincs napi nézet.
+  #   - bugos idővonal, egymásra lógnak.
+  # X  - az Entries táblába íródjanak, ne legyen feleslegesen két tábla SQL-ben. 

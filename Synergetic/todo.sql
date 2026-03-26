@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: 127.0.0.1
--- Létrehozás ideje: 2026. Már 23. 18:21
+-- Létrehozás ideje: 2026. Már 26. 19:10
 -- Kiszolgáló verziója: 10.4.32-MariaDB
 -- PHP verzió: 8.2.12
 
@@ -82,18 +82,18 @@ CREATE TABLE `entries` (
 INSERT INTO `entries` (`id`, `group_id`, `category_id`, `type`, `title`, `pos_x`, `pos_y`, `content`, `created_at`, `updated_at`) VALUES
 (1, 1, NULL, 'todo', 'asdadsasdadsasd', 400, 300, NULL, '2026-03-05 11:25:16', '2026-03-05 11:25:16'),
 (3, 1, NULL, 'todo', 'asdasdasd', 684, 478, NULL, '2026-03-05 11:39:09', '2026-03-05 11:39:09'),
-(4, 1, 1, 'note', 'Szakdolgozat', 873, 348, '- Kell valami\n- Még valami\n\naaasdasdasasdssdssad\n', '2026-03-05 11:39:27', '2026-03-23 16:55:05'),
+(4, 1, 1, 'note', 'Szakdolgozat', 888, 278, '- Kell valami\n- Még valami\n\naaasdasdasasdssdssad\n', '2026-03-05 11:39:27', '2026-03-26 18:02:37'),
 (5, 1, NULL, 'todo', 'asdadssadadsddasdas', 390, 123, NULL, '2026-03-05 11:39:42', '2026-03-05 11:39:42'),
 (6, 1, NULL, 'event', 'sadads', 1038, 459, 'aAAAAAAAAAAAAAAAAAAA\nasddassdas\nadasd\n\ndasadadsdaadsadsdsadsdsadasadadsdaadsadsdsadsdsa\ndasadadsdaadsadsdsadsdsa\ndasadadsdaadsadsdsadsdsadasadadsdaadsadsdsadsdsa', '2026-03-05 11:40:01', '2026-03-23 16:49:32'),
 (7, 1, NULL, 'todo', 'adasdasddsasaddassdasadasddssadads', 297, 268, NULL, '2026-03-05 11:40:27', '2026-03-05 11:40:27'),
-(9, 1, NULL, 'event', 'óra', 104, 241, NULL, '2026-03-10 17:30:09', '2026-03-10 17:30:09'),
-(13, 1, NULL, 'event', 'asd', 297, 395, 'asdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd', '2026-03-20 18:02:12', '2026-03-23 09:26:50'),
-(14, 1, NULL, 'note', 'fasz', 698, 375, NULL, '2026-03-20 18:02:25', '2026-03-20 18:02:25'),
+(9, 1, NULL, 'event', 'óra', 573, 528, NULL, '2026-03-10 17:30:09', '2026-03-23 17:28:01'),
+(13, 1, NULL, 'event', 'asd', 702, 456, 'asdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd', '2026-03-20 18:02:12', '2026-03-23 17:28:00'),
+(14, 1, NULL, 'note', 'fasz', 642, 273, NULL, '2026-03-20 18:02:25', '2026-03-23 17:27:59'),
 (15, 1, NULL, 'todo', 'ddd', 137, 431, NULL, '2026-03-20 18:02:42', '2026-03-20 18:02:42'),
-(19, 1, NULL, 'event', 'dddddddddddddddddddd', 1287, 233, NULL, '2026-03-20 18:03:25', '2026-03-23 16:55:10'),
-(20, 1, 2, 'event', 'fasfafafafafafaf', 645, 191, NULL, '2026-03-20 18:03:45', '2026-03-23 17:12:01'),
-(21, 1, NULL, 'note', 'a', 1097, 164, NULL, '2026-03-20 18:08:14', '2026-03-23 16:53:37'),
-(22, 1, NULL, 'note', 'a', 219, 268, NULL, '2026-03-20 18:08:20', '2026-03-20 18:08:20'),
+(19, 1, NULL, 'event', 'dddddddddddddddddddd', 1279, 227, '<font face=\"Times New Roman, serif\" size=\"6\">sxsd</font><font face=\"Times New Roman, serif\" size=\"7\">adaddasd</font><font face=\"Times New Roman, serif\" size=\"6\">d</font><font face=\"Times New Roman, serif\" size=\"5\">dd</font><font face=\"Times New Roman, serif\" size=\"4\">d</font><font face=\"Times New Roman, serif\" size=\"3\">d</font><font face=\"Times New Roman, serif\" size=\"2\">d</font><font face=\"Times New Roman, serif\" size=\"1\">ddd</font><font face=\"Times New Roman, serif\" size=\"4\">sadadasdasda</font>', '2026-03-20 18:03:25', '2026-03-26 15:25:00'),
+(20, 1, 2, 'event', 'fasfafafafafafaf', 528, 201, NULL, '2026-03-20 18:03:45', '2026-03-26 17:52:17'),
+(21, 1, 2, 'note', 'a', 755, 105, NULL, '2026-03-20 18:08:14', '2026-03-23 17:28:16'),
+(22, 1, NULL, 'note', 'a', 660, 382, NULL, '2026-03-20 18:08:20', '2026-03-23 17:28:00'),
 (23, 1, NULL, 'todo', '23', 280, 251, NULL, '2026-03-20 18:08:37', '2026-03-20 18:08:37'),
 (24, 1, NULL, 'todo', 'Feladatok xddddd', 449, 281, NULL, '2026-03-23 09:27:40', '2026-03-23 09:27:40');
 
@@ -113,6 +113,7 @@ CREATE TABLE `entry_links` (
 --
 
 INSERT INTO `entry_links` (`source_id`, `target_id`) VALUES
+(4, 6),
 (4, 19),
 (21, 4);
 
@@ -221,6 +222,60 @@ CREATE TABLE `recurrences` (
   `interval_value` int(11) DEFAULT 1,
   `until_date` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Tábla szerkezet ehhez a táblához `routine_completions`
+--
+
+CREATE TABLE `routine_completions` (
+  `id` int(11) NOT NULL,
+  `routine_item_id` int(11) NOT NULL,
+  `completed_date` date NOT NULL,
+  `completed_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- A tábla adatainak kiíratása `routine_completions`
+--
+
+INSERT INTO `routine_completions` (`id`, `routine_item_id`, `completed_date`, `completed_at`) VALUES
+(6, 18, '2026-03-26', '2026-03-26 17:38:06'),
+(7, 17, '2026-03-26', '2026-03-26 17:38:07'),
+(8, 19, '2026-03-26', '2026-03-26 17:38:09'),
+(9, 20, '2026-03-26', '2026-03-26 17:38:10');
+
+-- --------------------------------------------------------
+
+--
+-- Tábla szerkezet ehhez a táblához `routine_items`
+--
+
+CREATE TABLE `routine_items` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `type` enum('todo','event') NOT NULL DEFAULT 'todo',
+  `category_id` int(11) DEFAULT NULL,
+  `day_of_week` tinyint(1) NOT NULL COMMENT '1=Hétfő, 2=Kedd, ..., 7=Vasárnap',
+  `start_time` time NOT NULL DEFAULT '08:00:00',
+  `end_time` time NOT NULL DEFAULT '09:00:00',
+  `color_hex` varchar(7) DEFAULT NULL COMMENT 'Egyedi szín (opcionális, ha nincs kategória)',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- A tábla adatainak kiíratása `routine_items`
+--
+
+INSERT INTO `routine_items` (`id`, `title`, `type`, `category_id`, `day_of_week`, `start_time`, `end_time`, `color_hex`, `created_at`, `updated_at`) VALUES
+(17, 'Suli', 'todo', NULL, 1, '12:15:00', '13:00:00', '#ffffff', '2026-03-26 17:17:35', '2026-03-26 17:17:35'),
+(18, 'Suli', 'todo', NULL, 2, '09:25:00', '12:05:00', '#ffffff', '2026-03-26 17:18:32', '2026-03-26 17:18:32'),
+(19, 'Suli', 'todo', NULL, 3, '08:30:00', '15:40:00', '#ffffff', '2026-03-26 17:19:34', '2026-03-26 17:19:34'),
+(20, 'Suli', 'todo', NULL, 4, '07:40:00', '14:50:00', '#ffffff', '2026-03-26 17:20:00', '2026-03-26 17:20:00'),
+(21, 'Suli', 'todo', NULL, 5, '12:15:00', '15:40:00', '#ffffff', '2026-03-26 17:20:25', '2026-03-26 17:20:25'),
+(22, 'Backend képzés', 'todo', NULL, 5, '17:15:00', '20:00:00', '#2eb9ff', '2026-03-26 17:21:04', '2026-03-26 17:21:04');
 
 -- --------------------------------------------------------
 
@@ -341,6 +396,21 @@ ALTER TABLE `recurrences`
   ADD KEY `entry_id` (`entry_id`);
 
 --
+-- A tábla indexei `routine_completions`
+--
+ALTER TABLE `routine_completions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_item_date` (`routine_item_id`,`completed_date`);
+
+--
+-- A tábla indexei `routine_items`
+--
+ALTER TABLE `routine_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_routine_category` (`category_id`),
+  ADD KEY `idx_day` (`day_of_week`);
+
+--
 -- A tábla indexei `tags`
 --
 ALTER TABLE `tags`
@@ -385,7 +455,7 @@ ALTER TABLE `exceptions`
 -- AUTO_INCREMENT a táblához `groups`
 --
 ALTER TABLE `groups`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=100;
 
 --
 -- AUTO_INCREMENT a táblához `locations`
@@ -398,6 +468,18 @@ ALTER TABLE `locations`
 --
 ALTER TABLE `recurrences`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT a táblához `routine_completions`
+--
+ALTER TABLE `routine_completions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT a táblához `routine_items`
+--
+ALTER TABLE `routine_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT a táblához `tags`
@@ -455,6 +537,18 @@ ALTER TABLE `exceptions`
 --
 ALTER TABLE `recurrences`
   ADD CONSTRAINT `recurrences_ibfk_1` FOREIGN KEY (`entry_id`) REFERENCES `entries` (`id`) ON DELETE CASCADE;
+
+--
+-- Megkötések a táblához `routine_completions`
+--
+ALTER TABLE `routine_completions`
+  ADD CONSTRAINT `fk_completion_item` FOREIGN KEY (`routine_item_id`) REFERENCES `routine_items` (`id`) ON DELETE CASCADE;
+
+--
+-- Megkötések a táblához `routine_items`
+--
+ALTER TABLE `routine_items`
+  ADD CONSTRAINT `fk_routine_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL;
 
 --
 -- Megkötések a táblához `todo_details`

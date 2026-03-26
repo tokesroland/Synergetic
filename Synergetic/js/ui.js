@@ -72,6 +72,8 @@ const UI = {
                 }
             } else if (e.target.value === 'calendar') {
                 window.location.href = 'calendar.html';
+            } else if (e.target.value === 'routine') {
+                window.location.href = 'routine.html';
             }
         });
     },
@@ -80,7 +82,7 @@ const UI = {
         const container = document.getElementById('group-list-container');
         if (!container) return;
         container.innerHTML = '';
-        
+
         if (!groups || groups.length === 0) {
             container.innerHTML = '<div style="color: var(--text-secondary); text-align: center; font-size: 0.85rem; padding: 10px;">Nincsenek csoportok. Hozz létre egyet!</div>';
             return;
@@ -90,14 +92,14 @@ const UI = {
             const li = document.createElement('li');
             li.className = `group-item ${group.id == App.state.currentGroupId ? 'active' : ''}`;
             li.setAttribute('data-group', group.id);
-            
+
             li.innerHTML = `
                 <div class="group-name">${group.name}</div>
                 <div class="group-stats">
                     ${group.todo_count || 0} Feladat | ${group.event_count || 0} Esemény | ${group.note_count || 0} Jegyzet
                 </div>
             `;
-            
+
             li.addEventListener('click', () => {
                 document.querySelector('.group-item.active')?.classList.remove('active');
                 li.classList.add('active');
@@ -123,10 +125,10 @@ const UI = {
         entries.forEach(entry => {
             const div = document.createElement('div');
             div.className = `sidebar-entry-item ${entry.id === App.state.selectedId ? 'active' : ''}`;
-            
+
             const color = App.colors[entry.type] || '#fff';
             div.style.setProperty('--card-color', color);
-            
+
             div.innerHTML = `
                 <div class="sidebar-entry-title" title="${entry.title}">${entry.title}</div>
                 <div class="sidebar-entry-type" style="color: ${color}; border: 1px solid ${color}40;">
@@ -136,8 +138,8 @@ const UI = {
 
             div.addEventListener('click', () => {
                 App.state.selectedId = entry.id;
-                if (typeof Graph !== 'undefined') Graph.draw(); 
-                
+                if (typeof Graph !== 'undefined') Graph.draw();
+
                 document.querySelectorAll('.sidebar-entry-item').forEach(el => el.classList.remove('active'));
                 div.classList.add('active');
             });
@@ -151,7 +153,7 @@ const UI = {
         const openModalBtn = document.getElementById('open-modal-btn');
         const closeModalBtn = document.getElementById('close-modal-btn');
         const newEntryForm = document.getElementById('new-entry-form');
-        
+
         // Form blokkok
         const creationTypeSelect = document.getElementById('creation-type');
         const fieldsEntry = document.getElementById('fields-entry');
@@ -214,7 +216,7 @@ const UI = {
             submitBtn.textContent = 'Mentés...';
 
             const creationType = creationTypeSelect.value;
-            let payload = { action: `create_${creationType}` }; 
+            let payload = { action: `create_${creationType}` };
 
             if (creationType === 'entry') {
                 payload.title = document.getElementById('entry-title').value;
@@ -251,7 +253,7 @@ const UI = {
                 if (creationType === 'entry') {
                     // Sikeres bejegyzés mentés esetén új elem generálása a JS memóriába
                     const newNode = {
-                        id: data.id, 
+                        id: data.id,
                         type: payload.type,
                         title: payload.title,
                         x: Math.random() * (Graph.canvas.width - 150) + 75,
@@ -267,7 +269,7 @@ const UI = {
                 }
 
                 newEntryForm.reset();
-                creationTypeSelect.dispatchEvent(new Event('change')); 
+                creationTypeSelect.dispatchEvent(new Event('change'));
                 entryTypeSelect.dispatchEvent(new Event('change'));
                 modal.classList.remove('active');
             }
