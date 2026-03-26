@@ -59,13 +59,32 @@ class EntryController {
         return ["entries" => $entries];
     }
 
-    // Egy konkrét bejegyzés lekérése a részletes nézethez
+    // Egy konkrét bejegyzés lekérése a részletes nézethez (Kategóriával és Tagekkel)
     public function getOne($id) {
-        $stmt = $this->pdo->prepare("SELECT id, title, content, type FROM entries WHERE id = ?");
+        // Alapadatok és kategória lekérése
+        $stmt = $this->pdo->prepare("
+            SELECT e.id, e.title, e.content, e.type, c.name as category_name, c.color_hex as category_color
+            FROM entries e
+            LEFT JOIN categories c ON e.category_id = c.id
+            WHERE e.id = ?
+        ");
         $stmt->execute([$id]);
-        return $stmt->fetch();
-    }
+        $entry = $stmt->fetch();
 
+        if ($entry) {
+            // Hozzá tartozó tagek lekérése
+            $tagStmt = $this->pdo->prepare("
+                SELECT t.name, t.color_hex 
+                FROM tags t
+                JOIN entry_tags et ON t.id = et.tag_id
+                WHERE et.entry_id = ?
+            ");
+            $tagStmt->execute([$id]);
+            $entry['tags'] = $tagStmt->fetchAll();
+        }
+
+        return $entry;
+    }
     // Új elem létrehozása
     public function create($data) {
         $title = $data['title'] ?? '';

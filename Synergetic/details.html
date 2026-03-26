@@ -6,11 +6,10 @@
     <title>Részletes Nézet</title>
     <link rel="stylesheet" href="./styles/style.css">
     <style>
-        /* Speciális stílusok a szerkesztőhöz, igazodva az alap dizájnhoz */
         body {
             display: flex;
             flex-direction: column;
-            overflow-y: auto; /* Itt már lehessen görgetni */
+            overflow-y: auto;
         }
 
         .navbar {
@@ -21,6 +20,9 @@
             background-color: var(--bg-sidebar);
             border-bottom: 1px solid var(--border-color);
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .editor-container {
@@ -33,6 +35,69 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+        }
+
+        /* Toolbar stílusok */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+            background-color: var(--bg-item);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            align-items: center;
+        }
+
+        .toolbar button, .toolbar select {
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .toolbar select {
+            background-color: var(--bg-item);
+        }
+
+        .toolbar button:hover, .toolbar select:hover {
+            background-color: var(--bg-item-hover);
+            border-color: var(--accent-muted);
+        }
+
+        /* Badge konténer a flexibilis tördeléshez */
+        .badge-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #fff;
+        }
+
+        /* Egységes szürke Tag formátum */
+        .tag-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background-color: var(--border-color); /* Egységes szürke/sötét */
+            color: var(--text-primary);
+            border: 1px solid #444;
         }
 
         .editor-title {
@@ -52,94 +117,151 @@
             border-color: var(--accent-muted);
         }
 
+        /* Textarea helyett egy contenteditable div */
         .editor-content {
             width: 100%;
-            min-height: 60vh;
+            min-height: 50vh;
             background: transparent;
-            border: none;
+            border: 1px solid transparent; /* Későbbi focus effekthez */
             color: var(--text-primary);
             font-size: 1.1rem;
             line-height: 1.6;
             outline: none;
-            resize: none; /* A textarea ne legyen húzható, hagyjuk megnőni */
             font-family: inherit;
+            padding: 10px 0;
+            border-radius: 4px;
         }
 
-        /* Típus jelölő badge a sarokban */
-        .type-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: #fff;
-            align-self: flex-start;
-            margin-bottom: -10px;
+        .editor-content:focus {
+            border-color: transparent;
+        }
+
+        /* Szerkesztőn belüli listák stílusa */
+        .editor-content ul {
+            padding-left: 20px;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
 
-    <!-- HTML navbar külső fileba szervezése, hogy ne kelljen minden oldalra beírni -->
     <div class="navbar">
         <button class="filter-btn" onclick="window.location.href='index.html'">← Vissza a gráfhoz</button>
+        
+        <div class="toolbar">
+            <button type="button" onclick="formatText('bold')" title="Félkövér"><b>B</b></button>
+            <button type="button" onclick="formatText('italic')" title="Dőlt"><i>I</i></button>
+            <button type="button" onclick="formatText('underline')" title="Aláhúzott"><u>U</u></button>
+            <button type="button" onclick="formatText('insertUnorderedList')" title="Felsorolás">• Lista</button>
+            <button type="button" onclick="changeFontSize(1)" title="Nagyobb betű">A+</button>
+            <button type="button" onclick="changeFontSize(-1)" title="Kisebb betű">A-</button>
+            <select id="font-family" title="Betűtípus">
+                <option value="'Segoe UI', sans-serif">Alapértelmezett (Segoe UI)</option>
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="'Times New Roman', serif">Times New Roman</option>
+                <option value="'Courier New', monospace">Courier New</option>
+            </select>
+        </div>
+
         <div>
             <button class="filter-btn active" id="save-btn">Mentés</button>
         </div>
     </div>
 
-
     <div class="editor-container">
-        <div id="type-indicator" class="type-badge" style="background-color: var(--border-color);">Betöltés...</div>
+        
+        <div class="badge-container" id="badge-container">
+            <span id="type-indicator" class="type-badge" style="background-color: #555;">Betöltés...</span>
+        </div>
+
         <input type="text" id="detail-title" class="editor-title" placeholder="Bejegyzés címe...">
-        <textarea id="detail-content" class="editor-content" placeholder="Kezdj el írni a tartalmat ide..."></textarea>
+        
+
+        <div id="detail-content" class="editor-content" contenteditable="true" placeholder="Kezdj el írni a tartalmat ide..."></div>
     </div>
 
     <script>
-        // 1. Azonosító (ID) kinyerése az URL-ből (pl.: details.html?id=5)
         const urlParams = new URLSearchParams(window.location.search);
         const entryId = urlParams.get('id');
 
         const titleInput = document.getElementById('detail-title');
         const contentInput = document.getElementById('detail-content');
+        const badgeContainer = document.getElementById('badge-container');
         const typeIndicator = document.getElementById('type-indicator');
         const saveBtn = document.getElementById('save-btn');
 
-        // Ha nincs ID az URL-ben, visszadobjuk a főoldalra
         if (!entryId) {
             alert("Hiba: Nincs kiválasztott elem!");
             window.location.href = 'index.html';
         }
 
-        // Típus színek a Badge-hez
         const typeColors = {
             task: getComputedStyle(document.documentElement).getPropertyValue('--node-task').trim() || '#4caf50',
             event: getComputedStyle(document.documentElement).getPropertyValue('--node-event').trim() || '#ff9800',
             note: getComputedStyle(document.documentElement).getPropertyValue('--node-note').trim() || '#7986cb'
         };
 
-        // 2. Adatok lekérése a szerverről
+        // Adatok lekérése a szerverről
         fetch(`api.php?entry_id=${entryId}`)
             .then(response => {
                 if(!response.ok) throw new Error("A bejegyzés nem található.");
                 return response.json();
             })
             .then(data => {
-                // Mezők feltöltése
                 titleInput.value = data.title;
-                contentInput.value = data.content || ''; // Ha null, legyen üres string
+                // Itt innerHTML-t használunk, hogy a HTML formázások (pl. <b>, <i>) megmaradjanak
+                contentInput.innerHTML = data.content || ''; 
                 
                 // Típus Badge beállítása
                 typeIndicator.textContent = data.type;
                 typeIndicator.style.backgroundColor = typeColors[data.type] || '#555';
+
+                // Kategória hozzáadása a típus mellé
+                if (data.category_name) {
+                    const catBadge = document.createElement('span');
+                    catBadge.className = 'type-badge';
+                    catBadge.style.backgroundColor = data.category_color || '#5c6bc0';
+                    catBadge.textContent = '📁 ' + data.category_name;
+                    badgeContainer.appendChild(catBadge);
+                }
+
+                // Tagek hozzáadása egységes szürke stílusban
+                if (data.tags && data.tags.length > 0) {
+                    data.tags.forEach(tag => {
+                        const tagBadge = document.createElement('span');
+                        tagBadge.className = 'tag-badge';
+                        tagBadge.textContent = '# ' + tag.name;
+                        badgeContainer.appendChild(tagBadge);
+                    });
+                }
             })
             .catch(error => {
                 alert(error.message);
                 window.location.href = 'index.html';
             });
 
-        // 3. Mentés gomb logikája (PUT kérés)
+        // WYSIWYG Editor funkciók
+        let currentFontSize = 3; // Alapértelmezett méret (HTML execCommand esetén 1-7 között)
+
+        function formatText(command) {
+            document.execCommand(command, false, null);
+            contentInput.focus();
+        }
+
+        function changeFontSize(step) {
+            currentFontSize += step;
+            if (currentFontSize < 1) currentFontSize = 1;
+            if (currentFontSize > 7) currentFontSize = 7;
+            document.execCommand('fontSize', false, currentFontSize);
+            contentInput.focus();
+        }
+
+        document.getElementById('font-family').addEventListener('change', function() {
+            document.execCommand('fontName', false, this.value);
+            contentInput.focus();
+        });
+
+        // Mentés logikája
         saveBtn.addEventListener('click', () => {
             saveBtn.textContent = 'Mentés folyamatban...';
             saveBtn.disabled = true;
@@ -147,7 +269,7 @@
             const updatedData = {
                 id: entryId,
                 title: titleInput.value,
-                content: contentInput.value
+                content: contentInput.innerHTML // Már a formázott HTML kódot küldjük vissza!
             };
 
             fetch('api.php', {
@@ -162,7 +284,6 @@
                 if(data.error) {
                     alert("Hiba mentéskor: " + data.error);
                 } else {
-                    // Kis vizuális visszajelzés a gombbal
                     saveBtn.textContent = '✔ Sikeres mentés!';
                     setTimeout(() => {
                         saveBtn.textContent = 'Mentés';
@@ -176,6 +297,11 @@
                 saveBtn.textContent = 'Mentés';
                 saveBtn.disabled = false;
             });
+        });
+
+        // Segítség a placeholderek megjelenítéséhez contenteditable esetén
+        contentInput.addEventListener('focus', function() {
+            if (this.innerHTML.trim() === '<br>') this.innerHTML = '';
         });
     </script>
 </body>
