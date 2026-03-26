@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TODO App</title>
+    <title>Synergetic</title>
     <link rel="stylesheet" href="./styles/style.css">
     <script src="js/api.js" defer></script>
     <script src="js/graph.js" defer></script>
@@ -37,7 +37,6 @@
 
     <main id="main-content">
         <div class="top-bar">
-            <!-- Felső rétegbe fogom tenni a filtereket, hogy ne takarja ki a sidebar -->
             <div class="filters">
                 <button class="filter-btn active" data-type="task">Tasks</button>
                 <button class="filter-btn active" data-type="event">Events</button>
@@ -71,7 +70,11 @@
                 <ul id="sub-action-list" style="list-style: none; padding: 5px 0; max-height: 180px; overflow-y: auto;">
                 </ul>
             </div>
-        </div>        
+        </div>
+
+        <!-- Zoom badge -->
+        <div id="zoom-badge" class="zoom-badge">100%</div>
+
         <canvas id="graph-canvas"></canvas>
     </main>
 
@@ -81,7 +84,7 @@
                 <h2>Új elem hozzáadása</h2>
                 <button class="close-modal-btn" id="close-modal-btn">&times;</button>
             </div>
-            
+
             <form id="new-entry-form">
                 <div class="form-group" style="padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
                     <label style="color: var(--accent-active); font-weight: bold;">Létrehozás típusa</label>
@@ -112,7 +115,7 @@
                         <label>Kategória (Opcionális)</label>
                         <select id="entry-category" class="form-control">
                             <option value="">Nincs kategória</option>
-                            <option value="1">Munka</option> 
+                            <option value="1">Munka</option>
                             <option value="2">Otthon</option>
                         </select>
                     </div>

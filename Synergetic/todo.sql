@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: 127.0.0.1
--- Létrehozás ideje: 2026. Már 26. 19:10
+-- Létrehozás ideje: 2026. Már 26. 23:39
 -- Kiszolgáló verziója: 10.4.32-MariaDB
 -- PHP verzió: 8.2.12
 
@@ -32,6 +32,7 @@ CREATE TABLE `attachments` (
   `entry_id` int(11) NOT NULL,
   `file_path` varchar(255) NOT NULL,
   `file_type` varchar(50) NOT NULL,
+  `original_name` varchar(255) NOT NULL DEFAULT '',
   `uploaded_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -54,7 +55,8 @@ CREATE TABLE `categories` (
 
 INSERT INTO `categories` (`id`, `name`, `color_hex`, `icon_name`) VALUES
 (1, 'Házifeladat', '#65421a', NULL),
-(2, 'Edzés', '#5c6bc0', NULL);
+(2, 'Edzés', '#5c6bc0', NULL),
+(3, 'Projektmunka', '#1d2134', NULL);
 
 -- --------------------------------------------------------
 
@@ -82,18 +84,17 @@ CREATE TABLE `entries` (
 INSERT INTO `entries` (`id`, `group_id`, `category_id`, `type`, `title`, `pos_x`, `pos_y`, `content`, `created_at`, `updated_at`) VALUES
 (1, 1, NULL, 'todo', 'asdadsasdadsasd', 400, 300, NULL, '2026-03-05 11:25:16', '2026-03-05 11:25:16'),
 (3, 1, NULL, 'todo', 'asdasdasd', 684, 478, NULL, '2026-03-05 11:39:09', '2026-03-05 11:39:09'),
-(4, 1, 1, 'note', 'Szakdolgozat', 888, 278, '- Kell valami\n- Még valami\n\naaasdasdasasdssdssad\n', '2026-03-05 11:39:27', '2026-03-26 18:02:37'),
+(4, 2, 1, 'note', 'Szakdolgozat', 912.841, 249.418, '- Kell valami\n- Még valami\n\naaasdasdasasdssdssad\n', '2026-03-05 11:39:27', '2026-03-26 21:40:59'),
 (5, 1, NULL, 'todo', 'asdadssadadsddasdas', 390, 123, NULL, '2026-03-05 11:39:42', '2026-03-05 11:39:42'),
-(6, 1, NULL, 'event', 'sadads', 1038, 459, 'aAAAAAAAAAAAAAAAAAAA\nasddassdas\nadasd\n\ndasadadsdaadsadsdsadsdsadasadadsdaadsadsdsadsdsa\ndasadadsdaadsadsdsadsdsa\ndasadadsdaadsadsdsadsdsadasadadsdaadsadsdsadsdsa', '2026-03-05 11:40:01', '2026-03-23 16:49:32'),
+(6, 1, 2, 'event', 'Szakdolgozat témakörök', 735, 201, '<font size=\"4\">Telefon specifikaciok:</font><div><font size=\"4\">- 16GB ram</font></div><div><font size=\"4\">- 4 GB vram</font></div><div><font size=\"4\">- nem megy a brave</font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\">Sallang szöveg a jajajajajajjaj</font><span style=\"font-size: large; background-color: transparent;\">Telefon specifikaciok:</span></div><div><font size=\"4\">- 16GB ram</font></div><div><font size=\"4\">- 4 GB vram</font></div><div><font size=\"4\">- nem megy a brave</font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\">Sallang szöveg a jajajajajajjaj</font></div><div><font size=\"4\">Telefon specifikaciok:</font><div><font size=\"4\">- 16GB ram</font></div><div><font size=\"4\">- 4 GB vram</font></div><div><font size=\"4\">- nem megy a brave</font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\">Sallang szöveg a jajajajajajjaj</font><span style=\"font-size: large; background-color: transparent;\">Telefon specifikaciok:</span></div><div><font size=\"4\">- 16GB ram</font></div><div><font size=\"4\">- 4 GB vram</font></div><div><font size=\"4\">- nem megy a brave</font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\">Sallang szöveg a jajajajajajjaj</font></div></div>', '2026-03-05 11:40:01', '2026-03-26 22:26:01'),
 (7, 1, NULL, 'todo', 'adasdasddsasaddassdasadasddssadads', 297, 268, NULL, '2026-03-05 11:40:27', '2026-03-05 11:40:27'),
-(9, 1, NULL, 'event', 'óra', 573, 528, NULL, '2026-03-10 17:30:09', '2026-03-23 17:28:01'),
-(13, 1, NULL, 'event', 'asd', 702, 456, 'asdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd', '2026-03-20 18:02:12', '2026-03-23 17:28:00'),
-(14, 1, NULL, 'note', 'fasz', 642, 273, NULL, '2026-03-20 18:02:25', '2026-03-23 17:27:59'),
+(13, 2, NULL, 'event', 'asd', 534, 278, 'asdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd', '2026-03-20 18:02:12', '2026-03-26 21:39:50'),
+(14, 2, NULL, 'note', 'fasz', 412, 309, NULL, '2026-03-20 18:02:25', '2026-03-26 21:30:17'),
 (15, 1, NULL, 'todo', 'ddd', 137, 431, NULL, '2026-03-20 18:02:42', '2026-03-20 18:02:42'),
-(19, 1, NULL, 'event', 'dddddddddddddddddddd', 1279, 227, '<font face=\"Times New Roman, serif\" size=\"6\">sxsd</font><font face=\"Times New Roman, serif\" size=\"7\">adaddasd</font><font face=\"Times New Roman, serif\" size=\"6\">d</font><font face=\"Times New Roman, serif\" size=\"5\">dd</font><font face=\"Times New Roman, serif\" size=\"4\">d</font><font face=\"Times New Roman, serif\" size=\"3\">d</font><font face=\"Times New Roman, serif\" size=\"2\">d</font><font face=\"Times New Roman, serif\" size=\"1\">ddd</font><font face=\"Times New Roman, serif\" size=\"4\">sadadasdasda</font>', '2026-03-20 18:03:25', '2026-03-26 15:25:00'),
-(20, 1, 2, 'event', 'fasfafafafafafaf', 528, 201, NULL, '2026-03-20 18:03:45', '2026-03-26 17:52:17'),
-(21, 1, 2, 'note', 'a', 755, 105, NULL, '2026-03-20 18:08:14', '2026-03-23 17:28:16'),
-(22, 1, NULL, 'note', 'a', 660, 382, NULL, '2026-03-20 18:08:20', '2026-03-23 17:28:00'),
+(19, 1, 2, 'event', 'dddddddddddddddddddd', 791, 357, '<font face=\"Times New Roman, serif\" size=\"6\">sxsd</font><font face=\"Times New Roman, serif\" size=\"7\">adaddasd</font><font face=\"Times New Roman, serif\" size=\"6\">d</font><font face=\"Times New Roman, serif\" size=\"5\">dd</font><font face=\"Times New Roman, serif\" size=\"4\">d</font><font face=\"Times New Roman, serif\" size=\"3\">d</font><font face=\"Times New Roman, serif\" size=\"2\">d</font><font face=\"Times New Roman, serif\" size=\"1\">ddd</font><font face=\"Times New Roman, serif\" size=\"4\">sadadasdasda</font>', '2026-03-20 18:03:25', '2026-03-26 22:05:18'),
+(20, 2, 2, 'event', 'fasfafafafafafaf', 301, 329, NULL, '2026-03-20 18:03:45', '2026-03-26 21:30:05'),
+(21, 2, 2, 'note', 'a', 477, 205, 'sdaasdadasddsad<div>asdasdsad</div><div>adsasdddadsad</div>', '2026-03-20 18:08:14', '2026-03-26 21:38:09'),
+(22, 2, NULL, 'note', 'a', 488, 344, NULL, '2026-03-20 18:08:20', '2026-03-26 21:30:23'),
 (23, 1, NULL, 'todo', '23', 280, 251, NULL, '2026-03-20 18:08:37', '2026-03-20 18:08:37'),
 (24, 1, NULL, 'todo', 'Feladatok xddddd', 449, 281, NULL, '2026-03-23 09:27:40', '2026-03-23 09:27:40');
 
@@ -115,6 +116,8 @@ CREATE TABLE `entry_links` (
 INSERT INTO `entry_links` (`source_id`, `target_id`) VALUES
 (4, 6),
 (4, 19),
+(19, 6),
+(20, 21),
 (21, 4);
 
 -- --------------------------------------------------------
@@ -134,7 +137,15 @@ CREATE TABLE `entry_tags` (
 
 INSERT INTO `entry_tags` (`entry_id`, `tag_id`) VALUES
 (4, 1),
-(13, 1);
+(6, 1),
+(6, 2),
+(6, 3),
+(6, 4),
+(6, 5),
+(6, 6),
+(6, 7),
+(13, 1),
+(19, 4);
 
 -- --------------------------------------------------------
 
@@ -156,7 +167,6 @@ CREATE TABLE `event_details` (
 
 INSERT INTO `event_details` (`entry_id`, `start_datetime`, `end_datetime`, `is_all_day`, `location_id`) VALUES
 (6, '2026-03-05 12:39:00', '2026-03-12 12:39:00', 0, NULL),
-(9, '2026-03-11 00:00:00', NULL, 1, NULL),
 (13, '2026-03-20 00:00:00', NULL, 1, NULL),
 (19, '2026-04-02 00:00:00', NULL, 0, NULL),
 (20, '2026-03-04 00:00:00', NULL, 0, NULL);
@@ -244,7 +254,7 @@ INSERT INTO `routine_completions` (`id`, `routine_item_id`, `completed_date`, `c
 (6, 18, '2026-03-26', '2026-03-26 17:38:06'),
 (7, 17, '2026-03-26', '2026-03-26 17:38:07'),
 (8, 19, '2026-03-26', '2026-03-26 17:38:09'),
-(9, 20, '2026-03-26', '2026-03-26 17:38:10');
+(10, 20, '2026-03-26', '2026-03-26 21:31:07');
 
 -- --------------------------------------------------------
 
@@ -275,7 +285,8 @@ INSERT INTO `routine_items` (`id`, `title`, `type`, `category_id`, `day_of_week`
 (19, 'Suli', 'todo', NULL, 3, '08:30:00', '15:40:00', '#ffffff', '2026-03-26 17:19:34', '2026-03-26 17:19:34'),
 (20, 'Suli', 'todo', NULL, 4, '07:40:00', '14:50:00', '#ffffff', '2026-03-26 17:20:00', '2026-03-26 17:20:00'),
 (21, 'Suli', 'todo', NULL, 5, '12:15:00', '15:40:00', '#ffffff', '2026-03-26 17:20:25', '2026-03-26 17:20:25'),
-(22, 'Backend képzés', 'todo', NULL, 5, '17:15:00', '20:00:00', '#2eb9ff', '2026-03-26 17:21:04', '2026-03-26 17:21:04');
+(22, 'Backend képzés', 'todo', NULL, 5, '17:15:00', '20:00:00', '#2eb9ff', '2026-03-26 17:21:04', '2026-03-26 17:21:04'),
+(23, 'Projektmunka', 'todo', 1, 7, '19:00:00', '20:00:00', '#d900ff', '2026-03-26 21:34:25', '2026-03-26 21:34:25');
 
 -- --------------------------------------------------------
 
@@ -294,7 +305,13 @@ CREATE TABLE `tags` (
 --
 
 INSERT INTO `tags` (`id`, `name`, `color_hex`) VALUES
-(1, 'Fejlesztés', '#4997a7');
+(1, 'Fejlesztés', '#4997a7'),
+(2, 'Iskolai', '#ff9800'),
+(3, 'Budapest', '#ff9800'),
+(4, 'Folyó', '#ff9800'),
+(5, 'Taco', '#ff9800'),
+(6, 'Sajt', '#ff9800'),
+(7, 'recept', '#ff9800');
 
 -- --------------------------------------------------------
 
@@ -331,7 +348,7 @@ INSERT INTO `todo_details` (`entry_id`, `status`, `start_datetime`, `end_datetim
 --
 ALTER TABLE `attachments`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `entry_id` (`entry_id`);
+  ADD KEY `idx_entry_id` (`entry_id`);
 
 --
 -- A tábla indexei `categories`
@@ -437,7 +454,7 @@ ALTER TABLE `attachments`
 -- AUTO_INCREMENT a táblához `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT a táblához `entries`
@@ -473,19 +490,19 @@ ALTER TABLE `recurrences`
 -- AUTO_INCREMENT a táblához `routine_completions`
 --
 ALTER TABLE `routine_completions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT a táblához `routine_items`
 --
 ALTER TABLE `routine_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT a táblához `tags`
 --
 ALTER TABLE `tags`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Megkötések a kiírt táblákhoz

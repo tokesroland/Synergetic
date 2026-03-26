@@ -1,5 +1,4 @@
 const App = {
-    // Globális adatok és állapotok
     state: {
         nodes: [],
         filters: { task: true, event: true, note: true },
@@ -7,11 +6,10 @@ const App = {
         selectedId: null
     },
     
-    // Színek (CSS-ből olvassuk ki)
     colors: {
-        task: '#4caf50',
-        event: '#ff9800',
-        note: '#7986cb'
+        task: '#34d399',
+        event: '#fb923c',
+        note: '#818cf8'
     },
 
     async init() {
@@ -23,9 +21,7 @@ const App = {
         Graph.init();
         UI.init();
 
-        // 1. Csoportok betöltése
         await this.loadGroups();
-        // 2. Aktuális csoport elemeinek betöltése
         await this.loadCurrentGroup();
     },
 
@@ -42,7 +38,6 @@ const App = {
             this.state.nodes = data.entries;
             this.state.selectedId = null; 
             Graph.draw();
-            // ÚJ: Kilistázzuk az elemeket a sidebarba!
             UI.renderSidebarEntries(this.state.nodes); 
         }
     }
