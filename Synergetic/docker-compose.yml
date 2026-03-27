@@ -1,0 +1,71 @@
+services:
+  # ── PHP + Apache webszerver ──────────────────────────────────────────────
+  app:
+    build: .
+    container_name: synergetic_app
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html                        # Élő kód-szinkron fejlesztéshez
+      - uploads_data:/var/www/html/uploads     # Csatolmányok perzisztálása
+    environment:
+      DB_HOST: db
+      DB_NAME: todo
+      DB_USER: synergetic
+      DB_PASS: synergetic_pass
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - synergetic_net
+    restart: unless-stopped
+
+  # ── MariaDB adatbázis ────────────────────────────────────────────────────
+  db:
+    image: mariadb:10.11
+    container_name: synergetic_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pass
+      MYSQL_DATABASE: todo
+      MYSQL_USER: synergetic
+      MYSQL_PASSWORD: synergetic_pass
+    volumes:
+      - db_data:/var/lib/mysql                 # Adatok perzisztálása
+      - ./todo.sql:/docker-entrypoint-initdb.d/todo.sql:ro  # Auto-init
+    ports:
+      - "3306:3306"                            # Külső hozzáférés (pl. phpMyAdmin)
+    healthcheck:
+      test: ["CMD", "mariadb", "-u", "synergetic", "-psynergetic_pass", "-e", "SELECT 1;"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - synergetic_net
+    restart: unless-stopped
+
+  # ── phpMyAdmin (opcionális, fejlesztéshez) ───────────────────────────────
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: synergetic_pma
+    ports:
+      - "8888:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: synergetic
+      PMA_PASSWORD: synergetic_pass
+    depends_on:
+      - db
+    networks:
+      - synergetic_net
+    restart: unless-stopped
+    profiles:
+      - dev
+
+volumes:
+  db_data:
+  uploads_data:
+
+networks:
+  synergetic_net:
+    driver: bridge

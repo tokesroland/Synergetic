@@ -20,7 +20,6 @@ if (!$isMultipart && $method !== 'GET' && $method !== 'DELETE' && $method !== 'O
     $raw   = file_get_contents("php://input");
     $input = json_decode($raw, true) ?? [];
 }
-
 try {
     switch ($method) {
 
@@ -76,7 +75,7 @@ try {
                 $entryId = (int)($_POST['entry_id'] ?? 0);
                 if (empty($_FILES['file'])) {
                     http_response_code(400);
-                    echo json_encode(["error" => "Nincs feltoltott fajl."]);
+                    echo json_encode(["error" => "Nincs feltöltött fájl."]);
                     break;
                 }
                 echo json_encode($entryCtrl->uploadAttachment($entryId, $_FILES['file']));
@@ -126,7 +125,6 @@ try {
                     echo json_encode($entryCtrl->create($input));
             }
             break;
-
         // ── PUT ──────────────────────────────────────────────────────────────
         case 'PUT':
             $raw   = file_get_contents("php://input");

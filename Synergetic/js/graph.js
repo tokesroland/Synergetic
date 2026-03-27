@@ -31,7 +31,7 @@ const Graph = {
 
     // — Drag-to-group állapot —
     isDraggingToGroup: false,
-    dragOriginalPos: { x: 0, y: 0 },    // originális gráf pozíció mentés
+    dragOriginalPos: { x: 0, y: 0 },    // eredeti gráf pozíció mentés
     dragScreenPos: { x: 0, y: 0 },       // aktuális screen pozíció a „ghost" rajzoláshoz
     _zoomBadgeTimeout: null,
 
