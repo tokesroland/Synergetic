@@ -6,6 +6,42 @@
     <title>Naptár Nézet</title>
     <link rel="stylesheet" href="./styles/style.css">
     <link rel="stylesheet" href="./styles/calendar.css">
+    <style>
+        .mv-agenda-section { margin-bottom: 4px; }
+        .mv-agenda-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+            padding: 8px 14px 4px;
+            opacity: 0.7;
+        }
+        .mv-todo-item { align-items: center; }
+        .mv-todo-meta { font-style: italic; opacity: 0.75; }
+        .mv-todo-deadline-badge {
+            flex-shrink: 0;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: rgba(251, 146, 60, 0.18);
+            color: #fb923c;
+            border: 1px solid rgba(251, 146, 60, 0.4);
+            white-space: nowrap;
+        }
+        .mv-todo-start-badge {
+            flex-shrink: 0;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: rgba(52, 211, 153, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.35);
+            white-space: nowrap;
+        }
+    </style>
 </head>
 <body>
 
@@ -86,16 +122,31 @@
         isAllDay(e) { return e.is_all_day == 1; },
 
         forDate(target) {
+            const t = new Date(target); t.setHours(0,0,0,0);
             return this.entries.filter(e => {
+                // TODO: csak planned_start napján és/vagy deadline napján jelenik meg, NEM intervallumként
+                if (e.type === 'todo') {
+                    if (e.start_datetime) {
+                        const ps = new Date(e.start_datetime.replace(' ','T')); ps.setHours(0,0,0,0);
+                        if (t.getTime() === ps.getTime()) return true;
+                    }
+                    if (e.end_datetime) {
+                        const dl = new Date(e.end_datetime.replace(' ','T')); dl.setHours(0,0,0,0);
+                        if (t.getTime() === dl.getTime()) return true;
+                    }
+                    return false;
+                }
+                // EVENT: tól-ig intervallum
                 if (!e.start_datetime) return false;
                 const s = new Date(e.start_datetime.replace(' ','T')); s.setHours(0,0,0,0);
-                const t = new Date(target); t.setHours(0,0,0,0);
                 if (e.end_datetime) { const end = new Date(e.end_datetime.replace(' ','T')); end.setHours(0,0,0,0); return t >= s && t <= end; }
                 return t.getTime() === s.getTime();
             });
         },
-        timedFor(d) { return this.forDate(d).filter(e => !this.isAllDay(e)); },
-        alldayFor(d) { return this.forDate(d).filter(e => this.isAllDay(e)); },
+        // TODO-k nem kerülnek az idővonalas blokkba
+        timedFor(d) { return this.forDate(d).filter(e => !this.isAllDay(e) && e.type !== 'todo'); },
+        alldayFor(d) { return this.forDate(d).filter(e => this.isAllDay(e) && e.type !== 'todo'); },
+        todoFor(d)   { return this.forDate(d).filter(e => e.type === 'todo'); },
 
         render() {
             this.updateTitle();
@@ -229,25 +280,77 @@
             const meta = document.createElement('div'); meta.className = 'mv-agenda-meta'; meta.textContent = `${this.MONTHS[date.getMonth()]}, ${this.DAYS_F[this.dayIdx(date)]}`;
             header.appendChild(bigNum); header.appendChild(meta); agenda.appendChild(header);
 
-            const entries = this.forDate(date);
-            if (entries.length === 0) {
+            const todos   = this.todoFor(date);
+            const events  = this.forDate(date).filter(e => e.type !== 'todo');
+            if (todos.length === 0 && events.length === 0) {
                 const empty = document.createElement('div'); empty.className = 'mv-agenda-empty'; empty.textContent = 'Nincs bejegyzés erre a napra';
                 agenda.appendChild(empty); return;
             }
 
-            entries.sort((a,b) => new Date(a.start_datetime.replace(' ','T')) - new Date(b.start_datetime.replace(' ','T')));
-            const list = document.createElement('div'); list.className = 'mv-agenda-list';
+            // ── TODO szekció ──────────────────────────────────────────────
+            if (todos.length > 0) {
+                const todoSection = document.createElement('div'); todoSection.className = 'mv-agenda-section';
+                const secLabel = document.createElement('div'); secLabel.className = 'mv-agenda-section-label'; secLabel.textContent = 'Teendők';
+                todoSection.appendChild(secLabel);
+                const todoList = document.createElement('div'); todoList.className = 'mv-agenda-list';
+                todos.forEach(entry => {
+                    const t = new Date(date); t.setHours(0,0,0,0);
+                    // Meghatározzuk, hogy ez a nap planned_start vagy deadline
+                    let role = '';
+                    if (entry.start_datetime) {
+                        const ps = new Date(entry.start_datetime.replace(' ','T')); ps.setHours(0,0,0,0);
+                        if (t.getTime() === ps.getTime()) role = 'start';
+                    }
+                    if (entry.end_datetime) {
+                        const dl = new Date(entry.end_datetime.replace(' ','T')); dl.setHours(0,0,0,0);
+                        if (t.getTime() === dl.getTime()) role = role === 'start' ? 'both' : 'deadline';
+                    }
+                    const color = this.col(entry.type);
+                    const item = document.createElement('div'); item.className = 'mv-agenda-item mv-todo-item';
+                    item.style.borderLeftColor = color;
+                    let badge = '';
+                    if (role === 'deadline' || role === 'both') {
+                        badge = `<div class="mv-todo-deadline-badge">⏰ Határidő</div>`;
+                    } else if (role === 'start') {
+                        badge = `<div class="mv-todo-start-badge">▶ Kezdés</div>`;
+                    }
+                    let metaStr = '';
+                    if (entry.end_datetime) {
+                        const dl = new Date(entry.end_datetime.replace(' ','T'));
+                        metaStr = `Határidő: ${dl.toLocaleDateString('hu-HU', {month:'short', day:'numeric'})}`;
+                        if (entry.start_datetime) {
+                            const ps = new Date(entry.start_datetime.replace(' ','T'));
+                            metaStr += ` · Tervezett: ${ps.toLocaleDateString('hu-HU', {month:'short', day:'numeric'})}`;
+                        }
+                    } else if (entry.start_datetime) {
+                        metaStr = 'Tervezett kezdés napja';
+                    }
+                    item.innerHTML = `<div class="mv-agenda-item-body"><div class="mv-agenda-item-title">${entry.title}</div><div class="mv-agenda-item-time mv-todo-meta">${metaStr}</div></div>${badge}`;
+                    item.addEventListener('click', () => window.location.href = `details.html?id=${entry.id}`);
+                    todoList.appendChild(item);
+                });
+                todoSection.appendChild(todoList);
+                agenda.appendChild(todoSection);
+            }
 
-            entries.forEach(entry => {
-                const item = document.createElement('div'); item.className = 'mv-agenda-item';
-                item.style.borderLeftColor = this.col(entry.type);
-                let timeStr = 'Egész nap';
-                if (!this.isAllDay(entry)) { timeStr = this.fmtTime(entry.start_datetime); if (entry.end_datetime) timeStr += ' – ' + this.fmtTime(entry.end_datetime); }
-                item.innerHTML = `<div class="mv-agenda-item-body"><div class="mv-agenda-item-title">${entry.title}</div><div class="mv-agenda-item-time">${timeStr}</div></div><div class="mv-agenda-item-badge" style="background:${this.col(entry.type)}">${this.names[entry.type]||entry.type}</div>`;
-                item.addEventListener('click', () => window.location.href = `details.html?id=${entry.id}`);
-                list.appendChild(item);
-            });
-            agenda.appendChild(list);
+            // ── EVENT / NOTE szekció ──────────────────────────────────────
+            if (events.length > 0) {
+                const evSection = document.createElement('div'); evSection.className = 'mv-agenda-section';
+                if (todos.length > 0) { const secLabel = document.createElement('div'); secLabel.className = 'mv-agenda-section-label'; secLabel.textContent = 'Események'; evSection.appendChild(secLabel); }
+                const list = document.createElement('div'); list.className = 'mv-agenda-list';
+                events.sort((a,b) => new Date(a.start_datetime.replace(' ','T')) - new Date(b.start_datetime.replace(' ','T')));
+                events.forEach(entry => {
+                    const item = document.createElement('div'); item.className = 'mv-agenda-item';
+                    item.style.borderLeftColor = this.col(entry.type);
+                    let timeStr = 'Egész nap';
+                    if (!this.isAllDay(entry)) { timeStr = this.fmtTime(entry.start_datetime); if (entry.end_datetime) timeStr += ' – ' + this.fmtTime(entry.end_datetime); }
+                    item.innerHTML = `<div class="mv-agenda-item-body"><div class="mv-agenda-item-title">${entry.title}</div><div class="mv-agenda-item-time">${timeStr}</div></div><div class="mv-agenda-item-badge" style="background:${this.col(entry.type)}">${this.names[entry.type]||entry.type}</div>`;
+                    item.addEventListener('click', () => window.location.href = `details.html?id=${entry.id}`);
+                    list.appendChild(item);
+                });
+                evSection.appendChild(list);
+                agenda.appendChild(evSection);
+            }
         },
 
         // =========== HETI NÉZET ===========

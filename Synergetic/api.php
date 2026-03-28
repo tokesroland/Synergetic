@@ -30,31 +30,26 @@ try {
             // Routine GET-ek
             if ($action === 'get_routine_all') {
                 echo json_encode($routineCtrl->getAll());
-
             } elseif ($action === 'get_routine_by_day') {
                 echo json_encode($routineCtrl->getByDay((int)($_GET['day'] ?? 1)));
-
             } elseif ($action === 'get_routine_completions') {
                 $date = $_GET['date'] ?? date('Y-m-d');
                 echo json_encode($routineCtrl->getCompletions($date));
-
             } elseif ($action === 'get_routine_week_summary') {
                 $weekStart = $_GET['week_start'] ?? date('Y-m-d', strtotime('monday this week'));
                 echo json_encode($routineCtrl->getWeekSummary($weekStart));
 
-            // Entry GET-ek
+                // Entry GET-ek
             } elseif ($action === 'get_groups') {
                 echo json_encode($entryCtrl->getGroups());
-
             } elseif ($action === 'get_calendar') {
                 echo json_encode($entryCtrl->getCalendarEntries());
-
             } elseif ($action === 'get_categories') {
                 echo json_encode($entryCtrl->getCategories());
-
             } elseif ($action === 'get_tags') {
                 echo json_encode($entryCtrl->getTags());
-
+            } elseif ($action === 'get_locations') {
+                echo json_encode($entryCtrl->getLocations());
             } elseif (isset($_GET['entry_id'])) {
                 $result = $entryCtrl->getOne((int)$_GET['entry_id']);
                 if (!$result) {
@@ -63,7 +58,6 @@ try {
                 } else {
                     echo json_encode($result);
                 }
-
             } else {
                 echo json_encode($entryCtrl->getAllByGroup((int)($_GET['group_id'] ?? 1)));
             }
@@ -161,7 +155,6 @@ try {
             http_response_code(405);
             echo json_encode(["error" => "Modszer nem engedelyezett"]);
     }
-
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(["error" => $e->getMessage()]);

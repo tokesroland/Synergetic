@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Gép: 127.0.0.1
--- Létrehozás ideje: 2026. Már 26. 23:39
+-- Létrehozás ideje: 2026. Már 28. 01:06
 -- Kiszolgáló verziója: 10.4.32-MariaDB
 -- PHP verzió: 8.2.12
 
@@ -35,6 +35,14 @@ CREATE TABLE `attachments` (
   `original_name` varchar(255) NOT NULL DEFAULT '',
   `uploaded_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- A tábla adatainak kiíratása `attachments`
+--
+
+INSERT INTO `attachments` (`id`, `entry_id`, `file_path`, `file_type`, `original_name`, `uploaded_at`) VALUES
+(1, 6, 'uploads/attachments/6/05e61f544ebbf4037fd69ac577e7d6f4.png', 'image/png', 'Amuh_Futuristic_city_surrounded_by_wall_reside_in_other_planets_5a17c194-d224-48ee-9ec0-0c6123510092.png', '2026-03-26 22:41:46'),
+(2, 6, 'uploads/attachments/6/7f14891f5aa5af9d09562f20cebde54a.png', 'image/png', 'Rolandvolnek_City_art_from_Stellaris_without_text_render_4k_2dfc311b-415e-4405-8139-c3703812ff36.png', '2026-03-26 22:41:49');
 
 -- --------------------------------------------------------
 
@@ -74,29 +82,33 @@ CREATE TABLE `entries` (
   `pos_y` float NOT NULL DEFAULT 300,
   `content` longtext DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `notified_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- A tábla adatainak kiíratása `entries`
 --
 
-INSERT INTO `entries` (`id`, `group_id`, `category_id`, `type`, `title`, `pos_x`, `pos_y`, `content`, `created_at`, `updated_at`) VALUES
-(1, 1, NULL, 'todo', 'asdadsasdadsasd', 400, 300, NULL, '2026-03-05 11:25:16', '2026-03-05 11:25:16'),
-(3, 1, NULL, 'todo', 'asdasdasd', 684, 478, NULL, '2026-03-05 11:39:09', '2026-03-05 11:39:09'),
-(4, 2, 1, 'note', 'Szakdolgozat', 912.841, 249.418, '- Kell valami\n- Még valami\n\naaasdasdasasdssdssad\n', '2026-03-05 11:39:27', '2026-03-26 21:40:59'),
-(5, 1, NULL, 'todo', 'asdadssadadsddasdas', 390, 123, NULL, '2026-03-05 11:39:42', '2026-03-05 11:39:42'),
-(6, 1, 2, 'event', 'Szakdolgozat témakörök', 735, 201, '<font size=\"4\">Telefon specifikaciok:</font><div><font size=\"4\">- 16GB ram</font></div><div><font size=\"4\">- 4 GB vram</font></div><div><font size=\"4\">- nem megy a brave</font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\">Sallang szöveg a jajajajajajjaj</font><span style=\"font-size: large; background-color: transparent;\">Telefon specifikaciok:</span></div><div><font size=\"4\">- 16GB ram</font></div><div><font size=\"4\">- 4 GB vram</font></div><div><font size=\"4\">- nem megy a brave</font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\">Sallang szöveg a jajajajajajjaj</font></div><div><font size=\"4\">Telefon specifikaciok:</font><div><font size=\"4\">- 16GB ram</font></div><div><font size=\"4\">- 4 GB vram</font></div><div><font size=\"4\">- nem megy a brave</font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\">Sallang szöveg a jajajajajajjaj</font><span style=\"font-size: large; background-color: transparent;\">Telefon specifikaciok:</span></div><div><font size=\"4\">- 16GB ram</font></div><div><font size=\"4\">- 4 GB vram</font></div><div><font size=\"4\">- nem megy a brave</font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\">Sallang szöveg a jajajajajajjaj</font></div></div>', '2026-03-05 11:40:01', '2026-03-26 22:26:01'),
-(7, 1, NULL, 'todo', 'adasdasddsasaddassdasadasddssadads', 297, 268, NULL, '2026-03-05 11:40:27', '2026-03-05 11:40:27'),
-(13, 2, NULL, 'event', 'asd', 534, 278, 'asdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd', '2026-03-20 18:02:12', '2026-03-26 21:39:50'),
-(14, 2, NULL, 'note', 'fasz', 412, 309, NULL, '2026-03-20 18:02:25', '2026-03-26 21:30:17'),
-(15, 1, NULL, 'todo', 'ddd', 137, 431, NULL, '2026-03-20 18:02:42', '2026-03-20 18:02:42'),
-(19, 1, 2, 'event', 'dddddddddddddddddddd', 791, 357, '<font face=\"Times New Roman, serif\" size=\"6\">sxsd</font><font face=\"Times New Roman, serif\" size=\"7\">adaddasd</font><font face=\"Times New Roman, serif\" size=\"6\">d</font><font face=\"Times New Roman, serif\" size=\"5\">dd</font><font face=\"Times New Roman, serif\" size=\"4\">d</font><font face=\"Times New Roman, serif\" size=\"3\">d</font><font face=\"Times New Roman, serif\" size=\"2\">d</font><font face=\"Times New Roman, serif\" size=\"1\">ddd</font><font face=\"Times New Roman, serif\" size=\"4\">sadadasdasda</font>', '2026-03-20 18:03:25', '2026-03-26 22:05:18'),
-(20, 2, 2, 'event', 'fasfafafafafafaf', 301, 329, NULL, '2026-03-20 18:03:45', '2026-03-26 21:30:05'),
-(21, 2, 2, 'note', 'a', 477, 205, 'sdaasdadasddsad<div>asdasdsad</div><div>adsasdddadsad</div>', '2026-03-20 18:08:14', '2026-03-26 21:38:09'),
-(22, 2, NULL, 'note', 'a', 488, 344, NULL, '2026-03-20 18:08:20', '2026-03-26 21:30:23'),
-(23, 1, NULL, 'todo', '23', 280, 251, NULL, '2026-03-20 18:08:37', '2026-03-20 18:08:37'),
-(24, 1, NULL, 'todo', 'Feladatok xddddd', 449, 281, NULL, '2026-03-23 09:27:40', '2026-03-23 09:27:40');
+INSERT INTO `entries` (`id`, `group_id`, `category_id`, `type`, `title`, `pos_x`, `pos_y`, `content`, `created_at`, `updated_at`, `notified_at`) VALUES
+(1, 1, NULL, 'todo', 'asdadsasdadsasd', 400, 300, NULL, '2026-03-05 11:25:16', '2026-03-05 11:25:16', NULL),
+(3, 1, NULL, 'todo', 'asdasdasd', 684, 478, NULL, '2026-03-05 11:39:09', '2026-03-05 11:39:09', NULL),
+(4, 2, 1, 'note', 'Szakdolgozat', 912.841, 249.418, '- Kell valami\n- Még valami\n\naaasdasdasasdssdssad\n', '2026-03-05 11:39:27', '2026-03-26 21:40:59', NULL),
+(5, 1, NULL, 'todo', 'asdadssadadsddasdas', 390, 123, NULL, '2026-03-05 11:39:42', '2026-03-05 11:39:42', NULL),
+(6, 1, 1, 'event', 'Szakdolgozat témakörök', 434.12, 195.273, '<font size=\"4\">Telefon specifikaciok:</font><div><font size=\"4\">- 16GB ram</font></div><div><font size=\"4\">- 4 GB vram</font></div><div><font size=\"4\">- nem megy a brave</font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\">Sallang szöveg a jajajajajajjaj</font><span style=\"font-size: large; background-color: transparent;\">Telefon specifikaciok:</span></div><div><font size=\"4\">- 16GB ram</font></div><div><font size=\"4\">- 4 GB vram</font></div><div><font size=\"4\">- nem megy a brave</font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\">Sallang szöveg a jajajajajajjaj</font></div><div><font size=\"4\">Telefon specifikaciok:</font><div><font size=\"4\">- 16GB ram</font></div><div><font size=\"4\">- 4 GB vram</font></div><div><font size=\"4\">- nem megy a brave</font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\">Sallang szöveg a jajajajajajjaj</font><span style=\"font-size: large; background-color: transparent;\">Telefon specifikaciok:</span></div><div><font size=\"4\">- 16GB ram</font></div><div><font size=\"4\">- 4 GB vram</font></div><div><font size=\"4\">- nem megy a brave</font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\"><br></font></div><div><font size=\"4\">Sallang szöveg a jajajajajajjaj</font></div></div>', '2026-03-05 11:40:01', '2026-03-27 23:58:29', NULL),
+(7, 1, NULL, 'todo', 'adasdasddsasaddassdasadasddssadads', 112.547, 249.203, NULL, '2026-03-05 11:40:27', '2026-03-27 23:58:23', NULL),
+(13, 2, NULL, 'event', 'asd', 534, 278, 'asdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd', '2026-03-20 18:02:12', '2026-03-26 21:39:50', NULL),
+(14, 2, NULL, 'note', 'fasz', 412, 309, NULL, '2026-03-20 18:02:25', '2026-03-26 21:30:17', NULL),
+(15, 1, NULL, 'todo', 'ddd', 137, 431, NULL, '2026-03-20 18:02:42', '2026-03-20 18:02:42', NULL),
+(20, 2, 2, 'event', '', 301, 329, NULL, '2026-03-20 18:03:45', '2026-03-27 23:23:56', NULL),
+(21, 2, 2, 'note', 'a', 477, 205, 'sdaasdadasddsad<div>asdasdsad</div><div>adsasdddadsad</div>', '2026-03-20 18:08:14', '2026-03-26 21:38:09', NULL),
+(22, 2, NULL, 'note', 'a', 488, 344, NULL, '2026-03-20 18:08:20', '2026-03-26 21:30:23', NULL),
+(23, 1, NULL, 'todo', '23', 280, 251, NULL, '2026-03-20 18:08:37', '2026-03-20 18:08:37', NULL),
+(24, 1, NULL, 'todo', 'Feladatok xddddd', 579, 291, NULL, '2026-03-23 09:27:40', '2026-03-27 23:59:11', NULL),
+(27, 1, 2, 'event', 'Edzés FItness', 789.676, 286.131, NULL, '2026-03-27 23:26:29', '2026-03-27 23:56:50', NULL),
+(28, 2, 2, 'note', 'a', 123, 270, NULL, '2026-03-27 23:39:01', '2026-03-27 23:39:01', NULL),
+(29, 1, NULL, 'todo', 'd', 324.104, 388.015, NULL, '2026-03-27 23:39:11', '2026-03-27 23:59:15', NULL),
+(30, 1, 2, 'todo', 'Kuki verés', 298, 132, NULL, '2026-03-27 23:48:31', '2026-03-27 23:48:31', NULL);
 
 -- --------------------------------------------------------
 
@@ -115,8 +127,8 @@ CREATE TABLE `entry_links` (
 
 INSERT INTO `entry_links` (`source_id`, `target_id`) VALUES
 (4, 6),
-(4, 19),
-(19, 6),
+(6, 27),
+(7, 6),
 (20, 21),
 (21, 4);
 
@@ -144,8 +156,7 @@ INSERT INTO `entry_tags` (`entry_id`, `tag_id`) VALUES
 (6, 5),
 (6, 6),
 (6, 7),
-(13, 1),
-(19, 4);
+(13, 1);
 
 -- --------------------------------------------------------
 
@@ -168,8 +179,8 @@ CREATE TABLE `event_details` (
 INSERT INTO `event_details` (`entry_id`, `start_datetime`, `end_datetime`, `is_all_day`, `location_id`) VALUES
 (6, '2026-03-05 12:39:00', '2026-03-12 12:39:00', 0, NULL),
 (13, '2026-03-20 00:00:00', NULL, 1, NULL),
-(19, '2026-04-02 00:00:00', NULL, 0, NULL),
-(20, '2026-03-04 00:00:00', NULL, 0, NULL);
+(20, '2026-03-04 00:00:00', NULL, 0, NULL),
+(27, '2026-03-28 00:00:00', NULL, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -286,7 +297,10 @@ INSERT INTO `routine_items` (`id`, `title`, `type`, `category_id`, `day_of_week`
 (20, 'Suli', 'todo', NULL, 4, '07:40:00', '14:50:00', '#ffffff', '2026-03-26 17:20:00', '2026-03-26 17:20:00'),
 (21, 'Suli', 'todo', NULL, 5, '12:15:00', '15:40:00', '#ffffff', '2026-03-26 17:20:25', '2026-03-26 17:20:25'),
 (22, 'Backend képzés', 'todo', NULL, 5, '17:15:00', '20:00:00', '#2eb9ff', '2026-03-26 17:21:04', '2026-03-26 17:21:04'),
-(23, 'Projektmunka', 'todo', 1, 7, '19:00:00', '20:00:00', '#d900ff', '2026-03-26 21:34:25', '2026-03-26 21:34:25');
+(23, 'Projektmunka', 'todo', 1, 7, '19:00:00', '20:00:00', '#d900ff', '2026-03-26 21:34:25', '2026-03-26 21:34:25'),
+(24, 'Edzés', 'todo', 2, 1, '14:00:00', '15:00:00', '#06c61c', '2026-03-26 23:34:22', '2026-03-26 23:34:22'),
+(25, 'Edzés', 'todo', 2, 2, '14:00:00', '15:00:00', '#06c61c', '2026-03-26 23:34:22', '2026-03-26 23:34:22'),
+(27, 'Edzés', 'todo', 2, 7, '14:00:00', '15:00:00', '#06c61c', '2026-03-26 23:34:22', '2026-03-26 23:34:22');
 
 -- --------------------------------------------------------
 
@@ -322,22 +336,24 @@ INSERT INTO `tags` (`id`, `name`, `color_hex`) VALUES
 CREATE TABLE `todo_details` (
   `entry_id` int(11) NOT NULL,
   `status` enum('active','completed','archived') DEFAULT 'active',
-  `start_datetime` datetime DEFAULT NULL,
-  `end_datetime` datetime DEFAULT NULL
+  `planned_start` datetime DEFAULT NULL,
+  `deadline` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- A tábla adatainak kiíratása `todo_details`
 --
 
-INSERT INTO `todo_details` (`entry_id`, `status`, `start_datetime`, `end_datetime`) VALUES
+INSERT INTO `todo_details` (`entry_id`, `status`, `planned_start`, `deadline`) VALUES
 (1, 'active', NULL, NULL),
 (3, 'active', NULL, NULL),
 (5, 'active', NULL, NULL),
 (7, 'active', '2026-03-05 00:00:00', NULL),
 (15, 'active', '2026-03-20 00:00:00', NULL),
 (23, 'active', NULL, NULL),
-(24, 'active', '2026-03-23 11:30:00', '2026-03-27 13:30:00');
+(24, 'active', '2026-03-23 11:30:00', '2026-03-27 13:30:00'),
+(29, 'active', '2026-03-28 00:39:00', NULL),
+(30, 'active', '2026-03-26 00:48:00', '2026-04-04 00:48:00');
 
 --
 -- Indexek a kiírt táblákhoz
@@ -448,7 +464,7 @@ ALTER TABLE `todo_details`
 -- AUTO_INCREMENT a táblához `attachments`
 --
 ALTER TABLE `attachments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT a táblához `categories`
@@ -460,7 +476,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT a táblához `entries`
 --
 ALTER TABLE `entries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT a táblához `exceptions`
@@ -496,7 +512,7 @@ ALTER TABLE `routine_completions`
 -- AUTO_INCREMENT a táblához `routine_items`
 --
 ALTER TABLE `routine_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT a táblához `tags`

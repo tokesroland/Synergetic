@@ -38,7 +38,7 @@
     <main id="main-content">
         <div class="top-bar">
             <div class="filters">
-                <button class="filter-btn active" data-type="task">Tasks</button>
+                <button class="filter-btn active" data-type="todo">Tasks</button>
                 <button class="filter-btn active" data-type="event">Events</button>
                 <button class="filter-btn active" data-type="note">Notes</button>
             </div>
@@ -64,8 +64,10 @@
 
             <div id="sub-action-menu" class="quick-action-menu" style="left: 210px; min-width: 220px; z-index: 101;">
                 <div style="padding: 10px; border-bottom: 1px solid var(--border-color);">
-                    <input type="text" id="sub-action-search" class="form-control" placeholder="Keresés..." style="margin-bottom: 10px; padding: 6px; font-size: 0.85rem;">
-                    <button id="sub-action-create-new" class="btn-primary" style="width: 100%; padding: 6px; font-size: 0.85rem;">+ Új létrehozása</button>
+                    <input type="text" id="sub-action-search" class="form-control" placeholder="Keresés..."
+                        style="margin-bottom: 10px; padding: 6px; font-size: 0.85rem;">
+                    <button id="sub-action-create-new" class="btn-primary"
+                        style="width: 100%; padding: 6px; font-size: 0.85rem;">+ Új létrehozása</button>
                 </div>
                 <ul id="sub-action-list" style="list-style: none; padding: 5px 0; max-height: 180px; overflow-y: auto;">
                 </ul>
@@ -124,24 +126,43 @@
                         <label>Típus</label>
                         <select id="entry-type" class="form-control">
                             <option value="note">Jegyzet</option>
-                            <option value="todo">Feladat (TODO)</option>
+                            <option value="todo">Teendő</option>
                             <option value="event">Esemény</option>
                         </select>
                     </div>
 
-                    <div id="datetime-container" style="display: none;">
+                    <!-- TODO specifikus mezők -->
+                    <div id="todo-fields" style="display: none;">
+                        <div class="form-group">
+                            <label>Tervezett kezdet (Opcionális)</label>
+                            <input type="datetime-local" id="todo-start" class="form-control" step="60">
+                        </div>
+                        <div class="form-group">
+                            <label>Határidő (Opcionális)</label>
+                            <input type="datetime-local" id="todo-deadline" class="form-control" step="60">
+                        </div>
+                    </div>
+
+                    <!-- EVENT specifikus mezők -->
+                    <div id="event-fields" style="display: none;">
                         <div class="form-group">
                             <label><input type="checkbox" id="entry-allday"> Egész napos</label>
                         </div>
                         <div class="date-time-row">
-                            <div class="form-group">
-                                <label>Kezdés</label>
-                                <input type="datetime-local" id="entry-start" class="form-control">
+                            <div class="form-group" style="min-width:0;">
+                                <label>Kezdés *</label>
+                                <input type="datetime-local" id="entry-start" class="form-control" step="60">
                             </div>
-                            <div class="form-group">
+                            <div class="form-group" style="min-width:0;">
                                 <label>Befejezés (Opcionális)</label>
-                                <input type="datetime-local" id="entry-end" class="form-control">
+                                <input type="datetime-local" id="entry-end" class="form-control" step="60">
                             </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Helyszín (Opcionális)</label>
+                            <select id="event-location" class="form-control">
+                                <option value="">— Nincs helyszín —</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -149,11 +170,13 @@
                 <div id="fields-category" style="display: none;">
                     <div class="form-group">
                         <label>Kategória neve</label>
-                        <input type="text" id="category-name" class="form-control" placeholder="Pl. Pénzügy, Fejlesztés...">
+                        <input type="text" id="category-name" class="form-control"
+                            placeholder="Pl. Pénzügy, Fejlesztés...">
                     </div>
                     <div class="form-group">
                         <label>Kategória színe (HEX)</label>
-                        <input type="color" id="category-color" value="#5c6bc0" class="form-control" style="height: 40px; cursor: pointer;">
+                        <input type="color" id="category-color" value="#5c6bc0" class="form-control"
+                            style="height: 40px; cursor: pointer;">
                     </div>
                 </div>
 
@@ -164,14 +187,16 @@
                     </div>
                     <div class="form-group">
                         <label>Címke színe (HEX)</label>
-                        <input type="color" id="tag-color" value="#ff9800" class="form-control" style="height: 40px; cursor: pointer;">
+                        <input type="color" id="tag-color" value="#ff9800" class="form-control"
+                            style="height: 40px; cursor: pointer;">
                     </div>
                 </div>
 
                 <div id="fields-location" style="display: none;">
                     <div class="form-group">
                         <label>Helyszín neve</label>
-                        <input type="text" id="location-name" class="form-control" placeholder="Pl. Iroda, Tárgyaló 1...">
+                        <input type="text" id="location-name" class="form-control"
+                            placeholder="Pl. Iroda, Tárgyaló 1...">
                     </div>
                 </div>
 
@@ -180,4 +205,5 @@
         </div>
     </div>
 </body>
+
 </html>

@@ -87,23 +87,23 @@ class EntryController {
     // ─── Egy elem részletes lekérése ────────────────────────────────────────
     public function getOne($id) {
         $stmt = $this->pdo->prepare("
-            SELECT e.id, e.title, e.content, e.type, e.category_id,
-                   c.name  AS category_name,
-                   c.color_hex AS category_color
+            SELECT e.id, e.title, e.content, e.type, e.category_id, e.group_id,
+                c.name      AS category_name,
+                c.color_hex AS category_color,
+                g.name      AS group_name
             FROM entries e
             LEFT JOIN categories c ON e.category_id = c.id
+            LEFT JOIN groups     g ON e.group_id     = g.id
             WHERE e.id = ?
         ");
         $stmt->execute([$id]);
         $entry = $stmt->fetch();
-
         if (!$entry) return null;
 
         // Tagek
         $tagStmt = $this->pdo->prepare("
             SELECT t.id, t.name, t.color_hex
-            FROM tags t
-            JOIN entry_tags et ON t.id = et.tag_id
+            FROM tags t JOIN entry_tags et ON t.id = et.tag_id
             WHERE et.entry_id = ?
         ");
         $tagStmt->execute([$id]);
@@ -112,16 +112,32 @@ class EntryController {
         // Csatolmányok
         $attStmt = $this->pdo->prepare("
             SELECT id, file_path, file_type, original_name, uploaded_at
-            FROM attachments
-            WHERE entry_id = ?
-            ORDER BY uploaded_at ASC
+            FROM attachments WHERE entry_id = ? ORDER BY uploaded_at ASC
         ");
         $attStmt->execute([$id]);
         $entry['attachments'] = $attStmt->fetchAll();
 
+        // Type-specifikus részletek
+        if ($entry['type'] === 'todo') {
+            $detailStmt = $this->pdo->prepare(
+                "SELECT status, planned_start, deadline FROM todo_details WHERE entry_id = ?"
+            );
+            $detailStmt->execute([$id]);
+            $entry['todo_details'] = $detailStmt->fetch() ?: null;
+        } elseif ($entry['type'] === 'event') {
+            $detailStmt = $this->pdo->prepare("
+                SELECT ed.start_datetime, ed.end_datetime, ed.is_all_day,
+                    l.id AS location_id, l.name AS location_name
+                FROM event_details ed
+                LEFT JOIN locations l ON ed.location_id = l.id
+                WHERE ed.entry_id = ?
+            ");
+            $detailStmt->execute([$id]);
+            $entry['event_details'] = $detailStmt->fetch() ?: null;
+        }
         return $entry;
     }
-
+    
     // ─── Új elem létrehozása ────────────────────────────────────────────────
     public function create($data) {
         $title       = $data['title']       ?? '';
@@ -261,6 +277,10 @@ class EntryController {
         return ["message" => "Helyszín létrehozva!", "id" => $this->pdo->lastInsertId()];
     }
 
+    public function getLocations() {
+        return $this->pdo->query("SELECT * FROM locations ORDER BY name ASC")->fetchAll();
+    }
+
     // ─── ÚJ: Csatolmány feltöltése ──────────────────────────────────────────
     public function uploadAttachment($entryId, $file) {
         if (empty($entryId)) throw new Exception("Hiányzó entry azonosító.");
@@ -337,32 +357,48 @@ class EntryController {
         $sql = "
             SELECT 
                 e.id, e.title, e.content, e.type,
-                COALESCE(ed.start_datetime, td.start_datetime) AS start_datetime,
-                COALESCE(ed.end_datetime,   td.end_datetime)   AS end_datetime,
+                COALESCE(ed.start_datetime, td.planned_start) AS start_datetime,
+                COALESCE(ed.end_datetime,   td.deadline)      AS end_datetime,
                 ed.is_all_day
             FROM entries e
             LEFT JOIN event_details ed ON e.id = ed.entry_id AND e.type = 'event'
             LEFT JOIN todo_details  td ON e.id = td.entry_id AND e.type = 'todo'
             WHERE e.type IN ('todo', 'event')
-              AND (ed.start_datetime IS NOT NULL OR td.start_datetime IS NOT NULL)
+            AND (ed.start_datetime IS NOT NULL OR td.planned_start IS NOT NULL)
         ";
         return $this->pdo->query($sql)->fetchAll();
     }
-
     // ─── Privát segédfüggvények ──────────────────────────────────────────────
+
+    // datetime-local input értéke "2025-03-28T14:30" - MySQL-hez "2025-03-28 14:30:00" kell
+    private function normalizeDateTime(?string $val): ?string {
+        if (empty($val)) return null;
+        // T elválasztó cseréje szóközre, másodperc hozzáadása ha hiányzik
+        $val = str_replace('T', ' ', $val);
+        if (strlen($val) === 16) $val .= ':00'; // "2025-03-28 14:30" -> "2025-03-28 14:30:00"
+        return $val;
+    }
+
     private function saveEventDetails($id, $data) {
-        $start = !empty($data['start_datetime']) ? $data['start_datetime'] : date('Y-m-d H:i:s');
+        $start       = $this->normalizeDateTime($data['start_datetime'] ?? null) ?? date('Y-m-d H:i:s');
+        $end         = $this->normalizeDateTime($data['end_datetime'] ?? null);
+        $is_all_day  = isset($data['is_all_day']) ? (int)$data['is_all_day'] : 0;
+        $location_id = !empty($data['location_id']) ? (int)$data['location_id'] : null;
+
         $stmt = $this->pdo->prepare(
-            "INSERT INTO event_details (entry_id, start_datetime, end_datetime, is_all_day) VALUES (?, ?, ?, ?)"
+            "INSERT INTO event_details (entry_id, start_datetime, end_datetime, is_all_day, location_id)
+            VALUES (?, ?, ?, ?, ?)"
         );
-        $stmt->execute([$id, $start, $data['end_datetime'] ?? null, $data['is_all_day'] ?? 0]);
+        $stmt->execute([$id, $start, $end, $is_all_day, $location_id]);
     }
 
     private function saveTodoDetails($id, $data) {
-        $start = !empty($data['start_datetime']) ? $data['start_datetime'] : null;
+        $planned_start = $this->normalizeDateTime($data['planned_start'] ?? null);
+        $deadline      = $this->normalizeDateTime($data['deadline'] ?? null);
         $stmt = $this->pdo->prepare(
-            "INSERT INTO todo_details (entry_id, status, start_datetime, end_datetime) VALUES (?, 'active', ?, ?)"
+            "INSERT INTO todo_details (entry_id, status, planned_start, deadline)
+            VALUES (?, 'active', ?, ?)"
         );
-        $stmt->execute([$id, $start, $data['end_datetime'] ?? null]);
+        $stmt->execute([$id, $planned_start, $deadline]);
     }
 }

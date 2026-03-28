@@ -1,22 +1,22 @@
 const App = {
     state: {
         nodes: [],
-        filters: { task: true, event: true, note: true },
+        filters: { todo: true, event: true, note: true },
         currentGroupId: 1,
         selectedId: null
     },
     
     colors: {
-        task: '#34d399',
+        todo: '#34d399',
         event: '#fb923c',
         note: '#818cf8'
     },
 
     async init() {
         const rootStyles = getComputedStyle(document.documentElement);
-        this.colors.task = rootStyles.getPropertyValue('--node-task').trim() || this.colors.task;
+        this.colors.todo  = rootStyles.getPropertyValue('--node-task').trim()  || this.colors.todo;
         this.colors.event = rootStyles.getPropertyValue('--node-event').trim() || this.colors.event;
-        this.colors.note = rootStyles.getPropertyValue('--node-note').trim() || this.colors.note;
+        this.colors.note  = rootStyles.getPropertyValue('--node-note').trim()  || this.colors.note;
 
         Graph.init();
         UI.init();

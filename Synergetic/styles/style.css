@@ -99,6 +99,7 @@ aside {
     transition: transform var(--transition-smooth);
     transform: translateX(0);
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+    
 }
 
 aside.closed {
@@ -410,6 +411,10 @@ main {
     box-shadow: var(--shadow-lg);
     transform: translateY(-16px) scale(0.97);
     transition: transform var(--transition-normal);
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-overlay.active .modal-content {
@@ -541,6 +546,7 @@ main {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-height: 0;
 }
 
 #sidebar-entries-container::-webkit-scrollbar {

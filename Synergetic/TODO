@@ -3,6 +3,8 @@
 #  {...} = Fejlesztés alatt
 #  X = Canceled
 
+<!-- ------------------------Priority tasks------------------------ -->
+
 Prioritás - 1:
   # - Tagek és kategóriák hozzáadása az entries-ekhez:
     - Módszere:
@@ -32,11 +34,51 @@ Csak a stílust kell átalakítani, a struktúra ne változzon!
 * A Canvas legyen zoomolható, lehessen benne a bal egérgömb lenyomásával húzni a képet.
 * Drag & drop támogatás: A gráfot, meg lehessen ragadni és áthúzni a sidebar-ba, ha közelit a sidebar-hoz a megragadott gráf, akkor nyiljon ki, azzal együtt a groups menü is, ahova be lehet húzni egy megjelenített csoport valamelyikébe és a backendbe íródjon hogy a megragadott gráf entry belekerült a csoportba. VISZONT: A gráf koordinátája ilyenkor ne változzon meg, ha behúztuk a csoportba. -->
 
+Prioritás 3:
+Szükséges struktúra módosítások:
+#  - Új elem létrehozás form és adatbázis:
+#    - TODO létrehozáskor legyen: 
+#      --> határidő beállítás (van egy kezdeti pont, amikorra tervezem és egy határidő (optional) ez nem tól-ig ként működik, egy rekord, aminek van lejárata.) Ez az attribútum a todo_details-ba fog kerülni.
+#    - EVENT létrehozáskor 
+#      --> Tól-ig megadása (Egy esemény lehet napokon átívelő ez az event_details-ba vesszük fel a tól-ig-ot)
+#      --> helyszín megadása, ez is az event_details táblába megy.
+#  - Javítások:
+#    - Új elem létrehozása funckió teljes működő backenddel működjön
+#    - Ne csusszon ki semmilyen tartalom
+#    - Az új elem gomb összefolyik a görgethető rekordokkal (entry-k)
+
+  - Összetett kereső és filter menü:
+    - Keresések:
+      - tagek alapján..
+      - Tartalom alapján..
+      - módosítás és létrehozás alapján -
+      - Dátum alapján -
+      - hely alapján -
+      - ismétlődés alapján
+      - kategóriák alapján..
+      - kapcsolatok alapján
+      - csoportok alapján..
+      - Tartalmaz-e csatolmányt.. --> (csatolmány fajtája alapján.)
+      - TODO: Sztátusz alapján, lejárt alapján, közelgő alapján
+
+  - Bonus kiegészítés:
+    - details.html:
+      - Helyszín megjelenítése az EVENT-nél
+    - Tag:
+      - Új tag gyorsműveletkor lehessen szinezni és módosítani
+    - groups:
+      - Csoport eltávolítása és szerkesztése
+    General: 0-12 és 0-24 beállítás 
+
+
+<!-- ------------------------UPCOMING FEATURES------------------------ -->
 Fejlesztések:
 # - Tagek és kategóriák hozzáadása az entries-ekhez:
 #  - Módszere:
 #    - Entry details felületen
 #    - Gyorsműveletek a gráf nézetben
+- MINDMAP MODE a gráfoknál:
+  - ...
 - Keresés tagek alapján
 - .md fájlok importálása és exportálása
 - Keresés szöveg alapján
@@ -77,6 +119,7 @@ Fejlesztések:
     - Drag and drop támogatás (...)
   # - Gyorsműveletek gomb popup
     - Sidebar entries kiiratás:
+      - Ha a sidebarban kiválasztok egy entry-t, akkor egy egész maint lefedő popup ablak legyen
       - kategóriák szerint rendezve
       - tagek szerint rendezve
       - helyek szerint rendezve
@@ -101,7 +144,7 @@ Fejlesztések:
       - "folyamatban"
       - "kész"
     - Határidő hozzáadása
-    - Prioritás hozzáadása
+    - Prioritás hozzáadása (hiearchikus felépítéssel.)
   - EVENT details felület:
     - helyszín hozzáadása
     - résztvevők hozzáadása
@@ -126,6 +169,7 @@ Fejlesztések:
      - Database normalizálása
      - Több rutin elmentése egyszerre, amit be lehet tölteni.
      - Toggle opció naptárnézetnél, hogy a rutinok is megjelenjenek a naptárban.
+     - Kitöltött idősávokat lehet húzni az időn és írja az adatbázisban.
 
 Bónusz:
   - C#:
@@ -163,6 +207,7 @@ Javítandó:
   @ A gyorsműveleteknél a "Kapcsolat bontása" opció ne jelenjen meg, ha nincs kapcsolat.
   @ A TODO type entry nem szineződik el és nem jön létre.
   @ Ha másodjára akarok kapcsolatot csinálni gráf nézetben, akkor hibát dob, hogy létezik a kapcsolat miközben elvégezte a frissítést és refreshelni kell az oldalt a megjelenítéshez.
+  @ Naptárnézet esemény tól-ig óra-perc megzavarja a kiiratást
   # @ Naptár nézetben a többnapos entry-k nem érnek össze kirajzolásnál.
   # @  Routine tervező:
   #   - A heti rutinon egységes idősáv legyen a navbar alatt
