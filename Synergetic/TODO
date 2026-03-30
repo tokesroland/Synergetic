@@ -28,11 +28,11 @@ Prioritás - 1:
   #     - Tag hozzáadása
 
 Prioritás - 2:
-<!-- Újra kellene gondolni az Index.html user felületét. Kicsit fapadosnak érződik,
-kapjon egy letisztultabb és modernebb felépítést, de a szerkezeti elrendezés az maradjon meg!
-Csak a stílust kell átalakítani, a struktúra ne változzon!
-* A Canvas legyen zoomolható, lehessen benne a bal egérgömb lenyomásával húzni a képet.
-* Drag & drop támogatás: A gráfot, meg lehessen ragadni és áthúzni a sidebar-ba, ha közelit a sidebar-hoz a megragadott gráf, akkor nyiljon ki, azzal együtt a groups menü is, ahova be lehet húzni egy megjelenített csoport valamelyikébe és a backendbe íródjon hogy a megragadott gráf entry belekerült a csoportba. VISZONT: A gráf koordinátája ilyenkor ne változzon meg, ha behúztuk a csoportba. -->
+# Újra kellene gondolni az Index.html user felületét. Kicsit fapadosnak érződik,
+# kapjon egy letisztultabb és modernebb felépítést, de a szerkezeti elrendezés az maradjon meg!
+# Csak a stílust kell átalakítani, a struktúra ne változzon!
+# * A Canvas legyen zoomolható, lehessen benne a bal egérgömb lenyomásával húzni a képet.
+# * Drag & drop támogatás: A gráfot, meg lehessen ragadni és áthúzni a sidebar-ba, ha közelit a sidebar-hoz a megragadott gráf, akkor nyiljon ki, azzal együtt a groups menü is, ahova be lehet húzni egy megjelenített csoport valamelyikébe és a backendbe íródjon hogy a megragadott gráf entry belekerült a csoportba. VISZONT: A gráf koordinátája ilyenkor ne változzon meg, ha behúztuk a csoportba.
 
 Prioritás 3:
 Szükséges struktúra módosítások:
@@ -46,6 +46,30 @@ Szükséges struktúra módosítások:
 #    - Új elem létrehozása funckió teljes működő backenddel működjön
 #    - Ne csusszon ki semmilyen tartalom
 #    - Az új elem gomb összefolyik a görgethető rekordokkal (entry-k)
+
+prioritás 4:
+Hibajavítások:
+	A Graph view-ból drag and drop a csoportba nem működik. (Nem kerül át a behúzott csoportba az entry) 
+#	Details view: új tag / új vagy szerkeztés kategória nem működik (nem jön elő a jobbklikkes menü, ami a képen látható. A tag és kategória szerkeztés vagy hozzáadásnál is ez legyen)
+	Details view: nem működik a mentés (A tartalom nem kerül az adatbázisba és a cím is csak az graph oldal frissítésével jön elő)
+#	Új elem gomb: Ha valami input nem megfelelő, akkor előugró ablakban vagy szövegesen jelezze és ne dobja ki az ablakot.
+#	groups oldal: 
+#		A csoport kártyáknál legyen jobboldalt egy szerkeztést jelző gomb, amivel felugrik egy szerkező menü
+#		A jobboldali entry kártyáknál kiegészítések: 
+#			Todo: Legyen a feladat jelzéssel egy szinten jobb oldalra igazítva kisebb mérettel, hogy mi a határidő.
+#			Event: szinten ez az elrendezés és ott a kezdő dátum jelenjen meg (YYYY:MM:DD)
+#	A hamburger menü csak a graph oldalon jelenjen meg.
+#	A naptár nézetben a navbar "idő" lapozós két gomb az legyen egy fix pozícióban, mert ahogy változik a szöveg hossza úgy kerül arrébb
+#	A hét nézetben legyen a nap kártyák jobb alsó sarkában egy "+", amire kattintva ahhoz a naphoz lehessen event/todo-t csatolni
+#	Rutin tervező: 
+#		Az eredeti alsó napok rész hibásan jelennek meg, amit az egyik képen láthatsz is. 
+#		Ha az idővonalon lévő csíkra viszem az egeret, akkor tooltipként írja ki, hogy "Title - (mettől-meddig)"
+#		Új rutin gomb: Egyszerre több napot is ki lehessen választani, amit mindegyikhez kiválasztott megkap rutint
+#		Alsó sáv: ide kerüljön az összes rutinnak a leírása a mostani mintának megfelelően 
+#			(baloldalra fixen rögzítve: "* Szabad idő * ) összesen: x elem / hét" ezután pedig a színes pöttyökkel ellátva az összes rutin neve, ami ha túlnövi magát, akkor görgethető legyen láthatóan jobbra)
+
+
+	
 
   - Összetett kereső és filter menü:
     - Keresések:
@@ -217,3 +241,5 @@ Javítandó:
   #   - nincs napi nézet.
   #   - bugos idővonal, egymásra lógnak.
   # X  - az Entries táblába íródjanak, ne legyen feleslegesen két tábla SQL-ben. 
+
+  @ Átírás Vue-ra

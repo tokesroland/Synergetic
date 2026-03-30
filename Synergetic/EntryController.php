@@ -51,8 +51,9 @@ class EntryController {
 
     // ─── Csoport összes eleme (gráf) ────────────────────────────────────────
     public function getAllByGroup($groupId) {
+        // formázás szükséges
         $stmt = $this->pdo->prepare(
-            "SELECT id, type, title, category_id, pos_x AS x, pos_y AS y FROM entries WHERE group_id = ?"
+            "SELECT e.id, e.type, e.title, e.category_id, e.pos_x AS x, e.pos_y AS y, td.planned_start AS todo_planned_start, td.deadline AS todo_deadline, ed.start_datetime AS event_start_datetime, ed.end_datetime AS event_end_datetime FROM entries e LEFT JOIN todo_details td ON e.id = td.entry_id AND e.type = 'todo' LEFT JOIN event_details ed ON e.id = ed.entry_id AND e.type = 'event' WHERE e.group_id = ?"
         );
         $stmt->execute([$groupId]);
         $entries = $stmt->fetchAll();
@@ -76,6 +77,15 @@ class EntryController {
         foreach ($entries as &$entry) {
             $entry['x'] = (float)$entry['x'];
             $entry['y'] = (float)$entry['y'];
+
+            if ($entry['type'] === 'todo') {
+                $entry['deadline'] = $entry['todo_deadline'] ?? null;
+                $entry['planned_start'] = $entry['todo_planned_start'] ?? null;
+            } elseif ($entry['type'] === 'event') {
+                $entry['start_datetime'] = $entry['event_start_datetime'] ?? null;
+                $entry['end_datetime'] = $entry['event_end_datetime'] ?? null;
+            }
+
             $entry['links'] = isset($linksMapping[$entry['id']])
                 ? array_values(array_unique($linksMapping[$entry['id']]))
                 : [];
@@ -170,11 +180,17 @@ class EntryController {
     }
 
     // ─── Elem frissítése ────────────────────────────────────────────────────
+// EntryController.php
     public function update($data) {
         if (!isset($data['id'])) throw new Exception("Hiányzó azonosító!");
+        
+        $title = $data['title'] ?? '';
+        $content = $data['content'] ?? '';
+
         $stmt = $this->pdo->prepare("UPDATE entries SET title = ?, content = ? WHERE id = ?");
-        $stmt->execute([$data['title'], $data['content'], $data['id']]);
-        return ["message" => "Sikeres mentés!"];
+        $stmt->execute([$title, $content, $data['id']]);
+        
+        return ["message" => "Sikeres mentés!", "debug_received_content" => $content]; 
     }
 
     // ─── Pozíció mentése ────────────────────────────────────────────────────

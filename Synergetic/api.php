@@ -79,6 +79,9 @@ try {
             $action = $input['action'] ?? 'create_entry';
 
             switch ($action) {
+                case 'update_entry':
+                    echo json_encode($entryCtrl->update($input));
+                    break;
                 case 'create_routine_item':
                     echo json_encode($routineCtrl->create($input));
                     break;

@@ -229,14 +229,6 @@ body {
 /* ==========================================================
    HETI NÉZET RÁCS (7 oszlop)
    ========================================================== */
-.routine-week-view {
-    flex: 1;
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0;
-    overflow: hidden;
-}
-
 .routine-day-col {
     display: flex;
     flex-direction: column;
@@ -736,8 +728,12 @@ body {
 /* ==========================================================
    ALSÓ ÖSSZEGZŐ SÁV
    ========================================================== */
+
 .routine-summary-bar {
-    display: flex;
+    position: sticky;
+    bottom: 0;
+    top: 90%;
+    display:flex;
     align-items: center;
     justify-content: center;
     gap: 24px;
@@ -748,6 +744,7 @@ body {
     font-size: 0.78rem;
     color: var(--text-secondary);
     font-weight: 500;
+
 }
 
 .routine-summary-bar span {

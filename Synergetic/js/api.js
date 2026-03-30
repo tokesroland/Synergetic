@@ -1,107 +1,71 @@
-const API = {
-
-    async loadGroups() {
+/**
+ * Synergetic – API Service (v3 fixed)
+ */
+const ApiService = {
+    baseUrl: 'api.php',
+    async _fetch(url, options = {}) {
         try {
-            const response = await fetch('api.php?action=get_groups');
-            return await response.json();
-        } catch (err) {
-            console.error("Hiba a csoportok betöltésekor:", err);
-            return null;
-        }
-    },
-
-    async loadGroupData(groupId) {
-        try {
-            const response = await fetch(`api.php?group_id=${groupId}`);
-            return await response.json();
-        } catch (err) {
-            console.error("Hiba a betöltéskor:", err);
-            return null;
-        }
-    },
-
-    async createEntry(entryData) {
-        try {
-            const response = await fetch('api.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(entryData)
-            });
-            return await response.json();
-        } catch (err) {
-            console.error('Fetch hiba:', err);
-            return { error: 'Hálózati hiba! Nem sikerült elérni a szervert.' };
-        }
-    },
-    async createLink(sourceId, targetId) {
-        try {
-            const res = await fetch('api.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'create_link', source_id: sourceId, target_id: targetId })
-            });
+            const res = await fetch(url, options);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             return await res.json();
-        } catch (err) { console.error(err); return { error: 'Hálózati hiba' }; }
+        } catch (err) { console.error('[API]', err); return null; }
     },
-
-    async deleteLink(sourceId, targetId) {
-        try {
-            const res = await fetch(`api.php?action=delete_link&source_id=${sourceId}&target_id=${targetId}`, {
-                method: 'DELETE'
-            });
-            return await res.json();
-        } catch (err) { console.error(err); return { error: 'Hálózati hiba' }; }
+    // Csoportok
+    loadGroups() { return this._fetch(`${this.baseUrl}?action=get_groups`); },
+    loadGroupData(groupId) { return this._fetch(`${this.baseUrl}?group_id=${groupId}`); },
+    // Entry CRUD
+    getEntry(entryId) { return this._fetch(`${this.baseUrl}?entry_id=${entryId}`); },
+    createEntry(data) {
+        return this._fetch(this.baseUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
     },
-
-    async deleteEntry(id) {
-        try {
-            const res = await fetch(`api.php?action=delete_entry&id=${id}`, {
-                method: 'DELETE'
-            });
-            return await res.json();
-        } catch (err) { console.error(err); return { error: 'Hálózati hiba' }; }
+    updateEntry(data) {
+        return this._fetch(this.baseUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'update_entry', ...data }) });
     },
-    async updatePosition(id, x, y) {
-        try {
-            await fetch('api.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'update_position', id: id, x: x, y: y })
-            });
-        } catch (err) { console.error("Hiba a pozíció mentésekor:", err); }
+    deleteEntry(id) { return this._fetch(`${this.baseUrl}?id=${id}`, { method:'DELETE' }); },
+    // Pozíció
+    updatePosition(id, x, y) {
+        return this._fetch(this.baseUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'update_position', id, x, y }) });
     },
-
-    async getCategories() {
-        try {
-            const res = await fetch('api.php?action=get_categories');
-            return await res.json();
-        } catch (err) { console.error(err); return []; }
+    // Kapcsolatok
+    createLink(sourceId, targetId) {
+        return this._fetch(this.baseUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'create_link', source_id:sourceId, target_id:targetId }) });
     },
-
-    async getTags() {
-        try {
-            const res = await fetch('api.php?action=get_tags');
-            return await res.json();
-        } catch (err) { console.error(err); return []; }
+    deleteLink(sourceId, targetId) {
+        return this._fetch(`${this.baseUrl}?action=delete_link&source_id=${sourceId}&target_id=${targetId}`, { method:'DELETE' });
     },
-
-    async assignCategory(entryId, categoryId) {
-        try {
-            await fetch('api.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'assign_category', entry_id: entryId, category_id: categoryId })
-            });
-        } catch (err) { console.error(err); }
+    // Kategóriák, Tagek, Helyek
+    getCategories() { return this._fetch(`${this.baseUrl}?action=get_categories`); },
+    createCategory(data) { return this._fetch(this.baseUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'create_category', ...data }) }); },
+    getTags() { return this._fetch(`${this.baseUrl}?action=get_tags`); },
+    createTag(data) { return this._fetch(this.baseUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'create_tag', ...data }) }); },
+    assignCategory(entryId, categoryId) { return this._fetch(this.baseUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'assign_category', entry_id:entryId, category_id:categoryId }) }); },
+    assignTag(entryId, tagId) { return this._fetch(this.baseUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'assign_tag', entry_id:entryId, tag_id:tagId }) }); },
+    unassignTag(entryId, tagId) { return this._fetch(this.baseUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'unassign_tag', entry_id:entryId, tag_id:tagId }) }); },
+    getLocations() { return this._fetch(`${this.baseUrl}?action=get_locations`); },
+    createLocation(data) { return this._fetch(this.baseUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'create_location', ...data }) }); },
+    // Csoport módosítás — PUT (a régi graph.js mintájára)
+    moveEntryToGroup(entryId, groupId) {
+        return this._fetch(this.baseUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'move_to_group', id: entryId, group_id: groupId })
+        });
     },
-
-    async assignTag(entryId, tagId) {
-        try {
-            await fetch('api.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'assign_tag', entry_id: entryId, tag_id: tagId })
-            });
-        } catch (err) { console.error(err); }
-    }
+    // Naptár
+    getCalendarEntries() { return this._fetch(`${this.baseUrl}?action=get_calendar`); },
+    // Csatolmányok
+    uploadAttachment(entryId, file) {
+        const fd = new FormData(); fd.append('entry_id', entryId); fd.append('file', file);
+        return this._fetch(this.baseUrl, { method:'POST', body:fd });
+    },
+    deleteAttachment(attId) { return this._fetch(`${this.baseUrl}?action=delete_attachment&id=${attId}`, { method:'DELETE' }); },
+    // Rutin
+    getRoutineAll() { return this._fetch(`${this.baseUrl}?action=get_routine_all`); },
+    getRoutineByDay(day) { return this._fetch(`${this.baseUrl}?action=get_routine_by_day&day=${day}`); },
+    getRoutineCompletions(date) { return this._fetch(`${this.baseUrl}?action=get_routine_completions&date=${date}`); },
+    getRoutineWeekSummary(weekStart) { return this._fetch(`${this.baseUrl}?action=get_routine_week_summary&week_start=${weekStart}`); },
+    createRoutineItem(data) { return this._fetch(this.baseUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'create_routine_item', ...data }) }); },
+    updateRoutineItem(data) { return this._fetch(this.baseUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'update_routine_item', ...data }) }); },
+    deleteRoutineItem(id) { return this._fetch(`${this.baseUrl}?action=delete_routine_item&id=${id}`, { method:'DELETE' }); },
+    toggleRoutineCompletion(routineItemId, date) { return this._fetch(this.baseUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ action:'toggle_routine_completion', routine_item_id:routineItemId, date }) }); }
 };

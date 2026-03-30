@@ -6,204 +6,437 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Synergetic</title>
     <link rel="stylesheet" href="./styles/style.css">
-    <script src="js/api.js" defer></script>
-    <script src="js/graph.js" defer></script>
-    <script src="js/ui.js" defer></script>
-    <script src="js/app.js" defer></script>
+    <link rel="stylesheet" href="./styles/calendar.css">
+    <link rel="stylesheet" href="./styles/details.css">
+    <link rel="stylesheet" href="./styles/routine.css">
+    <link rel="stylesheet" href="./styles/vue-app.css">
 </head>
 
 <body>
 
-    <button id="hamburger-btn">☰</button>
+    <div id="app">
+        <!-- Hamburger: csak graph oldalon -->
+        <button v-if="showHamburger" id="hamburger-btn" @click="toggleSidebar">☰</button>
+        <app-sidebar v-if="showSidebar" :class="{ closed: !sidebarOpen }"></app-sidebar>
+        <main id="main-content" :class="{ 'sidebar-hidden': !showSidebar || !sidebarOpen }">
+            <top-bar v-if="showTopBar"></top-bar>
+            <router-view></router-view>
+        </main>
+        <entry-modal></entry-modal>
+    </div>
 
-    <aside id="sidebar">
-        <div class="groups-container">
-            <div class="groups-header" id="groups-toggle">
-                <span>Csoportok</span>
-                <span id="groups-arrow">▼</span>
-            </div>
-            <div class="groups-content open" id="groups-dropdown">
-                <input type="text" class="search-box" id="group-search" placeholder="Keresés csoportra...">
-                <button class="manage-groups-btn">Csoportok kezelése</button>
-
-                <ul class="group-list" id="group-list-container"></ul>
-            </div>
-        </div>
-
-        <div id="sidebar-entries-container"></div>
-
-        <button class="add-new-btn" id="open-modal-btn">+ Új Elem Létrehozása</button>
-    </aside>
-
-    <main id="main-content">
-        <div class="top-bar">
-            <div class="filters">
-                <button class="filter-btn active" data-type="todo">Tasks</button>
-                <button class="filter-btn active" data-type="event">Events</button>
-                <button class="filter-btn active" data-type="note">Notes</button>
-            </div>
-            <select class="mode-selector" id="mode-select">
-                <option value="calendar">Naptár nézet</option>
-                <option value="graph" selected>Kapcsolatok (Gráf)</option>
-                <option value="detail">Részletes nézet</option>
-                <option value="routine">Rutin tervező</option>
-            </select>
-        </div>
-
-        <!-- Quick Action Overlay -->
-        <div id="quick-action-overlay" class="quick-action-overlay">
-            <button id="quick-action-plus">+</button>
-            <ul id="quick-action-menu" class="quick-action-menu">
-                <li data-action="link">🔗 Új kapcsolat</li>
-                <li data-action="unlink">✂️ Kapcsolat bontása</li>
-                <li data-action="edit">✏️ Szerkesztés</li>
-                <li data-action="category">📁 Kategória hozzáadása</li>
-                <li data-action="tag">🏷️ Címke (Tag) hozzáadása</li>
-                <li data-action="delete" class="danger">🗑️ Törlés</li>
+    <!-- ═══ SIDEBAR ═══ -->
+    <script type="text/x-template" id="tpl-sidebar">
+<aside id="sidebar">
+    <div class="groups-container">
+        <div class="groups-header" @click="toggleGroups"><span>Csoportok</span><span>{{ groupsExpanded ? '▼' : '▶' }}</span></div>
+        <div class="groups-content" :class="{ open: groupsExpanded }">
+            <input type="text" class="search-box" v-model="groupSearch" placeholder="Keresés csoportra...">
+            <button class="manage-groups-btn" @click="$router.push({ name: 'groups' })">Csoportok kezelése</button>
+            <ul class="group-list">
+                <li v-for="group in filteredGroups" :key="group.id" :data-group="group.id" class="group-item" :class="{ active: group.id == store.currentGroupId }" @click="selectGroup(group)">
+                    <div class="group-name">{{ group.name }}</div>
+                    <div class="group-stats">{{ group.todo_count||0 }} Feladat | {{ group.event_count||0 }} Esemény | {{ group.note_count||0 }} Jegyzet</div>
+                </li>
             </ul>
-
-            <div id="sub-action-menu" class="quick-action-menu" style="left: 210px; min-width: 220px; z-index: 101;">
-                <div style="padding: 10px; border-bottom: 1px solid var(--border-color);">
-                    <input type="text" id="sub-action-search" class="form-control" placeholder="Keresés..."
-                        style="margin-bottom: 10px; padding: 6px; font-size: 0.85rem;">
-                    <button id="sub-action-create-new" class="btn-primary"
-                        style="width: 100%; padding: 6px; font-size: 0.85rem;">+ Új létrehozása</button>
-                </div>
-                <ul id="sub-action-list" style="list-style: none; padding: 5px 0; max-height: 180px; overflow-y: auto;">
-                </ul>
-            </div>
-        </div>
-
-        <!-- Zoom badge -->
-        <div id="zoom-badge" class="zoom-badge">100%</div>
-
-        <canvas id="graph-canvas"></canvas>
-    </main>
-
-    <div class="modal-overlay" id="entry-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Új elem hozzáadása</h2>
-                <button class="close-modal-btn" id="close-modal-btn">&times;</button>
-            </div>
-
-            <form id="new-entry-form">
-                <div class="form-group" style="padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
-                    <label style="color: var(--accent-active); font-weight: bold;">Létrehozás típusa</label>
-                    <select id="creation-type" class="form-control">
-                        <option value="entry">Új Bejegyzés (Jegyzet/Feladat/Esemény)</option>
-                        <option value="category">Új Kategória</option>
-                        <option value="tag">Új Címke (Tag)</option>
-                        <option value="location">Új Helyszín</option>
-                    </select>
-                </div>
-
-                <div id="fields-entry">
-                    <div class="form-group">
-                        <label>Cím (Title)</label>
-                        <input type="text" id="entry-title" class="form-control" placeholder="Ide írd a nevet...">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Csoport (Group)</label>
-                        <select id="entry-group" class="form-control">
-                            <option value="1">Csoportosítatlan</option>
-                            <option value="2">Projekt Alpha</option>
-                            <option value="3">Személyes</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Kategória (Opcionális)</label>
-                        <select id="entry-category" class="form-control">
-                            <option value="">Nincs kategória</option>
-                            <option value="1">Munka</option>
-                            <option value="2">Otthon</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Típus</label>
-                        <select id="entry-type" class="form-control">
-                            <option value="note">Jegyzet</option>
-                            <option value="todo">Teendő</option>
-                            <option value="event">Esemény</option>
-                        </select>
-                    </div>
-
-                    <!-- TODO specifikus mezők -->
-                    <div id="todo-fields" style="display: none;">
-                        <div class="form-group">
-                            <label>Tervezett kezdet (Opcionális)</label>
-                            <input type="datetime-local" id="todo-start" class="form-control" step="60">
-                        </div>
-                        <div class="form-group">
-                            <label>Határidő (Opcionális)</label>
-                            <input type="datetime-local" id="todo-deadline" class="form-control" step="60">
-                        </div>
-                    </div>
-
-                    <!-- EVENT specifikus mezők -->
-                    <div id="event-fields" style="display: none;">
-                        <div class="form-group">
-                            <label><input type="checkbox" id="entry-allday"> Egész napos</label>
-                        </div>
-                        <div class="date-time-row">
-                            <div class="form-group" style="min-width:0;">
-                                <label>Kezdés *</label>
-                                <input type="datetime-local" id="entry-start" class="form-control" step="60">
-                            </div>
-                            <div class="form-group" style="min-width:0;">
-                                <label>Befejezés (Opcionális)</label>
-                                <input type="datetime-local" id="entry-end" class="form-control" step="60">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Helyszín (Opcionális)</label>
-                            <select id="event-location" class="form-control">
-                                <option value="">— Nincs helyszín —</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="fields-category" style="display: none;">
-                    <div class="form-group">
-                        <label>Kategória neve</label>
-                        <input type="text" id="category-name" class="form-control"
-                            placeholder="Pl. Pénzügy, Fejlesztés...">
-                    </div>
-                    <div class="form-group">
-                        <label>Kategória színe (HEX)</label>
-                        <input type="color" id="category-color" value="#5c6bc0" class="form-control"
-                            style="height: 40px; cursor: pointer;">
-                    </div>
-                </div>
-
-                <div id="fields-tag" style="display: none;">
-                    <div class="form-group">
-                        <label>Címke neve</label>
-                        <input type="text" id="tag-name" class="form-control" placeholder="Pl. Sürgős, Frontend...">
-                    </div>
-                    <div class="form-group">
-                        <label>Címke színe (HEX)</label>
-                        <input type="color" id="tag-color" value="#ff9800" class="form-control"
-                            style="height: 40px; cursor: pointer;">
-                    </div>
-                </div>
-
-                <div id="fields-location" style="display: none;">
-                    <div class="form-group">
-                        <label>Helyszín neve</label>
-                        <input type="text" id="location-name" class="form-control"
-                            placeholder="Pl. Iroda, Tárgyaló 1...">
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-primary">Létrehozás</button>
-            </form>
         </div>
     </div>
+    <div id="sidebar-entries-container">
+        <div v-if="!sortedEntries.length" style="color:var(--text-secondary);text-align:center;font-size:0.85rem;padding:20px;">Ebben a csoportban még nincsenek elemek.</div>
+        <div v-for="entry in sortedEntries" :key="entry.id" class="sidebar-entry-item" :class="{ active: entry.id===store.selectedId }" :style="{ '--card-color': entryColor(entry.type) }" @click="selectEntry(entry)" @dblclick="goToDetails(entry)">
+            <div class="sidebar-entry-title" :title="entry.title">{{ entry.title }}</div>
+            <div class="sidebar-entry-type" :style="{ color: entryColor(entry.type), border: '1px solid '+entryColor(entry.type)+'40' }">{{ store.typeNames[entry.type]||entry.type }}</div>
+        </div>
+    </div>
+    <button class="add-new-btn" @click="openModal">+ Új Elem Létrehozása</button>
+</aside>
+</script>
+
+    <!-- ═══ TOPBAR ═══ -->
+    <script type="text/x-template" id="tpl-topbar">
+<div class="top-bar">
+    <div class="filters">
+        <button class="filter-btn" :class="{ active: filters.todo }" @click="toggleFilter('todo')">Tasks</button>
+        <button class="filter-btn" :class="{ active: filters.event }" @click="toggleFilter('event')">Events</button>
+        <button class="filter-btn" :class="{ active: filters.note }" @click="toggleFilter('note')">Notes</button>
+    </div>
+    <select class="mode-selector" :value="currentView" @change="changeView">
+        <option value="graph">Kapcsolatok (Gráf)</option>
+        <option value="calendar">Naptár nézet</option>
+        <option value="routine">Rutin tervező</option>
+    </select>
+</div>
+</script>
+
+    <!-- ═══ GRAPH VIEW ═══ -->
+    <script type="text/x-template" id="tpl-graph-view">
+<div class="graph-container" style="width:100%;height:100%;position:relative;">
+    <div class="zoom-badge" :class="{ visible: zoomBadgeVisible }">{{ zoomPercent }}</div>
+    <canvas ref="canvas" id="graph-canvas" @wheel="onWheel" @mousedown="onMouseDown" @mousemove="onMouseMove" @dblclick="onDblClick" @contextmenu="onRightClick"></canvas>
+    <div v-if="showQuickMenu" class="quick-action-popup" :style="{ left:quickMenuPos.x+'px', top:quickMenuPos.y+'px' }">
+        <ul class="quick-action-menu" style="display:block">
+            <li @click="quickAction('link')">🔗 Új kapcsolat</li><li @click="quickAction('unlink')">✂️ Kapcsolat bontása</li>
+            <li @click="quickAction('edit')">✏️ Szerkesztés</li><li @click="quickAction('category')">📁 Kategória hozzáadása</li>
+            <li @click="quickAction('tag')">🏷️ Címke (Tag) hozzáadása</li><li class="danger" @click="quickAction('delete')">🗑️ Törlés</li>
+        </ul>
+        <div v-if="showSubMenu" class="quick-action-menu sub-menu" style="display:block">
+            <div style="padding:10px;border-bottom:1px solid var(--border-color);"><input type="text" class="form-control" v-model="subSearch" placeholder="Keresés...">
+            <button class="btn-primary" style="width:100%;padding:6px;margin-top:8px;font-size:0.85rem" @click="createSubItem">+ Új létrehozása</button></div>
+            <ul style="list-style:none;padding:5px 0;max-height:180px;overflow-y:auto">
+                <li v-for="item in filteredSubItems" :key="item.id" style="padding:6px 12px;cursor:pointer" @click="selectSubItem(item)">
+                    <span v-if="item.color_hex" :style="{ backgroundColor:item.color_hex,display:'inline-block',width:'10px',height:'10px',borderRadius:'50%',marginRight:'6px' }"></span>{{ item.name }}
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div v-if="isLinkingMode" class="mode-overlay linking"><span>🔗 Kattints egy másik csomópontra</span><button @click="closeMenus" class="btn-cancel">Mégse</button></div>
+    <div v-if="isUnlinkingMode" class="mode-overlay unlinking"><span>✂️ Kattints egy vonalra</span><button @click="closeMenus" class="btn-cancel">Mégse</button></div>
+</div>
+</script>
+
+    <!-- ═══ CALENDAR VIEW ═══ -->
+    <script type="text/x-template" id="tpl-calendar-view">
+<div class="cal-full-wrapper">
+    <header class="cal-navbar">
+        <div class="cal-nav-left">
+            <button class="cal-back-btn" @click="goBack">← Vissza</button>
+            <button class="cal-today-btn" @click="goToday">Ma</button>
+        </div>
+        <div class="cal-nav-center">
+            <div class="cal-nav-arrows">
+                <button class="cal-arrow" @click="prev">‹</button>
+                <button class="cal-arrow" @click="next">›</button>
+            </div>
+            <span class="cal-title">{{ title }}</span>
+        </div>
+        <div class="cal-view-tabs">
+            <button class="cal-view-tab" :class="{ active:view==='day' }" @click="setView('day')">Nap</button>
+            <button class="cal-view-tab" :class="{ active:view==='week' }" @click="setView('week')">Hét</button>
+            <button class="cal-view-tab" :class="{ active:view==='month' }" @click="setView('month')">Hónap</button>
+        </div>
+    </header>
+    <div class="cal-main">
+        <!-- HAVI -->
+        <div v-if="view==='month'" class="mv" ref="mvContainer">
+            <div class="mv-grid-wrap" :style="{ flex:'0 0 '+gridFlex+'%' }">
+                <div class="mv-daynames"><div v-for="d in DAYS_S" :key="d" class="mv-dayname">{{ d }}</div></div>
+                <div class="mv-grid">
+                    <div v-for="(cell,idx) in monthCells" :key="idx" class="mv-cell" :class="{ other:cell.isOther,today:cell.isToday,selected:cell.isSelected }" @click="selectCell(cell)">
+                        <div class="mv-cell-num">{{ cell.day }}</div>
+                        <div v-if="cell.dots.length" class="mv-dots"><div v-for="(color,di) in cell.dots" :key="di" class="mv-dot" :style="{ background:color }"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mv-divider" :class="{ dragging:dividerDragging }" @mousedown="startDividerDrag"></div>
+            <div class="mv-agenda">
+                <div class="mv-agenda-header"><div class="mv-agenda-day">{{ selected.getDate() }}</div><div class="mv-agenda-meta">{{ MONTHS[selected.getMonth()] }}, {{ DAYS_F[dayIdx(selected)] }}</div></div>
+                <div v-if="agendaTodos.length===0&&agendaEvents.length===0" class="mv-agenda-empty">Nincs bejegyzés erre a napra</div>
+                <template v-if="agendaTodos.length"><div class="mv-agenda-section"><div class="mv-agenda-section-label">Teendők</div><div class="mv-agenda-list">
+                    <div v-for="entry in agendaTodos" :key="entry.id" class="mv-agenda-item mv-todo-item" :style="{ borderLeftColor:col(entry.type) }" @click="goToEntry(entry)">
+                        <div class="mv-agenda-item-body"><div class="mv-agenda-item-title">{{ entry.title }}</div><div class="mv-agenda-item-time mv-todo-meta">{{ todoMeta(entry) }}</div></div>
+                        <div v-if="todoRole(entry,selected)==='deadline'||todoRole(entry,selected)==='both'" class="mv-todo-deadline-badge">⏰ Határidő</div>
+                        <div v-else-if="todoRole(entry,selected)==='start'" class="mv-todo-start-badge">▶ Kezdés</div>
+                    </div>
+                </div></div></template>
+                <template v-if="agendaEvents.length"><div class="mv-agenda-section"><div v-if="agendaTodos.length" class="mv-agenda-section-label">Események</div><div class="mv-agenda-list">
+                    <div v-for="entry in agendaEvents" :key="entry.id" class="mv-agenda-item" :style="{ borderLeftColor:col(entry.type) }" @click="goToEntry(entry)">
+                        <div class="mv-agenda-item-body"><div class="mv-agenda-item-title">{{ entry.title }}</div><div class="mv-agenda-item-time">{{ isAllDay(entry)?'Egész nap':fmtTime(entry.start_datetime)+(entry.end_datetime?' – '+fmtTime(entry.end_datetime):'') }}</div></div>
+                        <div class="mv-agenda-item-badge" :style="{ background:col(entry.type) }">{{ names[entry.type]||entry.type }}</div>
+                    </div>
+                </div></div></template>
+            </div>
+        </div>
+        <!-- HETI - + gomb jobb alsó sarok -->
+        <div v-if="view==='week'" class="wv">
+            <div class="wv-grid">
+                <div v-for="day in weekDays" :key="day.dayNum" class="wv-day-col" :class="{ today:day.isToday }">
+                    <div class="wv-day-header"><span class="wv-day-name">{{ day.dayName }}</span><span class="wv-day-num">{{ day.dayNum }}</span></div>
+                    <div class="wv-entries">
+                        <div v-for="entry in day.entries" :key="entry.id" class="wv-entry" :style="{ borderLeftColor:col(entry.type) }" @click="goToEntry(entry)">
+                            <span class="wv-entry-title">{{ entry.title }}</span><span class="wv-entry-time">{{ fmtTime(entry.start_datetime) }}</span>
+                        </div>
+                    </div>
+                    <button class="wv-add-btn" @click="addEntryForDate(day.date)" title="Új entry ehhez a naphoz">+</button>
+                </div>
+            </div>
+        </div>
+        <!-- NAPI -->
+        <div v-if="view==='day'" class="dv">
+            <div class="dv-header" :class="{ today:isDayToday }"><div class="dv-header-dayname">{{ DAYS_F[dayIdx(date)] }}</div><div class="dv-header-num">{{ date.getDate() }}</div></div>
+            <div v-if="dayAlldayEntries.length" class="dv-allday-bar"><div v-for="entry in dayAlldayEntries" :key="entry.id" class="dv-allday-chip" :style="{ background:col(entry.type) }" @click="goToEntry(entry)">{{ entry.title }}</div></div>
+            <div v-if="dayTodos.length" class="dv-todo-section"><div class="mv-agenda-section-label">Teendők</div>
+                <div v-for="entry in dayTodos" :key="entry.id" class="dv-entry" :style="{ borderLeftColor:col(entry.type) }" @click="goToEntry(entry)">
+                    <div class="dv-entry-body"><div class="dv-entry-title">{{ entry.title }}</div><div class="dv-entry-type">{{ todoMeta(entry) }}</div></div>
+                    <div v-if="todoRole(entry,date)==='deadline'||todoRole(entry,date)==='both'" class="mv-todo-deadline-badge">⏰ Határidő</div>
+                    <div v-else-if="todoRole(entry,date)==='start'" class="mv-todo-start-badge">▶ Kezdés</div>
+                </div>
+            </div>
+            <div class="dv-body">
+                <div class="dv-gutter" :style="{ height:24*H+'px' }"><div v-for="h in hours24" :key="h" class="dv-hour-label" :style="{ top:h*H+'px' }">{{ String(h).padStart(2,'0') }}:00</div></div>
+                <div class="dv-col" :style="{ height:24*H+'px' }">
+                    <div v-for="h in hours24" :key="'l'+h" class="dv-hour-line" :style="{ top:h*H+'px' }"></div>
+                    <div v-for="h in hours24" :key="'half'+h" class="dv-half-line" :style="{ top:(h*H+H/2)+'px' }"></div>
+                    <div v-if="isDayToday" class="dv-now" :style="{ top:nowLineTop() }"></div>
+                    <div v-for="entry in dayTimedEntries" :key="entry.id" class="ev-block" :style="{ top:entryTop(entry),height:entryHeight(entry),background:col(entry.type) }" @click="goToEntry(entry)">
+                        <div class="ev-block-title">{{ entry.title }}</div><div class="ev-block-time">{{ fmtTime(entry.start_datetime) }}{{ entry.end_datetime?' – '+fmtTime(entry.end_datetime):'' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</script>
+
+    <!-- ═══ DETAILS VIEW ═══ -->
+    <script type="text/x-template" id="tpl-details-view">
+<div class="details-full-wrapper">
+    <div v-if="loading" class="details-loading">Betöltés...</div>
+    <template v-else-if="entry">
+        <div class="navbar">
+            <button class="filter-btn" @click="goBack">← Vissza a gráfhoz</button>
+            <div class="toolbar">
+                <button type="button" @click="fmt('bold')"><b>B</b></button><button type="button" @click="fmt('italic')"><i>I</i></button>
+                <button type="button" @click="fmt('underline')"><u>U</u></button><button type="button" @click="fmt('insertUnorderedList')">• Lista</button>
+                <button type="button" @click="fsize(1)">A+</button><button type="button" @click="fsize(-1)">A-</button>
+                <select @change="changeFont"><option value="'Segoe UI', sans-serif">Alapértelmezett</option><option value="Arial, sans-serif">Arial</option><option value="'Times New Roman', serif">Times New Roman</option><option value="'Courier New', monospace">Courier New</option></select>
+            </div>
+            <button class="filter-btn" :class="{ active:!saveSuccess, 'save-success':saveSuccess }" @click="save" :disabled="saving">{{ saveButtonText }}</button>
+        </div>
+        <div class="editor-container">
+            <div class="badge-row">
+                <span class="type-badge" :style="{ backgroundColor:typeColor }">{{ typeName }}</span>
+                <span v-if="currentCatId&&currentCatName" class="category-badge" :style="{ backgroundColor:currentCatColor||'#5c6bc0' }" @click="openCatPicker">📁 {{ currentCatName }}</span>
+                <button v-else class="add-category-btn" @click="openCatPicker">+ Kategória</button>
+                <span v-for="tag in currentTags" :key="tag.id" class="tag-badge"><span class="tag-dot" :style="{ background:tag.color_hex||'#888' }"></span>{{ tag.name }}<button class="tag-remove" @click="removeTag(tag.id)">×</button></span>
+                <button class="add-tag-btn" @click="openTagPicker">+ Tag</button>
+            </div>
+            <div class="attachments-section"><div class="attachments-label">Csatolmányok</div>
+                <div class="attachments-grid">
+                    <div v-for="att in attachments" :key="att.id" class="att-thumb"><img v-if="isImage(att)" :src="att.file_path" @click="openLightbox(att)"><a v-else :href="att.file_path" target="_blank" class="att-file-link">{{ fileIcon(att.file_type) }} {{ att.original_name }}</a><button class="att-delete" @click="deleteAttachment(att)">×</button></div>
+                    <label class="att-add-btn">+<span>Hozzáad</span><input type="file" multiple hidden @change="uploadFile"></label>
+                </div>
+            </div>
+            <input type="text" class="editor-title" v-model="editTitle" placeholder="Bejegyzés címe...">
+            <div ref="contentEditor" class="editor-content" contenteditable="true"></div>
+            <div style="margin-top:20px;"><button class="btn-danger" @click="deleteEntry">🗑️ Bejegyzés törlése</button></div>
+        </div>
+
+        <div v-if="pickerOpen" class="picker-popup-overlay" @click.self="closePicker">
+            <div class="picker-popup open">
+                <div class="picker-header">
+                    <input class="picker-search" v-model="pickerSearch" placeholder="Keresés... vagy létrehozás">
+                    <button class="picker-create-btn" @click="createPickerItem">+ Új {{ pickerOpen==='cat'?'kategória':'tag' }}</button>
+                </div>
+                <div class="picker-list">
+                    <div v-for="item in filteredPickerItems" :key="item.id" class="picker-item" @click="pickerOpen==='cat'?selectCategory(item):selectTag(item)">
+                        <span class="picker-dot" :style="{ background:item.color_hex||'#888' }"></span>{{ item.name }}
+                    </div>
+                    <div v-if="!filteredPickerItems.length" class="picker-empty">Nincs találat</div>
+                </div>
+            </div>
+        </div>
+    </template>
+    <div v-if="lightboxOpen" class="lightbox open" @click="lightboxOpen=false"><img :src="lightboxSrc"><button class="lightbox-close" @click.stop="lightboxOpen=false">×</button></div>
+</div>
+</script>
+
+    <!-- ═══ ROUTINE VIEW ═══ -->
+    <script type="text/x-template" id="tpl-routine-view">
+<div class="routine-full-wrapper">
+    <header class="routine-navbar">
+        <div class="routine-nav-left"><button class="routine-back-btn" @click="goBack">← Vissza</button><span class="routine-title"><span class="routine-title-accent">Heti Rutin</span></span></div>
+        <div class="routine-nav-right"><span class="routine-date-display">{{ weekDisplay }}</span><button class="routine-add-btn" @click="openCreateModal()">+ Új rutin</button></div>
+    </header>
+    <!-- Idővonal -->
+    <div class="routine-tl-toggle" @click="toggleTimeline">{{ timelineOpen ? '▲ Idővonal elrejtése' : '▼ Idővonal megjelenítése' }}</div>
+    <div v-if="timelineOpen" class="routine-global-timeline">
+        <div class="routine-tl-header"><div v-for="h in [5,7,9,11,13,15,17,19,21,23]" :key="h" class="routine-tl-hour-label" :style="{ left:'calc(60px + (100% - 74px) * '+((h-TL_START)*60/((TL_END-TL_START)*60))+')' }">{{ String(h).padStart(2,'0') }}</div></div>
+        <div v-for="day in weekDays" :key="day.dow" class="routine-tl-row" :class="{ today:day.isToday,active:currentView==='day'&&selectedDow===day.dow }">
+            <div class="routine-tl-day-label">{{ day.name }} <span class="tl-day-num">{{ day.dayNum }}</span></div>
+            <div class="routine-tl-bar-area"><div class="routine-tl-free-bg"></div>
+                <div v-for="item in day.items" :key="item.id" class="routine-tl-block" :style="tlBarStyle(item)" :title="tlTooltip(item)"></div>
+            </div>
+        </div>
+    </div>
+    <div class="routine-main">
+        <template v-if="!isMobile">
+            <div v-if="currentView==='week'" class="routine-week-view"><div class="routine-week-grid">
+                <div v-for="day in weekDays" :key="day.dow" class="routine-day-col" :class="{ today:day.isToday }">
+                    <div class="routine-day-header" @click="showDay(day.dow)"><div class="routine-day-name">{{ day.name }}</div><div class="routine-day-num">{{ day.dayNum }}</div><div class="routine-day-count">{{ day.items.length }} elem</div></div>
+                    <div class="routine-items-list">
+                        <div v-if="day.items.length===0" class="routine-empty-day"><div class="routine-empty-day-icon">☁️</div><div class="routine-empty-day-text">Szabad nap</div></div>
+                        <div v-for="item in day.items" :key="item.id" class="routine-item-card" :class="{ completed:isCompleted(item.id) }" :style="{ borderLeftColor:getItemColor(item) }" @click="openEditModal(item)">
+                            <div class="routine-checkbox" :class="{ checked:isCompleted(item.id) }" @click.stop="toggleCompletion(item)">✓</div>
+                            <div class="routine-item-body"><div class="routine-item-title">{{ item.title }}</div><div class="routine-item-time">{{ fmtTime(item.start_time) }} – {{ fmtTime(item.end_time) }}</div></div>
+                            <button class="routine-item-delete" @click.stop="deleteItem(item)">×</button>
+                        </div>
+                    </div>
+                    <button class="routine-add-btn-col" @click="openCreateModal(day.dow)">+ Új</button>
+                </div>
+            </div></div>
+            <div v-if="currentView==='day'" class="routine-day-detail-view">
+                <div class="routine-day-detail-header"><button class="routine-back-btn" @click="showWeek">← Heti nézet</button><h2>{{ selectedDow?DAYS_FULL[selectedDow-1]:'' }}</h2></div>
+                <div v-if="selectedDayItems.length===0" class="routine-day-empty">Nincs rutin elem erre a napra.</div>
+                <div v-for="item in selectedDayItems" :key="item.id" class="routine-day-item" :style="{ borderLeftColor:getItemColor(item) }" @click="openEditModal(item)">
+                    <div class="routine-checkbox" :class="{ checked:isCompleted(item.id) }" @click.stop="toggleCompletion(item)">✓</div>
+                    <div class="routine-day-item-body"><div class="routine-day-item-title">{{ item.title }}</div><div class="routine-day-item-time">{{ fmtTime(item.start_time) }} – {{ fmtTime(item.end_time) }}</div></div>
+                    <button class="routine-item-delete" @click.stop="deleteItem(item)">×</button>
+                </div>
+                <button class="routine-add-btn" style="margin-top:16px" @click="openCreateModal(selectedDow)">+ Új elem</button>
+            </div>
+        </template>
+        <template v-else>
+            <div v-if="currentView==='week'" class="routine-mobile-week">
+                <div v-for="day in weekDays" :key="day.dow" class="routine-mobile-day" :class="{ today:day.isToday }">
+                    <div class="routine-mobile-day-header" @click="showDay(day.dow)"><span class="routine-mobile-day-name">{{ day.fullName }}</span><span class="routine-mobile-day-count">{{ day.items.length }} elem</span></div>
+                    <div v-for="item in day.items.slice(0,3)" :key="item.id" class="routine-item-card" :class="{ completed:isCompleted(item.id) }" :style="{ borderLeftColor:getItemColor(item) }">
+                        <div class="routine-checkbox" :class="{ checked:isCompleted(item.id) }" @click="toggleCompletion(item)">✓</div>
+                        <div class="routine-item-body"><div class="routine-item-title">{{ item.title }}</div><div class="routine-item-time">{{ fmtTime(item.start_time) }} – {{ fmtTime(item.end_time) }}</div></div>
+                    </div>
+                    <div v-if="day.items.length>3" class="routine-mobile-more" @click="showDay(day.dow)">+{{ day.items.length-3 }} további...</div>
+                    <button class="routine-add-btn-col" @click="openCreateModal(day.dow)">+ Új</button>
+                </div>
+            </div>
+            <div v-if="currentView==='day'" class="routine-day-detail-view">
+                <button class="routine-back-btn" @click="showWeek">← Vissza</button><h2>{{ selectedDow?DAYS_FULL[selectedDow-1]:'' }}</h2>
+                <div v-for="item in selectedDayItems" :key="item.id" class="routine-day-item" :style="{ borderLeftColor:getItemColor(item) }">
+                    <div class="routine-checkbox" :class="{ checked:isCompleted(item.id) }" @click="toggleCompletion(item)">✓</div>
+                    <div class="routine-day-item-body"><div class="routine-day-item-title">{{ item.title }}</div><div class="routine-day-item-time">{{ fmtTime(item.start_time) }} – {{ fmtTime(item.end_time) }}</div></div>
+                    <button class="routine-item-edit" @click="openEditModal(item)">✏️</button><button class="routine-item-delete" @click="deleteItem(item)">×</button>
+                </div>
+                <button class="routine-add-btn" style="margin-top:16px" @click="openCreateModal(selectedDow)">+ Új elem</button>
+            </div>
+        </template>
+        <!-- Alsó sáv: szabad idő + összesítés + görgethető rutin nevek -->
+        <div class="routine-summary-bar">
+            <div class="routine-summary-fixed">
+                <span><span class="routine-summary-dot" style="background:#1a1a1a;border:1px solid #333;"></span> Szabad idő</span>
+                <span>Összesen: {{ totalItems }} elem / hét</span>
+            </div>
+            <div class="routine-summary-scroll">
+                <span v-for="rn in uniqueRoutineNames" :key="rn.name" class="routine-summary-name">
+                    <span class="routine-summary-dot" :style="{ background:rn.color }"></span>{{ rn.name }}
+                </span>
+            </div>
+        </div>
+    </div>
+    <!-- Modal - multi day pills -->
+    <div v-if="modalOpen" class="routine-modal-overlay active" @click.self="closeModal">
+        <div class="routine-modal">
+            <div class="routine-modal-header"><h2>{{ editItem?'Szerkesztés':'Új Rutin Elem' }}</h2><button class="routine-modal-close" @click="closeModal">&times;</button></div>
+            <div class="routine-form">
+                <div class="form-group"><label>Megnevezés</label><input type="text" class="form-control" v-model="form.title" placeholder="Pl. Reggeli edzés..."></div>
+                <div class="form-group"><label>Típus</label><select class="form-control" v-model="form.type"><option value="todo">Feladat</option><option value="event">Esemény</option><option value="break">Szünet</option><option value="habit">Szokás</option></select></div>
+                <div class="form-group"><label>Napok (több is választható)</label>
+                    <div class="routine-day-pills"><span v-for="dow in dayPills" :key="dow" class="day-pill" :class="{ active:isDaySelected(dow) }" @click="toggleDayPill(dow)">{{ DAYS_SHORT[dow-1] }}</span></div>
+                </div>
+                <div class="form-row"><div class="form-group"><label>Kezdés</label><input type="time" class="form-control" v-model="form.start_time"></div><div class="form-group"><label>Befejezés</label><input type="time" class="form-control" v-model="form.end_time"></div></div>
+                <div class="form-group"><label>Kategória</label><select class="form-control" v-model="form.category_id"><option value="">— Nincs —</option><option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option></select></div>
+                <div class="form-group"><label>Egyéni szín</label><input type="color" class="form-control" v-model="form.color_hex" style="height:40px;cursor:pointer"></div>
+                <div class="routine-modal-actions"><button class="btn-primary" @click="saveItem">{{ editItem?'Mentés':'Létrehozás' }}</button><button v-if="editItem" class="btn-danger" @click="deleteItem(editItem)">Törlés</button></div>
+            </div>
+        </div>
+    </div>
+</div>
+</script>
+
+    <!-- ═══ GROUPS VIEW ═══ -->
+    <script type="text/x-template" id="tpl-groups-view">
+<div class="groups-wrapper">
+    <div class="groups-page-header"><button class="btn-back" @click="$router.push({ name: 'graph' })">← Vissza</button><h2>Csoportok kezelése</h2></div>
+    <div class="groups-layout">
+        <div class="groups-list-panel">
+            <div v-for="group in groups" :key="group.id" class="group-card" :class="{ active:selectedGroup&&selectedGroup.id===group.id }" @click="selectGroup(group)">
+                <div class="group-card-top">
+                    <div class="group-card-name" :style="{ color:group.color_hex||'var(--text-primary)' }">{{ group.name }}</div>
+                    <button class="group-edit-btn" @click="openEditModal(group,$event)" title="Szerkesztés">✏️</button>
+                </div>
+                <div class="group-card-stats">{{ group.todo_count||0 }} Feladat | {{ group.event_count||0 }} Esemény | {{ group.note_count||0 }} Jegyzet</div>
+            </div>
+        </div>
+        <div class="groups-entries-panel">
+            <template v-if="selectedGroup">
+                <h3 :style="{ color:selectedGroup.color_hex }">{{ selectedGroup.name }}</h3>
+                <div v-if="entries.length===0" class="groups-empty">Ebben a csoportban még nincsenek elemek.</div>
+                <div class="entries-grid">
+                    <div v-for="entry in entries" :key="entry.id" class="entry-card" :style="{ borderLeftColor:entryColor(entry.type) }" @click="goToEntry(entry)">
+                        <div class="entry-card-top">
+                            <div class="entry-card-title">{{ entry.title }}</div>
+                            <div v-if="entry.type==='todo'&&todoDeadline(entry)" class="entry-card-date">{{ todoDeadline(entry) }}</div>
+                            <div v-if="entry.type==='event'&&eventStart(entry)" class="entry-card-date">{{ eventStart(entry) }}</div>
+                        </div>
+                        <div class="entry-card-meta"><span class="entry-type-badge" :style="{ color:entryColor(entry.type) }">{{ entryTypeName(entry.type) }}</span></div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+    <!-- Edit group modal -->
+    <div v-if="editModalOpen" class="modal-overlay active" @click.self="closeEditModal">
+        <div class="modal-content" style="max-width:400px">
+            <div class="modal-header"><h2>Csoport szerkesztése</h2><button class="close-modal-btn" @click="closeEditModal">&times;</button></div>
+            <div class="modal-body">
+                <div class="form-group"><label>Név</label><input type="text" class="form-control" v-model="editForm.name"></div>
+                <div class="form-group"><label>Leírás</label><textarea class="form-control" rows="3" v-model="editForm.description"></textarea></div>
+                <div class="form-group"><label>Szín</label><input type="color" class="form-control" v-model="editForm.color_hex" style="height:40px;cursor:pointer"></div>
+                <button class="btn-primary" style="width:100%" @click="saveGroup">Mentés</button>
+            </div>
+        </div>
+    </div>
+</div>
+</script>
+
+    <!-- ═══ ENTRY MODAL ═══ -->
+    <script type="text/x-template" id="tpl-entry-modal">
+<div class="modal-overlay" :class="{ active:isOpen }" @click.self="close">
+    <div class="modal-content">
+        <div class="modal-header"><h2>Új elem hozzáadása</h2><button class="close-modal-btn" @click="close">&times;</button></div>
+        <form @submit.prevent="submit">
+            <div class="form-group" style="padding-bottom:15px;border-bottom:1px solid var(--border-color);">
+                <label style="color:var(--accent-active);font-weight:bold;">Létrehozás típusa</label>
+                <select class="form-control" v-model="creationType"><option value="entry">Új Bejegyzés</option><option value="category">Új Kategória</option><option value="tag">Új Címke (Tag)</option><option value="location">Új Helyszín</option></select>
+            </div>
+            <!-- Error -->
+            <div v-if="errorMsg" class="form-error">{{ errorMsg }}</div>
+            <!-- ENTRY -->
+            <template v-if="creationType==='entry'">
+                <div class="form-group"><label>Cím</label><input type="text" class="form-control" v-model="entryTitle" placeholder="Ide írd a nevet..."></div>
+                <div class="form-group"><label>Csoport</label><select class="form-control" v-model="entryGroupId"><option v-for="g in groups" :key="g.id" :value="g.id">{{ g.name }}</option></select></div>
+                <div class="form-group"><label>Kategória</label><select class="form-control" v-model="entryCategoryId"><option value="">— Nincs —</option><option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option></select></div>
+                <div class="form-group"><label>Típus</label><select class="form-control" v-model="entryType"><option value="note">Jegyzet</option><option value="todo">Teendő</option><option value="event">Esemény</option></select></div>
+                <template v-if="entryType==='todo'">
+                    <div class="form-group"><label>Tervezett kezdet</label><input type="datetime-local" class="form-control" v-model="todoStart" step="60"></div>
+                    <div class="form-group"><label>Határidő</label><input type="datetime-local" class="form-control" v-model="todoDeadline" step="60"></div>
+                </template>
+                <template v-if="entryType==='event'">
+                    <div class="form-group"><label><input type="checkbox" v-model="eventAllDay"> Egész napos</label></div>
+                    <div class="date-time-row"><div class="form-group"><label>Kezdés *</label><input :type="eventAllDay?'date':'datetime-local'" class="form-control" v-model="eventStart" step="60"></div><div class="form-group"><label>Befejezés</label><input :type="eventAllDay?'date':'datetime-local'" class="form-control" v-model="eventEnd" step="60"></div></div>
+                    <div class="form-group"><label>Helyszín</label><select class="form-control" v-model="eventLocationId"><option value="">— Nincs —</option><option v-for="loc in locations" :key="loc.id" :value="loc.id">{{ loc.name }}</option></select></div>
+                </template>
+            </template>
+            <template v-if="creationType==='category'"><div class="form-group"><label>Kategória neve</label><input type="text" class="form-control" v-model="categoryName" placeholder="Pl. Pénzügy..."></div><div class="form-group"><label>Szín</label><input type="color" v-model="categoryColor" class="form-control" style="height:40px;cursor:pointer;"></div></template>
+            <template v-if="creationType==='tag'"><div class="form-group"><label>Címke neve</label><input type="text" class="form-control" v-model="tagName" placeholder="Pl. Sürgős..."></div><div class="form-group"><label>Szín</label><input type="color" v-model="tagColor" class="form-control" style="height:40px;cursor:pointer;"></div></template>
+            <template v-if="creationType==='location'"><div class="form-group"><label>Helyszín neve</label><input type="text" class="form-control" v-model="locationName" placeholder="Pl. Iroda..."></div></template>
+            <button type="submit" class="btn-primary" :disabled="submitting">{{ submitting?'Mentés...':'Létrehozás' }}</button>
+        </form>
+    </div>
+</div>
+</script>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.prod.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/store.js"></script>
+    <script src="js/components/AppSidebar.js"></script>
+    <script src="js/components/TopBar.js"></script>
+    <script src="js/components/GraphView.js"></script>
+    <script src="js/components/CalendarView.js"></script>
+    <script src="js/components/DetailsView.js"></script>
+    <script src="js/components/RoutineView.js"></script>
+    <script src="js/components/GroupsView.js"></script>
+    <script src="js/components/EntryModal.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/app.js"></script>
 </body>
 
 </html>
