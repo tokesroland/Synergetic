@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="./styles/details.css">
     <link rel="stylesheet" href="./styles/routine.css">
     <link rel="stylesheet" href="./styles/vue-app.css">
+    <link rel="stylesheet" href="./styles/omnibar.css">
 </head>
 
 <body>
@@ -22,6 +23,8 @@
             <top-bar v-if="showTopBar"></top-bar>
             <router-view></router-view>
         </main>
+
+        <omni-bar v-if="showOmniBar"></omni-bar>
         <entry-modal></entry-modal>
     </div>
 
@@ -52,14 +55,273 @@
 </aside>
 </script>
 
-    <!-- ═══ TOPBAR ═══ -->
+    <!-- ═══ TOPBAR ═══
+    <script type="text/x-template" id="tpl-topbar">
+        <div class="top-bar">
+            <div class="filters">
+                <button class="filter-btn" :class="{ active: filters.todo }" @click="toggleFilter('todo')">Tasks</button>
+                <button class="filter-btn" :class="{ active: filters.event }" @click="toggleFilter('event')">Events</button>
+                <button class="filter-btn" :class="{ active: filters.note }" @click="toggleFilter('note')">Notes</button>
+            </div>
+            <select class="mode-selector" :value="currentView" @change="changeView">
+                <option value="graph">Kapcsolatok (Gráf)</option>
+                <option value="calendar">Naptár nézet</option>
+                <option value="routine">Rutin tervező</option>
+            </select>
+        </div>
+    </script> -->
+
+    <!-- ═══ OMNIBAR SEARCH ═══ -->
+    <script type="text/x-template" id="tpl-omnibar">
+        <div>
+    <!-- Pull-tab: kis vonal a tetején, középen -->
+    <div id="omnibar-pull-tab" @click="toggleVisible" :class="{ active: visible }">
+        <div class="pull-tab-line"></div>
+    </div>
+
+    <div class="omnibar-wrapper" :class="{ visible: visible }">
+
+        <!-- Glass Container -->
+        <div class="omnibar-glass">
+
+            <!-- Keresőmező -->
+            <div class="omnibar-input-row">
+                <div class="omnibar-search-icon">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                </div>
+
+                <div class="omnibar-input-area">
+                    <span v-if="searchMode !== 'title' && searchQuery"
+                          class="omnibar-inline-token"
+                          :class="{ 'mode-tag': searchMode === 'tag', 'mode-content': searchMode === 'content' }"
+                          @click="addInlineSearchToken"
+                          :title="searchMode === 'tag' ? 'Kattints a tag hozzáadásához' : 'Kattints a tartalom szűrő hozzáadásához'">
+                        {{ searchText }}
+                    </span>
+                    <input ref="searchInput" type="text" v-model="searchText"
+                        @focus="openPanel" @keydown.enter="submitSearch"
+                        placeholder="Keresés név alapján... (Tipp: #tag, @tartalom)"
+                        class="omnibar-input"
+                        :class="{ 'text-tag': searchMode === 'tag', 'text-content': searchMode === 'content' }"
+                        autocomplete="off">
+                </div>
+
+                <button v-if="searchText || hasFilters" class="omnibar-clear-btn" @click="clearAll" title="Összes törlése">✕</button>
+            </div>
+
+            <!-- Elválasztó -->
+            <div v-if="panelOpen" class="omnibar-divider"></div>
+
+            <!-- Panel -->
+            <div v-if="panelOpen" class="omnibar-panel">
+
+                <!-- Bal oldali menü -->
+                <div class="omnibar-menu">
+                    <div class="omnibar-menu-header">Szűrők</div>
+                    <button v-for="item in menuItems" :key="item.id"
+                        class="omnibar-menu-item" :class="{ active: activeView === item.id }"
+                        @click="switchView(item.id)">
+                        <span class="omnibar-menu-icon">{{ item.icon }}</span>
+                        {{ item.label }}
+                    </button>
+                </div>
+
+                <!-- Jobb dinamikus tartalom -->
+                <div class="omnibar-dynamic">
+
+                    <!-- DEFAULT -->
+                    <div v-if="activeView === 'default'" class="omnibar-default-view">
+                        <p>Kezdj el gépelni, vagy válassz egy szűrőt a bal oldalon.</p>
+                        <div class="omnibar-hints">
+                            <span><b>#</b> Tag keresés</span>
+                            <span><b>@</b> Tartalom keresés</span>
+                        </div>
+                    </div>
+
+                    <!-- TAG SUGGESTIONS -->
+                    <div v-if="activeView === 'tag-suggestions'">
+                        <h4 class="omnibar-view-title">Tag javaslatok</h4>
+                        <div v-if="tagSuggestions.length" class="omnibar-tag-list">
+                            <button v-for="tag in tagSuggestions" :key="tag.id" class="omnibar-tag-chip"
+                                :style="{ borderColor: (tag.color_hex||'#818cf8')+'50', color: tag.color_hex||'#818cf8', background: (tag.color_hex||'#818cf8')+'15' }"
+                                @click="addTagFilter(tag)">#{{ tag.name }}</button>
+                        </div>
+                        <div v-else class="omnibar-empty">Nincs találat a megadott tagre.</div>
+                    </div>
+
+                    <!-- CONTENT SUGGESTIONS -->
+                    <div v-if="activeView === 'content-suggestions'">
+                        <h4 class="omnibar-view-title">Tartalom keresés</h4>
+                        <p class="omnibar-hint-text">Nyomj <kbd>Enter</kbd>-t a tartalom szűrő alkalmazásához, vagy kattints a keresőmezőben a kijelölt szövegre.</p>
+                    </div>
+
+                    <!-- TITLE SUGGESTIONS -->
+                    <div v-if="activeView === 'title-suggestions'">
+                        <h4 class="omnibar-view-title">Cím keresés</h4>
+                        <p class="omnibar-hint-text">Nyomj <kbd>Enter</kbd>-t a cím szűrő alkalmazásához.</p>
+                    </div>
+
+                    <!-- BEJEGYZÉS TÍPUSA -->
+                    <div v-if="activeView === 'types'">
+                        <h4 class="omnibar-view-title">Bejegyzés típusa</h4>
+                        <div class="omnibar-type-toggles">
+                            <button class="omnibar-type-btn" :class="{ active: typeFilters.todo }"
+                                :style="typeFilters.todo ? { borderColor: store.colors.todo, color: store.colors.todo, background: store.colors.todo+'18' } : {}"
+                                @click="toggleType('todo')">
+                                <span class="omnibar-type-dot" :style="{ background: store.colors.todo }"></span> Feladat
+                            </button>
+                            <button class="omnibar-type-btn" :class="{ active: typeFilters.event }"
+                                :style="typeFilters.event ? { borderColor: store.colors.event, color: store.colors.event, background: store.colors.event+'18' } : {}"
+                                @click="toggleType('event')">
+                                <span class="omnibar-type-dot" :style="{ background: store.colors.event }"></span> Esemény
+                            </button>
+                            <button class="omnibar-type-btn" :class="{ active: typeFilters.note }"
+                                :style="typeFilters.note ? { borderColor: store.colors.note, color: store.colors.note, background: store.colors.note+'18' } : {}"
+                                @click="toggleType('note')">
+                                <span class="omnibar-type-dot" :style="{ background: store.colors.note }"></span> Jegyzet
+                            </button>
+                        </div>
+                        <p class="omnibar-hint-text" style="margin-top:12px;">A kiválasztott típusok alapján frissülnek az elérhető szűrők a bal oldali menüben.</p>
+                    </div>
+
+                    <!-- TAGEK -->
+                    <div v-if="activeView === 'tags'">
+                        <h4 class="omnibar-view-title">Tagek kiválasztása</h4>
+                        <input type="text" v-model="tagSearch" placeholder="Tag keresése..." class="omnibar-mini-search">
+                        <div class="omnibar-tag-list">
+                            <button v-for="tag in filteredTags" :key="tag.id" class="omnibar-tag-chip"
+                                :style="{ borderColor: (tag.color_hex||'#818cf8')+'50', color: tag.color_hex||'#818cf8', background: (tag.color_hex||'#818cf8')+'15' }"
+                                @click="addTagFilter(tag)">#{{ tag.name }}</button>
+                        </div>
+                        <div v-if="!filteredTags.length" class="omnibar-empty">Nincs ilyen tag.</div>
+                    </div>
+
+                    <!-- KATEGÓRIÁK -->
+                    <div v-if="activeView === 'categories'">
+                        <h4 class="omnibar-view-title">Kategória kiválasztása</h4>
+                        <input type="text" v-model="categorySearch" placeholder="Kategória keresése..." class="omnibar-mini-search">
+                        <div class="omnibar-category-list">
+                            <button v-for="cat in filteredCategories" :key="cat.id" class="omnibar-category-chip"
+                                @click="addCategoryFilter(cat)">
+                                <span class="omnibar-cat-dot" :style="{ background: cat.color_hex || '#5c6bc0' }"></span>
+                                {{ cat.name }}
+                            </button>
+                        </div>
+                        <div v-if="!filteredCategories.length" class="omnibar-empty">Nincs ilyen kategória.</div>
+                    </div>
+
+                    <!-- DÁTUMOK -->
+                    <div v-if="activeView === 'dates'">
+                        <h4 class="omnibar-view-title">Dátum és Időrend</h4>
+                        <div class="omnibar-form-group">
+                            <label>Szűrő típus</label>
+                            <select v-model="dateType" class="omnibar-select">
+                                <option value="created_at">Létrehozás dátuma</option>
+                                <option value="updated_at">Utolsó módosítás</option>
+                            </select>
+                        </div>
+                        <div class="omnibar-btn-row">
+                            <button class="omnibar-action-btn" @click="applyDateOrder('desc')">↓ Újak elöl</button>
+                            <button class="omnibar-action-btn" @click="applyDateOrder('asc')">↑ Régiek elöl</button>
+                        </div>
+                        <div class="omnibar-form-group" style="margin-top:12px;">
+                            <label class="omnibar-label-between">
+                                <span>Időablak (csúszka)</span>
+                                <span class="omnibar-label-value">{{ dateSliderLabel }}</span>
+                            </label>
+                            <input type="range" min="1" max="365" v-model.number="dateSliderDays" class="omnibar-range">
+                            <button class="omnibar-apply-btn" @click="applyDateWindow">Időablak alkalmazása</button>
+                        </div>
+                        <div class="omnibar-form-group" style="margin-top:12px;">
+                            <label>Egyedi időablak (Tól - Ig)</label>
+                            <div class="omnibar-date-row">
+                                <input type="date" v-model="dateFrom" class="omnibar-date-input">
+                                <span class="omnibar-date-sep">–</span>
+                                <input type="date" v-model="dateTo" class="omnibar-date-input">
+                            </div>
+                            <button class="omnibar-apply-btn" @click="applyDateRange">Egyedi ablak alkalmazása</button>
+                        </div>
+                    </div>
+
+                    <!-- HELYSZÍNEK -->
+                    <div v-if="activeView === 'locations'">
+                        <h4 class="omnibar-view-title">Helyszínek (Több is választható)</h4>
+                        <input type="text" v-model="locationSearch" placeholder="Helyszín keresése..." class="omnibar-mini-search">
+                        <div class="omnibar-checkbox-list">
+                            <label v-for="loc in filteredLocations" :key="loc.id" class="omnibar-checkbox-item">
+                                <input type="checkbox" :checked="selectedLocationIds.includes(loc.id)" @change="toggleLocation(loc.id)">
+                                <span>{{ loc.name }}</span>
+                            </label>
+                        </div>
+                        <div v-if="!filteredLocations.length" class="omnibar-empty">Nincs helyszín az adatbázisban.</div>
+                        <button v-if="selectedLocationIds.length" class="omnibar-apply-btn" @click="applyLocations">Kiválasztottak hozzáadása ({{ selectedLocationIds.length }})</button>
+                    </div>
+
+                    <!-- TODO STÁTUSZ -->
+                    <div v-if="activeView === 'todo-status'">
+                        <h4 class="omnibar-view-title">Feladatok állapota</h4>
+                        <div class="omnibar-status-list">
+                            <button class="omnibar-status-btn status-active" @click="addTodoStatus('active', 'Aktív')"><span class="status-icon">📌</span> Aktív</button>
+                            <button class="omnibar-status-btn status-upcoming" @click="addTodoStatus('upcoming', 'Közelgő (48 óra)')"><span class="status-icon">⏳</span> Közelgő (Következő 48 óra)</button>
+                            <button class="omnibar-status-btn status-completed" @click="addTodoStatus('completed', 'Befejezett')"><span class="status-icon">✅</span> Befejezett</button>
+                            <button class="omnibar-status-btn status-archived" @click="addTodoStatus('archived', 'Archivált')"><span class="status-icon">📦</span> Archivált</button>
+                        </div>
+                    </div>
+
+                    <!-- CSATOLMÁNYOK -->
+                    <div v-if="activeView === 'attachments'">
+                        <h4 class="omnibar-view-title">Csatolmány típus szűrő</h4>
+                        <div class="omnibar-status-list">
+                            <button class="omnibar-status-btn" @click="addAttachmentType('image', 'Képek')"><span class="status-icon">🖼️</span> Képek (jpg, png, gif, webp, svg)</button>
+                            <button class="omnibar-status-btn" @click="addAttachmentType('video', 'Videók')"><span class="status-icon">🎬</span> Videók (mp4, webm, ogg)</button>
+                            <button class="omnibar-status-btn" @click="addAttachmentType('document', 'Dokumentumok')"><span class="status-icon">📄</span> Dokumentumok (pdf, txt, csv)</button>
+                            <button class="omnibar-status-btn" @click="addAttachmentType('audio', 'Hangfájlok')"><span class="status-icon">🎵</span> Hangfájlok (mp3, ogg, wav)</button>
+                        </div>
+                    </div>
+
+                    <!-- CSOPORTOK -->
+                    <div v-if="activeView === 'groups'">
+                        <h4 class="omnibar-view-title">Csoportok (Több is választható)</h4>
+                        <input type="text" v-model="groupSearch" placeholder="Csoport keresése..." class="omnibar-mini-search">
+                        <div class="omnibar-checkbox-list">
+                            <label v-for="group in filteredGroups" :key="group.id" class="omnibar-checkbox-item">
+                                <input type="checkbox" :checked="selectedGroupIds.includes(group.id)" @change="toggleGroup(group.id)">
+                                <span :style="{ color: group.color_hex || 'var(--text-primary)' }">{{ group.name }}</span>
+                                <span class="omnibar-group-stats">{{ group.todo_count||0 }}F | {{ group.event_count||0 }}E | {{ group.note_count||0 }}J</span>
+                            </label>
+                        </div>
+                        <button v-if="selectedGroupIds.length" class="omnibar-apply-btn" @click="applyGroups">Kiválasztottak hozzáadása ({{ selectedGroupIds.length }})</button>
+                    </div>
+
+                    <!-- ISMÉTLŐDÉS -->
+                    <div v-if="activeView === 'recurrence'">
+                        <h4 class="omnibar-view-title">Ismétlődés</h4>
+                        <div class="omnibar-dev-notice"><span class="dev-icon">🚧</span><span>Ez a funkció fejlesztés alatt áll.</span></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Aktív szűrők polc -->
+        <div class="omnibar-shelf" :class="{ active: hasFilters }">
+            <span class="omnibar-shelf-label">Aktív szűrők</span>
+            <div class="omnibar-shelf-tokens">
+                <div v-for="(filter, idx) in activeFilters" :key="idx" class="omnibar-token"
+                    :style="{ borderColor: tokenColor(filter.key) + '40' }">
+                    <span class="omnibar-token-key" :style="{ color: tokenColor(filter.key) }">{{ filter.key }}:</span>
+                    <span class="omnibar-token-value">{{ filter.value }}</span>
+                    <button class="omnibar-token-remove" @click="removeToken(idx)">✕</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</script>
+
+    <!-- ═══ TOPBAR (only mode selector) ═══ -->
     <script type="text/x-template" id="tpl-topbar">
 <div class="top-bar">
-    <div class="filters">
-        <button class="filter-btn" :class="{ active: filters.todo }" @click="toggleFilter('todo')">Tasks</button>
-        <button class="filter-btn" :class="{ active: filters.event }" @click="toggleFilter('event')">Events</button>
-        <button class="filter-btn" :class="{ active: filters.note }" @click="toggleFilter('note')">Notes</button>
-    </div>
     <select class="mode-selector" :value="currentView" @change="changeView">
         <option value="graph">Kapcsolatok (Gráf)</option>
         <option value="calendar">Naptár nézet</option>
@@ -67,6 +329,7 @@
     </select>
 </div>
 </script>
+
 
     <!-- ═══ GRAPH VIEW ═══ -->
     <script type="text/x-template" id="tpl-graph-view">
@@ -429,6 +692,7 @@
     <script src="js/store.js"></script>
     <script src="js/components/AppSidebar.js"></script>
     <script src="js/components/TopBar.js"></script>
+    <script src="js/components/OmniBar.js"></script>
     <script src="js/components/GraphView.js"></script>
     <script src="js/components/CalendarView.js"></script>
     <script src="js/components/DetailsView.js"></script>
