@@ -1,0 +1,17 @@
+# Git
+.git
+.gitignore
+
+# Docker fájlok (nem kell a konténerbe)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Fejlesztői eszközök
+.vscode
+.idea
+*.md
+
+# Rendszerfájlok
+.DS_Store
+Thumbs.db
