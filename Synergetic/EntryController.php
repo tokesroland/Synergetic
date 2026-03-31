@@ -186,7 +186,6 @@ class EntryController {
         
         $title = $data['title'] ?? '';
         $content = $data['content'] ?? '';
-
         $stmt = $this->pdo->prepare("UPDATE entries SET title = ?, content = ? WHERE id = ?");
         $stmt->execute([$title, $content, $data['id']]);
         

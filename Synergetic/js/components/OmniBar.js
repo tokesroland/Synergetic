@@ -5,6 +5,8 @@
  *  - Kategória szűrő hozzáadva
  *  - Pull-tab trigger (középső vonal) a hamburger/szelektor helyett
  *  - Highlight-olt node-ok kapcsolatai is kitűnnek
+ *  - Auto-show: ha az egér a képernyő teteje felé megy (középső zóna),
+ *    előugrik az omnibar; ha leveszi az egeret róla, visszamegy
  */
 const OmniBar = {
     template: '#tpl-omnibar',
@@ -149,7 +151,7 @@ const OmniBar = {
     },
 
     mounted() {
-        // Kívülre kattintás
+        // Kívülre kattintás → panel bezár, ha nincs aktív szűrő, omnibar is elmegy
         this._outsideClick = (e) => {
             const el = this.$el;
             const tab = document.getElementById('omnibar-pull-tab');
@@ -162,6 +164,43 @@ const OmniBar = {
         };
         document.addEventListener('mousedown', this._outsideClick);
 
+        // ── Auto-show hover logika ──
+        this._hideTimer = null;
+
+        // Az egér elmegy az omnibar-ról → késleltetett elrejtés
+        this.$el.addEventListener('mouseleave', () => {
+            if (this.hasFilters || this.searchText) return; // szűrő aktív → marad
+            this._scheduleHide();
+        });
+
+        // Az egér visszajön az omnibar-ra → mégse rejtjük el
+        this.$el.addEventListener('mouseenter', () => {
+            clearTimeout(this._hideTimer);
+        });
+
+        // document mousemove: képernyő teteje középső zónája triggereli
+        this._onMouseMove = (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            const w = window.innerWidth;
+
+            // Hamburger zóna kizárása (bal felső sarok ~62×62px)
+            const overHamburger = (x < 62 && y < 62);
+
+            // Szelektor zóna kizárása (jobb felső sarok ~170×50px)
+            const overSelector = (x > w - 170 && y < 50);
+
+            // Trigger: felső 55px, középső zóna
+            if (y < 18 && !overHamburger && !overSelector) {
+                clearTimeout(this._hideTimer);
+                if (!this.visible) {
+                    this.visible = true;
+                }
+            }
+        };
+
+        document.addEventListener('mousemove', this._onMouseMove);
+
         // Adatok betöltése
         Store.loadTags();
         Store.loadLocations();
@@ -171,9 +210,19 @@ const OmniBar = {
 
     beforeUnmount() {
         document.removeEventListener('mousedown', this._outsideClick);
+        document.removeEventListener('mousemove', this._onMouseMove);
+        clearTimeout(this._hideTimer);
     },
 
     methods: {
+        _scheduleHide() {
+            clearTimeout(this._hideTimer);
+            this._hideTimer = setTimeout(() => {
+                this.visible = false;
+                this.panelOpen = false;
+            }, 350);
+        },
+
         toggleVisible() {
             this.visible = !this.visible;
             if (this.visible) {
