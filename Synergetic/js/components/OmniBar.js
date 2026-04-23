@@ -51,7 +51,7 @@ const OmniBar = {
 
         filteredTags() {
             const q = this.tagSearch.toLowerCase();
-            const tags = Store.tags || [];
+            const tags = this.store.tags || [];  // Közvetlenül a Store-ból
             if (!q) return tags;
             return tags.filter(t => t.name.toLowerCase().includes(q));
         },
@@ -150,7 +150,7 @@ const OmniBar = {
         'typeFilters.note'() { this.applyTypeFilters(); },
     },
 
-    mounted() {
+    async mounted() {
         // Kívülre kattintás → panel bezár, ha nincs aktív szűrő, omnibar is elmegy
         this._outsideClick = (e) => {
             const el = this.$el;
@@ -201,11 +201,13 @@ const OmniBar = {
 
         document.addEventListener('mousemove', this._onMouseMove);
 
-        // Adatok betöltése
-        Store.loadTags();
-        Store.loadLocations();
-        Store.loadGroups();
-        Store.loadCategories();
+        // Adatok betöltése – VÁRUNK ezekre az aszinkron hívásokra
+        await Promise.all([
+            Store.loadTags(),
+            Store.loadLocations(),
+            Store.loadGroups(),
+            Store.loadCategories(),
+        ]);
     },
 
     beforeUnmount() {
@@ -281,19 +283,36 @@ const OmniBar = {
             this.activeView = 'default';
         },
 
-        submitSearch() {
+        async submitSearch() {
             const val = this.searchText.trim();
             if (!val) return;
 
             if (this.searchMode === 'tag') {
                 const q = this.searchQuery;
-                const matchingTag = (Store.tags || []).find(t =>
+                if (!q) return;
+                
+                // Biztosítsuk, hogy a tagek be legyenek töltve
+                if (!Store.tags || Store.tags.length === 0) {
+                    await Store.loadTags();
+                }
+                
+                // Először pontos egyezést keresünk
+                let matchingTag = (Store.tags || []).find(t =>
                     t.name.toLowerCase() === q.toLowerCase()
                 );
+                // Ha nincs pontos egyezés, részleges egyezést keresünk
+                if (!matchingTag) {
+                    matchingTag = (Store.tags || []).find(t =>
+                        t.name.toLowerCase().includes(q.toLowerCase())
+                    );
+                }
+                
                 if (matchingTag) {
-                    this.addToken('Tag', `#${matchingTag.name}`, { id: matchingTag.id });
+                    this.addToken('Tag', `#${matchingTag.name}`, { id: parseInt(matchingTag.id) });
                 } else {
-                    this.addToken('Cím', q);
+                    // Ha nincs egyezés sem, akkor is Tag szűrőként adjuk hozzá (nem Cím-ként!)
+                    // A store executeSearch név alapján fogja feloldani
+                    this.addToken('Tag', `#${q}`, { name: q });
                 }
             } else if (this.searchMode === 'content') {
                 this.addToken('Tartalom', `@${this.searchQuery}`, {});
@@ -311,7 +330,7 @@ const OmniBar = {
                     t.name.toLowerCase() === q.toLowerCase()
                 );
                 if (match) {
-                    this.addToken('Tag', `#${match.name}`, { id: match.id });
+                    this.addToken('Tag', `#${match.name}`, { id: parseInt(match.id) });
                 } else {
                     this.addToken('Tag', `#${q}`, { name: q });
                 }
@@ -321,7 +340,7 @@ const OmniBar = {
         },
 
         addTagFilter(tag) {
-            this.addToken('Tag', `#${tag.name}`, { id: tag.id });
+            this.addToken('Tag', `#${tag.name}`, { id: parseInt(tag.id) });
         },
 
         addCategoryFilter(cat) {

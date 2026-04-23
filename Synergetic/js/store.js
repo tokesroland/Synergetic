@@ -57,6 +57,10 @@ const Store = Vue.reactive({
     async executeSearch() {
         if (this.searchFilters.length === 0) { this.clearSearch(); return; }
 
+        // Biztosítjuk, hogy a tagek és kategóriák be legyenek töltve
+        if (!this.tags || this.tags.length === 0) await this.loadTags();
+        if (!this.categories || this.categories.length === 0) await this.loadCategories();
+
         const filters = { group_id: this.currentGroupId };
 
         // Típus
@@ -65,7 +69,21 @@ const Store = Vue.reactive({
 
         // Tag
         const tagTokens = this.searchFilters.filter(f => f.key === 'Tag');
-        if (tagTokens.length) filters.tag_ids = tagTokens.map(t => t.data?.id).filter(Boolean);
+        if (tagTokens.length) {
+            // Ha vannak id nélküli tag tokenek, próbáljuk feloldani név alapján
+            const tagIds = [];
+            for (const t of tagTokens) {
+                if (t.data?.id) {
+                    tagIds.push(parseInt(t.data.id));
+                } else if (t.data?.name || t.value) {
+                    const tagName = (t.data?.name || t.value.replace(/^#/, '')).toLowerCase();
+                    const found = (this.tags || []).find(tag => tag.name.toLowerCase() === tagName);
+                    if (found) tagIds.push(parseInt(found.id));
+                }
+            }
+            console.log("Tag filter Debug:", { tagTokens, tagIds, allTags: this.tags });
+            if (tagIds.length) filters.tag_ids = tagIds;
+        }
 
         // Kategória
         const catTokens = this.searchFilters.filter(f => f.key === 'Kategória');

@@ -66,6 +66,16 @@ const DetailsView = {
     "$route.params.id"() {
       this.loadEntry();
     },
+    "entry.content"(newVal) {
+      // Szinkronizáljuk az editContent-et és az editor HTML-jét
+      this.editContent = newVal || "";
+      this.$nextTick(() => {
+        const el = this.$refs.contentEditor;
+        if (el && el.innerHTML !== (newVal || "")) {
+          el.innerHTML = newVal || "";
+        }
+      });
+    },
   },
   async mounted() {
     await this.loadEntry();
@@ -122,11 +132,18 @@ const DetailsView = {
     async save() {
       this.saving = true;
       this.saveSuccess = false;
-
-      const content = this.$refs.contentEditor
-        ? this.$refs.contentEditor.innerHTML
-        : this.editContent || "";
-      // console.log("Mentendő tartalom:", content);
+      
+      // Tartalom kiolvasása – ha a contenteditable elérhető, onnan; egyébként editContent fallback
+      const editorEl = this.$refs.contentEditor;
+      let content;
+      if (editorEl && editorEl.innerHTML) {
+        const html = editorEl.innerHTML;
+        // Üres editor ellenőrzés (csak <br> vagy üres div)
+        const isEmpty = !html || html === '<br>' || html === '<div><br></div>';
+        content = isEmpty ? (this.editContent || "") : html;
+      } else {
+        content = this.editContent || "";
+      }
 
       const res = await ApiService.updateEntry({
         id: this.entryId,
@@ -139,7 +156,13 @@ const DetailsView = {
         this.entry.title = this.editTitle;
         this.entry.content = content;
         this.editContent = content;
+        // Frissítjük a Store-t az entry csoportja alapján
+        const entryGroupId = this.entry.group_id;
+        if (entryGroupId && parseInt(entryGroupId) !== Store.currentGroupId) {
+          Store.currentGroupId = parseInt(entryGroupId);
+        }
         await Store.loadCurrentGroup();
+        await Store.loadGroups();
         setTimeout(() => {
           this.saveSuccess = false;
         }, 2000);

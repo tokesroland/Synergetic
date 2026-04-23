@@ -27,42 +27,64 @@ try {
         case 'GET':
             $action = $_GET['action'] ?? '';
 
-            if ($action === 'search_entries') {
-                $filters = [];
-                if (isset($_GET['group_id']))         $filters['group_id'] = (int)$_GET['group_id'];
-                if (isset($_GET['title']))            $filters['title'] = $_GET['title'];
-                if (isset($_GET['content']))          $filters['content'] = $_GET['content'];
-                if (isset($_GET['types']))            $filters['types'] = explode(',', $_GET['types']);
-                if (isset($_GET['tag_ids']))          $filters['tag_ids'] = array_map('intval', explode(',', $_GET['tag_ids']));
-                if (isset($_GET['category_ids']))     $filters['category_ids'] = array_map('intval', explode(',', $_GET['category_ids']));
-                if (isset($_GET['date_type']))        $filters['date_type'] = $_GET['date_type'];
-                if (isset($_GET['date_from']))        $filters['date_from'] = $_GET['date_from'];
-                if (isset($_GET['date_to']))          $filters['date_to'] = $_GET['date_to'];
-                if (isset($_GET['date_order']))       $filters['date_order'] = $_GET['date_order'];
-                if (isset($_GET['location_ids']))     $filters['location_ids'] = array_map('intval', explode(',', $_GET['location_ids']));
-                if (isset($_GET['todo_statuses']))    $filters['todo_statuses'] = explode(',', $_GET['todo_statuses']);
-                if (isset($_GET['attachment_types'])) $filters['attachment_types'] = explode(',', $_GET['attachment_types']);
-                if (isset($_GET['group_ids']))        $filters['group_ids'] = array_map('intval', explode(',', $_GET['group_ids']));
-                echo json_encode($searchCtrl->search($filters));
-            }
-            elseif ($action === 'get_attachment_types') {
-                echo json_encode($searchCtrl->getAttachmentTypes());
-            }
-            elseif ($action === 'get_routine_all') { echo json_encode($routineCtrl->getAll()); }
-            elseif ($action === 'get_routine_by_day') { echo json_encode($routineCtrl->getByDay((int)($_GET['day'] ?? 1))); }
-            elseif ($action === 'get_routine_completions') { echo json_encode($routineCtrl->getCompletions($_GET['date'] ?? date('Y-m-d'))); }
-            elseif ($action === 'get_routine_week_summary') { echo json_encode($routineCtrl->getWeekSummary($_GET['week_start'] ?? date('Y-m-d', strtotime('monday this week')))); }
-            elseif ($action === 'get_groups') { echo json_encode($entryCtrl->getGroups()); }
-            elseif ($action === 'get_calendar') { echo json_encode($entryCtrl->getCalendarEntries()); }
-            elseif ($action === 'get_categories') { echo json_encode($entryCtrl->getCategories()); }
-            elseif ($action === 'get_tags') { echo json_encode($entryCtrl->getTags()); }
-            elseif ($action === 'get_locations') { echo json_encode($entryCtrl->getLocations()); }
-            elseif (isset($_GET['entry_id'])) {
-                $result = $entryCtrl->getOne((int)$_GET['entry_id']);
-                if (!$result) { http_response_code(404); echo json_encode(["error" => "Nem talalhato"]); }
-                else echo json_encode($result);
-            } else {
-                echo json_encode($entryCtrl->getAllByGroup((int)($_GET['group_id'] ?? 1)));
+            switch ($action) {
+                case 'search_entries':
+                    $filters = [];
+                    if (isset($_GET['group_id']))         $filters['group_id'] = (int)$_GET['group_id'];
+                    if (isset($_GET['title']))            $filters['title'] = $_GET['title'];
+                    if (isset($_GET['content']))          $filters['content'] = $_GET['content'];
+                    if (isset($_GET['types']))            $filters['types'] = explode(',', $_GET['types']);
+                    if (isset($_GET['tag_ids']))          $filters['tag_ids'] = array_map('intval', explode(',', $_GET['tag_ids']));
+                    if (isset($_GET['category_ids']))     $filters['category_ids'] = array_map('intval', explode(',', $_GET['category_ids']));
+                    if (isset($_GET['date_type']))        $filters['date_type'] = $_GET['date_type'];
+                    if (isset($_GET['date_from']))        $filters['date_from'] = $_GET['date_from'];
+                    if (isset($_GET['date_to']))          $filters['date_to'] = $_GET['date_to'];
+                    if (isset($_GET['date_order']))       $filters['date_order'] = $_GET['date_order'];
+                    if (isset($_GET['location_ids']))     $filters['location_ids'] = array_map('intval', explode(',', $_GET['location_ids']));
+                    if (isset($_GET['todo_statuses']))    $filters['todo_statuses'] = explode(',', $_GET['todo_statuses']);
+                    if (isset($_GET['attachment_types'])) $filters['attachment_types'] = explode(',', $_GET['attachment_types']);
+                    if (isset($_GET['group_ids']))        $filters['group_ids'] = array_map('intval', explode(',', $_GET['group_ids']));
+                    echo json_encode($searchCtrl->search($filters));
+                    break;
+                case 'get_attachment_types':
+                    echo json_encode($searchCtrl->getAttachmentTypes());
+                    break;
+                case 'get_routine_all':
+                    echo json_encode($routineCtrl->getAll());
+                    break;
+                case 'get_routine_by_day':
+                    echo json_encode($routineCtrl->getByDay((int)($_GET['day'] ?? 1)));
+                    break;
+                case 'get_routine_completions':
+                    echo json_encode($routineCtrl->getCompletions($_GET['date'] ?? date('Y-m-d')));
+                    break;
+                case 'get_routine_week_summary':
+                    echo json_encode($routineCtrl->getWeekSummary($_GET['week_start'] ?? date('Y-m-d', strtotime('monday this week'))));
+                    break;
+                case 'get_groups':
+                    echo json_encode($entryCtrl->getGroups());
+                    break;
+                case 'get_calendar':
+                    echo json_encode($entryCtrl->getCalendarEntries());
+                    break;
+                case 'get_categories':
+                    echo json_encode($entryCtrl->getCategories());
+                    break;
+                case 'get_tags':
+                    echo json_encode($entryCtrl->getTags());
+                    break;
+                case 'get_locations':
+                    echo json_encode($entryCtrl->getLocations());
+                    break;
+                default:
+                    if (isset($_GET['entry_id'])) {
+                        $result = $entryCtrl->getOne((int)$_GET['entry_id']);
+                        if (!$result) { http_response_code(404); echo json_encode(["error" => "Nem talalhato"]); }
+                        else echo json_encode($result);
+                    } else {
+                        echo json_encode($entryCtrl->getAllByGroup((int)($_GET['group_id'] ?? 1)));
+                    }
+                    break;
             }
             break;
 
@@ -94,7 +116,12 @@ try {
         case 'PUT':
             $raw = file_get_contents("php://input");
             $input = json_decode($raw, true) ?? [];
-            echo json_encode($entryCtrl->update($input));
+            $action = $input['action'] ?? 'update_entry';
+            if ($action === 'move_to_group') {
+                echo json_encode($entryCtrl->moveToGroup((int)$input['id'], (int)$input['group_id']));
+            } else {
+                echo json_encode($entryCtrl->update($input));
+            }
             break;
 
         case 'DELETE':

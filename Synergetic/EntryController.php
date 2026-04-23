@@ -180,7 +180,6 @@ class EntryController {
     }
 
     // ─── Elem frissítése ────────────────────────────────────────────────────
-// EntryController.php
     public function update($data) {
         if (!isset($data['id'])) throw new Exception("Hiányzó azonosító!");
         
@@ -197,6 +196,22 @@ class EntryController {
         $stmt = $this->pdo->prepare("UPDATE entries SET pos_x = ?, pos_y = ? WHERE id = ?");
         $stmt->execute([$x, $y, $id]);
         return ["message" => "Pozíció mentve!"];
+    }
+
+    // ─── Elem áthelyezése másik csoportba ────────────────────────────────────
+    public function moveToGroup($entryId, $groupId) {
+        if (empty($entryId) || empty($groupId)) 
+            throw new Exception("Hiányzó azonosító(k).");
+        
+        // Ellenőrizzük, hogy a csoport létezik
+        $check = $this->pdo->prepare("SELECT id FROM `groups` WHERE id = ?");
+        $check->execute([$groupId]);
+        if (!$check->fetch()) 
+            throw new Exception("A cél csoport nem létezik.");
+        
+        $stmt = $this->pdo->prepare("UPDATE entries SET group_id = ? WHERE id = ?");
+        $stmt->execute([$groupId, $entryId]);
+        return ["message" => "Bejegyzés sikeresen áthelyezve!"];
     }
 
     // ─── Elem törlése ───────────────────────────────────────────────────────

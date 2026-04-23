@@ -64,8 +64,23 @@ Hibajavítások:
 #		Ha az idővonalon lévő csíkra viszem az egeret, akkor tooltipként írja ki, hogy "Title - (mettől-meddig)"
 #		Új rutin gomb: Egyszerre több napot is ki lehessen választani, amit mindegyikhez kiválasztott megkap rutint
 #		Alsó sáv: ide kerüljön az összes rutinnak a leírása a mostani mintának megfelelően 
-#			(baloldalra fixen rögzítve: "* Szabad idő * ) összesen: x elem / hét" ezután pedig a színes pöttyökkel ellátva az összes rutin neve, ami ha túlnövi magát, akkor görgethető legyen láthatóan jobbra)
+#			(baloldalra fixen rögzítve: "* Szabad idő * ) összesen: x elem / hét" ezután pedig a színes pöttyökkel ellátva az összes rutin neve, ami ha túlnövi magát, akkor görgethető legyen láthatóan jobbra
 
+
+prioritás 5:
+- ismétlődő entry-k kezelése:
+  - ismétlődő entry-k megjelenítése a naptár nézetben
+  - ismétlődő entry-k szerkesztése
+  - ismétlődő entry-k törlése
+- Csoporthoz csatolás:
+  - csoport eltávolítása (automatikusan az "összes"-be kerül a tartalom)
+  - Csoportok rendezése
+  - Csoportok szűrése
+- Exportálás .md file-ba
+- Szűrők elmentése keresésnél.
+- Sidebar entries kiiratás:
+  - Ha a sidebarban kiválasztok egy entry-t, akkor egy egész maint lefedő popup ablak legyen
+  - rendezések: checkBox --> alkalmazza-e az aktív szűrőt
 #  - Összetett kereső és filter menü:
 #    - Keresések:
 #      - tagek alapján..
@@ -81,8 +96,7 @@ Hibajavítások:
 #      - TODO: Sztátusz alapján, lejárt alapján, közelgő alapján (...)
 
   - Bonus kiegészítés:
-    - details.html:
-      - Helyszín megjelenítése az EVENT-nél
+   - Helyszín megjelenítése az EVENT-nél
     - Tag:
       - Új tag gyorsműveletkor lehessen szinezni és módosítani
     - groups:

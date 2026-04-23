@@ -69,7 +69,7 @@ class SearchController {
             foreach ($filters['category_ids'] as $cid) $params[] = (int)$cid;
         }
 
-        // Tag
+        // Tag – EITHER logic: legalább egy tag-ot kell tartalmaznia
         if (!empty($filters['tag_ids']) && is_array($filters['tag_ids'])) {
             $ph = implode(',', array_fill(0, count($filters['tag_ids']), '?'));
             $joins[] = "INNER JOIN entry_tags et_filter ON e.id = et_filter.entry_id AND et_filter.tag_id IN ($ph)";
@@ -89,7 +89,6 @@ class SearchController {
             foreach ($filters['location_ids'] as $lid) $params[] = (int)$lid;
         }
 
-        // TODO státusz
         if (!empty($filters['todo_statuses']) && is_array($filters['todo_statuses'])) {
             $statusConds = [];
             $regular = array_intersect($filters['todo_statuses'], ['active', 'completed', 'archived']);
@@ -135,9 +134,23 @@ class SearchController {
             ORDER BY $dateCol $orderDir
         ";
 
+        // DEBUG tag szűréshez
+        if (!empty($filters['tag_ids'])) {
+            error_log("### TAG FILTER DEBUG ###");
+            error_log("Kapott tag_ids: " . json_encode($filters['tag_ids']));
+            error_log("SQL Query:\n" . $sql);
+            error_log("Query Parameters: " . json_encode($params));
+        }
+
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $entries = $stmt->fetchAll();
+
+        // DEBUG: Eredmények száma
+        if (!empty($filters['tag_ids'])) {
+            error_log("Keresési eredmények száma: " . count($entries));
+            error_log("Eredmények: " . json_encode($entries));
+        }
 
         if (!empty($entries)) {
             $entryIds = array_column($entries, 'id');
