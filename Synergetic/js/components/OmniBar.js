@@ -7,6 +7,9 @@
  *  - Highlight-olt node-ok kapcsolatai is kitűnnek
  *  - Auto-show: ha az egér a képernyő teteje felé megy (középső zóna),
  *    előugrik az omnibar; ha leveszi az egeret róla, visszamegy
+ *  - ÚJ: Mentett szűrők (preset-ek) localStorage-ban + választó dropdown az
+ *        "Aktív szűrők" felirat helyén
+ *  - ÚJ: Token-sor görgethető (egér-kerék → vízszintes scroll)
  */
 const OmniBar = {
     template: '#tpl-omnibar',
@@ -41,6 +44,13 @@ const OmniBar = {
                 event: false,
                 note: false
             },
+
+            // ── ÚJ: Mentett szűrő halmazok ──
+            savedFilters: [],               // [{ id, name, color, filters: [...] }]
+            savedFiltersStorageKey: 'synergetic_saved_filters',
+            presetMenuOpen: false,          // dropdown kinyitva?
+            presetSearch: '',               // kereső a dropdown-ban
+            activePresetId: null,           // éppen betöltött preset azonosítója
         };
     },
 
@@ -77,58 +87,72 @@ const OmniBar = {
             return groups.filter(g => g.name.toLowerCase().includes(q));
         },
 
-        menuItems() {
-            const items = [
-                { id: 'types', icon: '📋', label: 'Bejegyzés típusa' },
-                { id: 'tags', icon: '🏷️', label: 'Tagek (#)' },
-                { id: 'categories', icon: '📁', label: 'Kategóriák' },
-                { id: 'dates', icon: '📅', label: 'Dátumok' },
-            ];
-
-            if (this.typeFilters.event || this.noTypeSelected) {
-                items.push({ id: 'locations', icon: '📍', label: 'Helyszínek' });
-            }
-
-            if (this.typeFilters.todo || this.noTypeSelected) {
-                items.push({ id: 'todo-status', icon: '✅', label: 'Teendő státusz' });
-            }
-
-            items.push(
-                { id: 'attachments', icon: '📎', label: 'Csatolmányok' },
-                { id: 'groups', icon: '👥', label: 'Csoportok' },
-                { id: 'recurrence', icon: '🔁', label: 'Ismétlődés' },
-            );
-
-            return items;
-        },
-
-        noTypeSelected() {
-            return !this.typeFilters.todo && !this.typeFilters.event && !this.typeFilters.note;
-        },
-
         searchMode() {
-            const val = this.searchText;
-            if (val.startsWith('#')) return 'tag';
-            if (val.startsWith('@')) return 'content';
+            const t = this.searchText || '';
+            if (t.startsWith('#')) return 'tag';
+            if (t.startsWith('@')) return 'content';
             return 'title';
         },
 
         searchQuery() {
-            const val = this.searchText;
-            if (val.startsWith('#') || val.startsWith('@')) return val.substring(1).trim();
-            return val.trim();
-        },
-
-        tagSuggestions() {
-            if (this.searchMode !== 'tag' || !this.searchQuery) return [];
-            const q = this.searchQuery.toLowerCase();
-            return (Store.tags || []).filter(t => t.name.toLowerCase().includes(q));
+            const t = this.searchText || '';
+            if (t.startsWith('#') || t.startsWith('@')) return t.slice(1).trim();
+            return t.trim();
         },
 
         dateSliderLabel() {
-            if (this.dateSliderDays <= 1) return 'Ma';
-            if (this.dateSliderDays <= 90) return `Elmúlt ${this.dateSliderDays} nap`;
+            if (this.dateSliderDays <= 1)   return 'Utolsó nap';
+            if (this.dateSliderDays <= 7)   return `Utolsó ${this.dateSliderDays} nap`;
+            if (this.dateSliderDays <= 31)  return `Utolsó ${this.dateSliderDays} nap`;
+            if (this.dateSliderDays <= 90)  return `Utolsó ${this.dateSliderDays} nap`;
+            if (this.dateSliderDays <= 365) return `Elmúlt ~${Math.round(this.dateSliderDays / 30)} hónap`;
             return `Elmúlt ~${Math.round(this.dateSliderDays / 30)} hónap`;
+        },
+
+        // ── ÚJ: dropdown felirat ──
+        presetLabel() {
+            if (this.activePresetId) {
+                const p = this.savedFilters.find(x => x.id === this.activePresetId);
+                if (p) return p.name;
+            }
+            return 'Aktív szűrők';
+        },
+
+        // Szűrt mentett szűrők a dropdown-hoz
+        filteredSavedFilters() {
+            const q = (this.presetSearch || '').toLowerCase();
+            if (!q) return this.savedFilters;
+            return this.savedFilters.filter(p => p.name.toLowerCase().includes(q));
+        },
+
+        // Menthető-e az aktuális szűrés? (van legalább 1 aktív szűrő, és a keresés mező
+        // értelmes preset-nevet tartalmaz)
+        canSavePreset() {
+            return this.hasFilters && this.presetSearch.trim().length > 0;
+        },
+
+        // ── HELYREÁLLÍTVA: Bal oldali menü elemei ──
+        // Ezt a template a `<button v-for="item in menuItems" ...>` részben használja.
+        menuItems() {
+            return [
+                { id: 'types',       icon: '🧩', label: 'Bejegyzés típusa' },
+                { id: 'tags',        icon: '🏷️', label: 'Tagek' },
+                { id: 'categories',  icon: '📁', label: 'Kategóriák' },
+                { id: 'dates',       icon: '📅', label: 'Dátum / Időrend' },
+                { id: 'locations',   icon: '📍', label: 'Helyszínek' },
+                { id: 'todo-status', icon: '✅', label: 'TODO státusz' },
+                { id: 'attachments', icon: '📎', label: 'Csatolmányok' },
+                { id: 'groups',      icon: '👥', label: 'Csoportok' },
+                { id: 'recurrence',  icon: '🔁', label: 'Ismétlődés' },
+            ];
+        },
+
+        // Ezt a template a `<div v-if="activeView === 'tag-suggestions'">` blokkban használja.
+        tagSuggestions() {
+            const q = this.searchQuery.toLowerCase();
+            const tags = this.store.tags || [];
+            if (!q) return tags.slice(0, 20);
+            return tags.filter(t => t.name.toLowerCase().includes(q)).slice(0, 20);
         },
     },
 
@@ -148,15 +172,33 @@ const OmniBar = {
         'typeFilters.todo'() { this.applyTypeFilters(); },
         'typeFilters.event'() { this.applyTypeFilters(); },
         'typeFilters.note'() { this.applyTypeFilters(); },
+
+        // Ha a felhasználó kézzel módosít a szűrőkön (hozzáad/töröl), a preset címke
+        // eltűnik, mert már nem egyezik az elmentett állapottal.
+        'store.searchFilters': {
+            deep: true,
+            handler() {
+                if (!this.activePresetId) return;
+                const p = this.savedFilters.find(x => x.id === this.activePresetId);
+                if (!p) { this.activePresetId = null; return; }
+                if (!this._filtersEqual(p.filters, Store.searchFilters)) {
+                    this.activePresetId = null;
+                }
+            }
+        },
     },
 
     async mounted() {
+        // ── Mentett szűrők betöltése ──
+        this._loadSavedFilters();
+
         // Kívülre kattintás → panel bezár, ha nincs aktív szűrő, omnibar is elmegy
         this._outsideClick = (e) => {
             const el = this.$el;
             const tab = document.getElementById('omnibar-pull-tab');
             if (el && !el.contains(e.target) && tab && !tab.contains(e.target)) {
                 this.panelOpen = false;
+                this.presetMenuOpen = false;
                 if (!this.hasFilters && !this.searchText) {
                     this.visible = false;
                 }
@@ -222,6 +264,7 @@ const OmniBar = {
             this._hideTimer = setTimeout(() => {
                 this.visible = false;
                 this.panelOpen = false;
+                this.presetMenuOpen = false;
             }, 350);
         },
 
@@ -233,6 +276,7 @@ const OmniBar = {
                 });
             } else {
                 this.panelOpen = false;
+                this.presetMenuOpen = false;
             }
         },
 
@@ -281,6 +325,7 @@ const OmniBar = {
             Store.clearAllFilters();
             this.searchText = '';
             this.activeView = 'default';
+            this.activePresetId = null;
         },
 
         async submitSearch() {
@@ -290,12 +335,12 @@ const OmniBar = {
             if (this.searchMode === 'tag') {
                 const q = this.searchQuery;
                 if (!q) return;
-                
+
                 // Biztosítsuk, hogy a tagek be legyenek töltve
                 if (!Store.tags || Store.tags.length === 0) {
                     await Store.loadTags();
                 }
-                
+
                 // Először pontos egyezést keresünk
                 let matchingTag = (Store.tags || []).find(t =>
                     t.name.toLowerCase() === q.toLowerCase()
@@ -306,7 +351,7 @@ const OmniBar = {
                         t.name.toLowerCase().includes(q.toLowerCase())
                     );
                 }
-                
+
                 if (matchingTag) {
                     this.addToken('Tag', `#${matchingTag.name}`, { id: parseInt(matchingTag.id) });
                 } else {
@@ -420,6 +465,151 @@ const OmniBar = {
                 'Kategória': '#ec4899',
             };
             return m[key] || 'var(--text-secondary)';
+        },
+
+        // ══════════════════════════════════════════════════════
+        // ÚJ: Mentett szűrők kezelése
+        // ══════════════════════════════════════════════════════
+
+        _loadSavedFilters() {
+            try {
+                const raw = localStorage.getItem(this.savedFiltersStorageKey);
+                if (!raw) { this.savedFilters = []; return; }
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) this.savedFilters = parsed;
+            } catch (e) {
+                console.warn('Mentett szűrők betöltési hiba:', e);
+                this.savedFilters = [];
+            }
+        },
+
+        _persistSavedFilters() {
+            try {
+                localStorage.setItem(
+                    this.savedFiltersStorageKey,
+                    JSON.stringify(this.savedFilters)
+                );
+            } catch (e) {
+                console.warn('Mentett szűrők mentési hiba:', e);
+            }
+        },
+
+        _filtersEqual(a, b) {
+            if (!Array.isArray(a) || !Array.isArray(b)) return false;
+            if (a.length !== b.length) return false;
+            // Összehasonlítás sorrend-független módon kulcs+érték alapján
+            const norm = arr => arr
+                .map(f => `${f.key}::${f.value}::${JSON.stringify(f.data || {})}`)
+                .sort();
+            const na = norm(a);
+            const nb = norm(b);
+            return na.every((v, i) => v === nb[i]);
+        },
+
+        _randomPresetColor() {
+            const palette = [
+                '#6366f1', '#ec4899', '#f59e0b', '#34d399',
+                '#fb923c', '#818cf8', '#8b5cf6', '#3b82f6',
+                '#ef4444', '#f97316', '#10b981', '#06b6d4'
+            ];
+            return palette[Math.floor(Math.random() * palette.length)];
+        },
+
+        togglePresetMenu() {
+            this.presetMenuOpen = !this.presetMenuOpen;
+            if (this.presetMenuOpen) {
+                this.presetSearch = '';
+                this.$nextTick(() => {
+                    const inp = this.$refs.presetSearchInput;
+                    if (inp) inp.focus();
+                });
+            }
+        },
+
+        closePresetMenu() {
+            this.presetMenuOpen = false;
+            this.presetSearch = '';
+        },
+
+        // Aktuális szűrők elmentése új preset-ként (név a kereső mezőből)
+        saveCurrentAsPreset() {
+            const name = (this.presetSearch || '').trim();
+            if (!name) return;
+            if (!this.hasFilters) return;
+
+            // Ha már van ilyen nevű preset → felülírás megerősítés
+            const existing = this.savedFilters.find(p =>
+                p.name.toLowerCase() === name.toLowerCase()
+            );
+            if (existing) {
+                if (!confirm(`"${name}" nevű szűrőhalmaz már létezik. Felülírod?`)) return;
+                existing.filters = JSON.parse(JSON.stringify(Store.searchFilters));
+                this.activePresetId = existing.id;
+            } else {
+                const preset = {
+                    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                    name,
+                    color: this._randomPresetColor(),
+                    filters: JSON.parse(JSON.stringify(Store.searchFilters)),
+                };
+                this.savedFilters.push(preset);
+                this.activePresetId = preset.id;
+            }
+
+            this._persistSavedFilters();
+            this.presetSearch = '';
+            this.presetMenuOpen = false;
+        },
+
+        applyPreset(preset) {
+            if (!preset || !Array.isArray(preset.filters)) return;
+
+            // Type-filter állapot szinkronizálása
+            this.typeFilters = { todo: false, event: false, note: false };
+            preset.filters.forEach(f => {
+                if (f.key === 'Típus' && f.data?.type) {
+                    this.typeFilters[f.data.type] = true;
+                }
+            });
+
+            // Szűrők lecserélése: mély másolat, hogy későbbi módosítás ne menjen vissza
+            // a mentett preset-be
+            Store.searchFilters = JSON.parse(JSON.stringify(preset.filters));
+            this.activePresetId = preset.id;
+
+            if (Store.searchFilters.length > 0) {
+                Store.executeSearch();
+            } else {
+                Store.clearSearch();
+            }
+
+            this.presetMenuOpen = false;
+            this.presetSearch = '';
+        },
+
+        deletePreset(preset, ev) {
+            if (ev) ev.stopPropagation();
+            if (!preset) return;
+            if (!confirm(`Törlöd a(z) "${preset.name}" mentett szűrőt?`)) return;
+
+            this.savedFilters = this.savedFilters.filter(p => p.id !== preset.id);
+            if (this.activePresetId === preset.id) this.activePresetId = null;
+            this._persistSavedFilters();
+        },
+
+        clearActivePreset() {
+            // Csak a "betöltött preset" jelölést vesszük le — a szűrőket nem piszkáljuk.
+            this.activePresetId = null;
+        },
+
+        // Token-sor görgetése egér-kerékkel → vízszintes scroll
+        onShelfWheel(e) {
+            const el = e.currentTarget;
+            if (!el) return;
+            // Ha nincs mit görgetni, hagyjuk a default viselkedést
+            if (el.scrollWidth <= el.clientWidth) return;
+            e.preventDefault();
+            el.scrollLeft += (e.deltaY !== 0 ? e.deltaY : e.deltaX);
         },
     }
 };

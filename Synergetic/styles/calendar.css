@@ -253,8 +253,13 @@
             align-items: center;
             padding: 0 16px;
             user-select: none;
+            -webkit-user-select: none;
             position: relative;
             transition: background 0.2s;
+            /* Mobil: touch események közvetlenül a divider-re érkezzenek
+               (a böngésző ne kapja el scrollra) */
+            touch-action: none;
+            -ms-touch-action: none;
         }
 
         .mv-divider:hover {
@@ -725,4 +730,408 @@
 
         .mv-agenda-item:nth-child(5) {
             animation-delay: 0.15s;
+        }
+
+        /* ════════════════════════════════════════════════════════════
+           HAVI NÉZET — LAYOUT FIX
+           A naptár rács kitölti a felső területet (a huzogatható vonalig),
+           és a sorok arányosan nyúlnak a rendelkezésre álló helyhez.
+           Ez biztosítja, hogy ne maradjon üres terület a cellák alatt
+           — a divider húzásával valódi élő szinkron alakul ki.
+           ════════════════════════════════════════════════════════════ */
+        .mv-grid-wrap {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;       /* flexbe ágyazott scrollolhatósághoz */
+            overflow: hidden;    /* a cellák nyúlnak, nem görgetnek */
+            padding-bottom: 6px; /* enyhe levegő a divider felett */
+        }
+
+        .mv-daynames {
+            flex-shrink: 0;
+            position: relative;  /* sticky helyett — fix a tetején a flex containerben */
+            top: auto;
+        }
+
+        .mv-grid {
+            flex: 1;                                /* tölti a rendelkezésre álló helyet */
+            grid-template-rows: repeat(6, 1fr);     /* 6 hét sor — arányosan nyúlnak */
+            min-height: 0;
+        }
+
+        .mv-cell {
+            min-height: 0;       /* hagyja, hogy 1fr-be szoruljon ha kicsi a tér */
+            justify-content: center;  /* a szám középen marad amikor a cella nyúlik */
+            padding: 4px 0;
+        }
+
+        /* Ha sok hely van — a szám továbbra is felül látszódjon mint az eredeti */
+        @media (min-height: 700px) {
+            .mv-cell {
+                justify-content: flex-start;
+                padding-top: 6px;
+            }
+        }
+
+        /* ════════════════════════════════════════════════════════════
+           RESZPONZIVITÁS — Naptár tablet és mobil nézet
+           ════════════════════════════════════════════════════════════ */
+
+        /* ── Tablet (≤ 1024px) ── */
+        @media (max-width: 1024px) {
+            .cal-navbar {
+                padding: 9px 14px;
+                gap: 8px;
+            }
+
+            .cal-title {
+                font-size: 1.05rem;
+            }
+        }
+
+        /* ── Tablet kicsi / Mobil nagy (≤ 768px) ── */
+        @media (max-width: 768px) {
+            .cal-navbar {
+                flex-wrap: wrap;
+                padding: 8px 10px;
+                gap: 8px;
+                row-gap: 8px;
+                justify-content: space-between;
+            }
+
+            .cal-nav-left {
+                gap: 6px;
+                order: 1;
+                flex-shrink: 0;
+            }
+
+            /* A nézet-tabok (Nap/Hét/Hónap) az 1. sorban a Vissza/Ma mellett —
+               ha kifutnak, ide törjenek. */
+            .cal-view-tabs {
+                order: 2;
+                flex-shrink: 0;
+            }
+
+            /* A cím + nyilak teljes szélességű 2. sorban, középen */
+            .cal-nav-center {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                gap: 10px;
+                flex-wrap: nowrap;
+                min-width: 0;
+            }
+
+            .cal-title {
+                font-size: 0.98rem;
+                letter-spacing: 0.2px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+                min-width: 0;
+            }
+
+            .cal-back-btn {
+                padding: 5px 10px;
+                font-size: 0.76rem;
+            }
+
+            .cal-today-btn {
+                padding: 5px 11px;
+                font-size: 0.72rem;
+            }
+
+            .cal-view-tab {
+                padding: 5px 12px;
+                font-size: 0.72rem;
+            }
+
+            /* Havi nézet */
+            .mv-grid-wrap {
+                padding: 6px 10px 0;
+            }
+
+            /* Havi nézet */
+            .mv-grid-wrap {
+                padding: 6px 10px;
+                padding-bottom: 4px;
+            }
+
+            /* Mobilon vastagabb divider — érintéshez könnyebben elcsípni */
+            .mv-divider {
+                height: 18px;
+                padding: 0 12px;
+            }
+
+            .mv-divider::before {
+                width: 56px;
+                height: 5px;
+            }
+
+            .mv-cell-num {
+                width: 28px;
+                height: 28px;
+                font-size: 0.82rem;
+            }
+
+            .mv-dot {
+                width: 4px;
+                height: 4px;
+            }
+
+            .mv-agenda {
+                padding: 10px 12px;
+            }
+
+            .mv-agenda-day {
+                font-size: 1.7rem;
+            }
+
+            .mv-agenda-meta {
+                font-size: 0.76rem;
+            }
+
+            .mv-agenda-item {
+                padding: 9px 11px;
+                gap: 9px;
+            }
+
+            .mv-agenda-item-title {
+                font-size: 0.85rem;
+            }
+
+            .mv-agenda-item-time {
+                font-size: 0.72rem;
+            }
+
+            /* Heti nézet — kompaktabb */
+            .wv-header,
+            .wv-allday,
+            .wv-body {
+                grid-template-columns: 38px repeat(7, 1fr);
+            }
+
+            .wv-allday.day-mode {
+                grid-template-columns: 38px 1fr;
+            }
+
+            .wv-allday-label {
+                font-size: 0.5rem;
+            }
+
+            .wv-header-dayname {
+                font-size: 0.55rem;
+            }
+
+            .wv-header-daynum {
+                font-size: 1rem;
+                width: 28px;
+                height: 28px;
+            }
+
+            .wv-hour-label {
+                font-size: 0.55rem;
+                right: 4px;
+            }
+
+            .ev-block {
+                padding: 2px 4px;
+                font-size: 0.62rem;
+            }
+
+            .ev-block-time {
+                font-size: 0.52rem;
+            }
+
+            /* Napi nézet */
+            .dv-header {
+                padding: 12px 0 8px;
+                gap: 10px;
+            }
+
+            .dv-header-num {
+                font-size: 1.8rem;
+                width: 44px;
+                height: 44px;
+            }
+
+            .dv-body {
+                grid-template-columns: 38px 1fr;
+            }
+        }
+
+        /* ── Mobil (≤ 480px) ── */
+        @media (max-width: 480px) {
+            .cal-navbar {
+                padding: 7px 8px;
+            }
+
+            .cal-back-btn {
+                padding: 4px 8px;
+                font-size: 0.72rem;
+            }
+
+            .cal-today-btn {
+                padding: 4px 9px;
+                font-size: 0.68rem;
+            }
+
+            .cal-title {
+                font-size: 0.9rem;
+            }
+
+            .cal-view-tab {
+                padding: 4px 9px;
+                font-size: 0.68rem;
+            }
+
+            .cal-arrow {
+                width: 28px;
+                height: 28px;
+                font-size: 1rem;
+            }
+
+            /* Havi nézet — még kompaktabb */
+            .mv-grid-wrap {
+                padding: 4px 6px;
+                padding-bottom: 3px;
+            }
+
+            /* Mobilon még kontrasztosabb divider */
+            .mv-divider {
+                height: 20px;
+                padding: 0 10px;
+            }
+
+            .mv-divider::before {
+                width: 60px;
+                height: 5px;
+            }
+
+            .mv-cell-num {
+                width: 24px;
+                height: 24px;
+                font-size: 0.74rem;
+            }
+
+            .mv-dayname {
+                font-size: 0.55rem;
+                padding: 4px 0;
+            }
+
+            .mv-dot {
+                width: 4px;
+                height: 4px;
+            }
+
+            .mv-dots {
+                gap: 2px;
+            }
+
+            .mv-agenda {
+                padding: 8px 10px;
+            }
+
+            .mv-agenda-header {
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+
+            .mv-agenda-day {
+                font-size: 1.4rem;
+            }
+
+            .mv-agenda-meta {
+                font-size: 0.72rem;
+            }
+
+            .mv-agenda-item {
+                padding: 8px 10px;
+                gap: 8px;
+                border-radius: 8px;
+            }
+
+            .mv-agenda-item-title {
+                font-size: 0.8rem;
+            }
+
+            .mv-agenda-item-time {
+                font-size: 0.68rem;
+            }
+
+            .mv-agenda-item-badge {
+                font-size: 0.55rem;
+                padding: 2px 6px;
+            }
+
+            /* Heti nézet — extra kompakt */
+            .wv-header,
+            .wv-allday,
+            .wv-body {
+                grid-template-columns: 30px repeat(7, 1fr);
+            }
+
+            .wv-allday.day-mode {
+                grid-template-columns: 30px 1fr;
+            }
+
+            .wv-allday-label {
+                font-size: 0.45rem;
+                letter-spacing: 0.2px;
+            }
+
+            .wv-header-dayname {
+                font-size: 0.5rem;
+            }
+
+            .wv-header-daynum {
+                font-size: 0.85rem;
+                width: 24px;
+                height: 24px;
+            }
+
+            .wv-allday-chip {
+                font-size: 0.55rem;
+                padding: 1px 5px;
+            }
+
+            .ev-block {
+                padding: 1px 3px;
+                font-size: 0.55rem;
+                border-radius: 4px;
+            }
+
+            .ev-block-time {
+                font-size: 0.48rem;
+            }
+
+            .wv-hour-label {
+                font-size: 0.5rem;
+                right: 3px;
+            }
+
+            /* Napi nézet — mobil */
+            .dv-header {
+                padding: 10px 0 7px;
+                gap: 8px;
+            }
+
+            .dv-header-dayname {
+                font-size: 0.62rem;
+            }
+
+            .dv-header-num {
+                font-size: 1.5rem;
+                width: 38px;
+                height: 38px;
+            }
+
+            .dv-body {
+                grid-template-columns: 32px 1fr;
+            }
+
+            .dv-hour-label {
+                font-size: 0.55rem;
+            }
         }

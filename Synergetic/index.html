@@ -79,6 +79,8 @@
 
     <!-- ═══ OMNIBAR SEARCH ═══ -->
     <script type="text/x-template" id="tpl-omnibar">
+
+        
               <div>
           <!-- Pull-tab: kis vonal a tetején, középen -->
           <div id="omnibar-pull-tab" @click="toggleVisible" :class="{ active: visible }">
@@ -309,10 +311,86 @@
                   </div>
               </div>
 
-              <!-- Aktív szűrők polc -->
+              <!-- Aktív szűrők polc (preset választóval) -->
               <div class="omnibar-shelf" :class="{ active: hasFilters }">
-                  <span class="omnibar-shelf-label">Aktív szűrők</span>
-                  <div class="omnibar-shelf-tokens">
+
+                  <!-- Preset választó gomb (helyettesíti a régi statikus "Aktív szűrők" feliratot) -->
+                  <button class="omnibar-preset-toggle"
+                          :class="{ open: presetMenuOpen, 'has-preset': !!activePresetId }"
+                          @click.stop="togglePresetMenu"
+                          :title="activePresetId ? 'Betöltött szűrőhalmaz: ' + presetLabel : 'Mentett szűrőhalmazok'">
+                      <span v-if="activePresetId"
+                            class="omnibar-preset-dot"
+                            :style="{ background: (savedFilters.find(p => p.id === activePresetId) || {}).color || '#6366f1',
+                                      color:      (savedFilters.find(p => p.id === activePresetId) || {}).color || '#6366f1' }"></span>
+                      <span class="omnibar-preset-label-text">{{ presetLabel }}</span>
+                      <svg class="omnibar-preset-chevron" viewBox="0 0 24 24" fill="none"
+                           stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="m6 9 6 6 6-6"/>
+                      </svg>
+                  </button>
+
+                  <!-- Aktív preset gyors-törlése (X) — csak ha be van töltve egy preset -->
+                  <button v-if="activePresetId"
+                          class="omnibar-preset-clear"
+                          @click.stop="clearActivePreset"
+                          title="Preset kijelölés megszüntetése (szűrők maradnak)">✕</button>
+
+                  <!-- Dropdown menü -->
+                  <div v-if="presetMenuOpen" class="omnibar-preset-dropdown" @click.stop>
+                      <input ref="presetSearchInput"
+                             type="text"
+                             v-model="presetSearch"
+                             placeholder="Keresés / új név..."
+                             class="omnibar-preset-search"
+                             @keydown.enter.prevent="saveCurrentAsPreset">
+                      <button class="omnibar-preset-save-btn"
+                              :disabled="!canSavePreset"
+                              :title="!hasFilters ? 'Előbb állíts be legalább egy szűrőt' : (!presetSearch.trim() ? 'Adj nevet a mezőben' : 'Jelenlegi szűrők mentése')"
+                              @click="saveCurrentAsPreset">
+                          + Új mentése
+                      </button>
+
+                      <div v-if="savedFilters.length" class="omnibar-preset-divider"></div>
+
+                      <div v-if="filteredSavedFilters.length" class="omnibar-preset-section-label">
+                          Mentett szűrőhalmazok
+                      </div>
+
+                      <div v-if="filteredSavedFilters.length" class="omnibar-preset-list">
+                          <div v-for="preset in filteredSavedFilters"
+                               :key="preset.id"
+                               class="omnibar-preset-item"
+                               :class="{ active: preset.id === activePresetId }"
+                               @click="applyPreset(preset)">
+                              <span class="omnibar-preset-item-dot"
+                                    :style="{ background: preset.color, color: preset.color }"></span>
+                              <span class="omnibar-preset-item-name">{{ preset.name }}</span>
+                              <span class="omnibar-preset-item-count">{{ (preset.filters || []).length }}</span>
+                              <button class="omnibar-preset-item-delete"
+                                      @click.stop="deletePreset(preset, $event)"
+                                      title="Törlés">✕</button>
+                          </div>
+                      </div>
+
+                      <div v-else-if="savedFilters.length && presetSearch" class="omnibar-preset-empty">
+                          Nincs találat.
+                      </div>
+
+                      <div v-else class="omnibar-preset-empty">
+                          Még nincs mentett szűrőhalmaz.
+                      </div>
+
+                      <div class="omnibar-preset-hint">
+                          Írj nevet a fenti mezőbe és kattints a gombra a jelenlegi szűrők mentéséhez.
+                      </div>
+                  </div>
+
+                  <!-- Elválasztó a toggle gomb és a tokenek között -->
+                  <div class="omnibar-preset-separator"></div>
+
+                  <!-- Szűrő tokenek (görgethető) -->
+                  <div class="omnibar-shelf-tokens" @wheel="onShelfWheel">
                       <div v-for="(filter, idx) in activeFilters" :key="idx" class="omnibar-token"
                           :style="{ borderColor: tokenColor(filter.key) + '40' }">
                           <span class="omnibar-token-key" :style="{ color: tokenColor(filter.key) }">{{ filter.key }}:</span>
@@ -321,6 +399,8 @@
                       </div>
                   </div>
               </div>
+
+
           </div>
       </div>
     </script>
@@ -465,6 +545,7 @@
               <div class="navbar">
                   <button class="filter-btn" @click="goBack">← Vissza a gráfhoz</button>
                   <div class="toolbar">
+                      <button class="filter-btn export-btn" @click="exportMarkdown" title="Exportálás .md fájlba">⬇ Exportálás</button>                  
                       <button type="button" @click="fmt('bold')"><b>B</b></button><button type="button" @click="fmt('italic')"><i>I</i></button>
                       <button type="button" @click="fmt('underline')"><u>U</u></button><button type="button" @click="fmt('insertUnorderedList')">• Lista</button>
                       <button type="button" @click="fsize(1)">A+</button><button type="button" @click="fsize(-1)">A-</button>

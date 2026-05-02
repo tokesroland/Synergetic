@@ -349,6 +349,13 @@ main {
     width: 100%;
     height: 100%;
     display: block;
+    /* Mobil: a böngésző ne kapja el a touch eseményeket
+       (scroll/zoom helyett a JS mousedown/move kezelés érvényesüljön) */
+    touch-action: none;
+    -ms-touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* ——————————————————————————————
@@ -722,4 +729,168 @@ body.mode-unlinking {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-secondary);
+}
+
+/* ════════════════════════════════════════════════════════════
+   RESZPONZIVITÁS — Tablet és Mobil nézet
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Tablet (≤ 1024px) ── */
+@media (max-width: 1024px) {
+    aside {
+        width: 280px;
+    }
+}
+
+/* ── Tablet kicsi / Mobil nagy (≤ 768px) ── */
+@media (max-width: 768px) {
+    aside {
+        width: 85vw;
+        max-width: 320px;
+        padding: 14px;
+        padding-top: 60px;
+    }
+
+    #hamburger-btn {
+        top: 10px;
+        left: 10px;
+        width: 36px;
+        height: 36px;
+    }
+
+    .top-bar {
+        top: 10px;
+        left: 56px;
+        right: 12px;
+    }
+
+    .filter-btn {
+        padding: 6px 11px;
+        font-size: 0.74rem;
+    }
+
+    .mode-selector {
+        padding: 7px 14px;
+        font-size: 0.78rem;
+    }
+
+    .modal-content {
+        max-width: 92vw;
+        padding: 18px;
+        max-height: 88vh;
+    }
+
+    .modal-header h2 {
+        font-size: 1rem;
+    }
+
+    .form-control {
+        font-size: 16px; /* prevents iOS zoom on focus */
+        padding: 10px 12px;
+    }
+
+    .form-group label {
+        font-size: 0.8rem;
+    }
+
+    .date-time-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-primary {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+
+    .quick-action-popup {
+        max-width: calc(100vw - 24px);
+    }
+
+    .quick-action-menu {
+        min-width: 180px;
+        font-size: 0.85rem;
+    }
+
+    .quick-action-popup .sub-menu {
+        position: relative;
+        left: 0;
+        top: 0;
+        margin-top: 6px;
+        min-width: 100%;
+    }
+}
+
+/* ── Mobil (≤ 480px) ── */
+@media (max-width: 480px) {
+    aside {
+        width: 90vw;
+        max-width: 300px;
+        padding: 12px;
+        padding-top: 56px;
+    }
+
+    .groups-header {
+        padding: 10px 12px;
+        font-size: 0.82rem;
+    }
+
+    .group-name {
+        font-size: 0.85rem;
+    }
+
+    .group-stats {
+        font-size: 0.66rem;
+    }
+
+    .sidebar-entry-item {
+        padding: 9px 10px;
+    }
+
+    .sidebar-entry-title {
+        font-size: 0.84rem;
+    }
+
+    .add-new-btn {
+        padding: 10px;
+        font-size: 0.82rem;
+    }
+
+    .top-bar {
+        top: 8px;
+        left: 52px;
+        right: 10px;
+    }
+
+    .mode-selector {
+        padding: 7px 12px;
+        font-size: 0.76rem;
+    }
+
+    .modal-content {
+        max-width: 95vw;
+        padding: 16px;
+        border-radius: var(--radius-md);
+    }
+
+    .modal-header {
+        margin-bottom: 14px;
+    }
+
+    .modal-header h2 {
+        font-size: 0.95rem;
+    }
+
+    .quick-action-menu {
+        min-width: 170px;
+    }
+
+    .quick-action-menu li {
+        padding: 9px 12px;
+        font-size: 0.8rem;
+    }
+
+    main {
+        background-size: 22px 22px;
+    }
 }

@@ -76,7 +76,8 @@ prioritás 5:
   - csoport eltávolítása (automatikusan az "összes"-be kerül a tartalom)
   - Csoportok rendezése
   - Csoportok szűrése
-- Exportálás .md file-ba
+# - Exportálás .md file-ba
+  - importálás .md file-ból.
 - Szűrők elmentése keresésnél.
 - Sidebar entries kiiratás:
   - Ha a sidebarban kiválasztok egy entry-t, akkor egy egész maint lefedő popup ablak legyen

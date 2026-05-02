@@ -571,3 +571,234 @@
         .lightbox-close:hover {
             background: rgba(255, 255, 255, 0.2);
         }
+
+        /* ════════════════════════════════════════════════════════════
+           RESZPONZIVITÁS — Részletek nézet tablet és mobil
+           ════════════════════════════════════════════════════════════ */
+
+        /* ── Tablet (≤ 1024px) ── */
+        @media (max-width: 1024px) {
+            .editor-container {
+                max-width: 100%;
+                margin: 24px auto;
+                padding: 28px;
+            }
+
+            .navbar {
+                padding: 12px 20px;
+            }
+        }
+
+        /* ── Tablet kicsi / Mobil nagy (≤ 768px) ── */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 10px 12px;
+                flex-wrap: wrap;
+                gap: 8px;
+                row-gap: 8px;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            /* A toolbar saját sorba kerül teljes szélességben — így nem
+               szorítja össze és nem lóg ki a Vissza / Mentés gombokat */
+            .navbar .toolbar {
+                order: 3;
+                flex-basis: 100%;
+                width: 100%;
+                margin: 0;
+            }
+
+            .navbar > .filter-btn {
+                flex-shrink: 0;
+                padding: 6px 11px;
+                font-size: 0.76rem;
+            }
+
+            .editor-container {
+                margin: 16px auto;
+                padding: 18px;
+                gap: 18px;
+                border-radius: 8px;
+            }
+
+            .toolbar {
+                gap: 5px;
+                padding: 8px;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                scrollbar-width: thin;
+            }
+
+            .toolbar::-webkit-scrollbar {
+                height: 4px;
+            }
+
+            .toolbar::-webkit-scrollbar-thumb {
+                background: var(--border-color);
+                border-radius: 2px;
+            }
+
+            .toolbar button,
+            .toolbar select {
+                padding: 5px 9px;
+                font-size: 0.85rem;
+                flex-shrink: 0;
+            }
+
+            .editor-title {
+                font-size: 1.8rem;
+            }
+
+            .editor-content {
+                font-size: 1rem;
+                min-height: 40vh;
+            }
+
+            .badge-row {
+                gap: 6px;
+            }
+
+            .type-badge,
+            .category-badge,
+            .add-category-btn,
+            .tag-badge,
+            .add-tag-btn {
+                padding: 4px 11px;
+                font-size: 0.72rem;
+            }
+
+            .att-thumb,
+            .att-add-btn {
+                width: 78px;
+                height: 78px;
+            }
+
+            .picker-popup {
+                width: 90vw;
+                max-width: 320px;
+            }
+
+            .lightbox img {
+                max-width: 95vw;
+                max-height: 85vh;
+            }
+
+            .lightbox-close {
+                top: 12px;
+                right: 12px;
+                width: 36px;
+                height: 36px;
+            }
+        }
+
+        /* ── Mobil (≤ 480px) ── */
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 8px 10px;
+                gap: 6px;
+                row-gap: 6px;
+            }
+
+            .navbar > .filter-btn {
+                padding: 5px 9px;
+                font-size: 0.72rem;
+            }
+
+            .navbar .toolbar {
+                margin: 0;
+            }
+
+            .editor-container {
+                margin: 10px auto;
+                padding: 14px;
+                gap: 14px;
+            }
+
+            .toolbar {
+                padding: 6px;
+                gap: 4px;
+            }
+
+            .toolbar button,
+            .toolbar select {
+                padding: 4px 7px;
+                font-size: 0.8rem;
+            }
+
+            .editor-title {
+                font-size: 1.5rem;
+                padding-bottom: 8px;
+            }
+
+            .editor-content {
+                font-size: 0.95rem;
+                min-height: 35vh;
+            }
+
+            .badge-row {
+                gap: 5px;
+            }
+
+            .type-badge,
+            .category-badge,
+            .add-category-btn,
+            .tag-badge,
+            .add-tag-btn {
+                padding: 3px 9px;
+                font-size: 0.68rem;
+            }
+
+            .attachments-section {
+                padding: 12px 0;
+            }
+
+            .attachments-label {
+                font-size: 0.66rem;
+                margin-bottom: 9px;
+            }
+
+            .attachments-grid {
+                gap: 7px;
+            }
+
+            .att-thumb,
+            .att-add-btn {
+                width: 68px;
+                height: 68px;
+            }
+
+            .att-thumb .att-icon {
+                font-size: 1.5rem;
+            }
+
+            .att-add-btn {
+                font-size: 1.4rem;
+            }
+
+            .att-add-btn span {
+                font-size: 0.55rem;
+            }
+
+            .picker-popup {
+                width: 94vw;
+                max-height: 80vh;
+            }
+
+            .picker-list {
+                max-height: 220px;
+            }
+
+            .lightbox img {
+                max-width: 96vw;
+                max-height: 80vh;
+            }
+
+            .lightbox-close {
+                top: 10px;
+                right: 10px;
+                width: 32px;
+                height: 32px;
+                font-size: 1.2rem;
+            }
+        }

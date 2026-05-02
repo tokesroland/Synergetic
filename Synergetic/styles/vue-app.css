@@ -1361,3 +1361,837 @@ main#main-content.sidebar-hidden {
     border-color: var(--accent-muted);
     color: var(--accent-active);
 }
+
+/* ════════════════════════════════════════════════════════════
+   RESZPONZIVITÁS — Vue alkalmazás komponensei tablet/mobil
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Tablet (≤ 1024px) ── */
+@media (max-width: 1024px) {
+    .groups-layout {
+        grid-template-columns: 240px 1fr;
+        gap: 18px;
+    }
+
+    .groups-wrapper {
+        padding: 22px;
+    }
+
+    .cal-title {
+        min-width: 0;
+        font-size: 1.05rem;
+    }
+
+    .cal-nav-center {
+        gap: 9px;
+    }
+
+    .wv-grid {
+        gap: 6px;
+    }
+
+    .entries-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+}
+
+/* ── Tablet kicsi / Mobil nagy (≤ 768px) ── */
+@media (max-width: 768px) {
+    /* Mode overlay */
+    .mode-overlay {
+        top: 56px;
+        font-size: 0.78rem;
+        padding: 8px 14px;
+        gap: 8px;
+        max-width: calc(100vw - 24px);
+        text-align: center;
+    }
+
+    /* Quick action menu */
+    .quick-action-popup .sub-menu {
+        position: relative;
+        left: 0;
+        top: 0;
+        margin-top: 6px;
+        min-width: 100%;
+    }
+
+    /* Calendar nav */
+    .cal-navbar {
+        padding: 8px 12px;
+        flex-wrap: wrap;
+        row-gap: 8px;
+    }
+
+    .cal-nav-left {
+        gap: 6px;
+    }
+
+    .cal-nav-center {
+        gap: 10px;
+        width: 100%;
+        flex: 1 1 100%;
+        min-width: 0;
+        justify-content: center;
+        order: 3;
+    }
+
+    .cal-title {
+        font-size: 0.95rem;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cal-arrow {
+        width: 28px;
+        height: 28px;
+        font-size: 1rem;
+    }
+
+    /* Calendar weekly */
+    .wv {
+        padding: 8px;
+    }
+
+    .wv-grid {
+        gap: 5px;
+    }
+
+    .wv-day-header {
+        padding: 7px 8px;
+    }
+
+    .wv-day-name {
+        font-size: 0.66rem;
+    }
+
+    .wv-day-num {
+        font-size: 0.78rem;
+    }
+
+    .wv-entries {
+        padding: 5px;
+        max-height: 240px;
+    }
+
+    .wv-entry {
+        padding: 5px 7px;
+    }
+
+    .wv-entry-title {
+        font-size: 0.7rem;
+    }
+
+    .wv-entry-time {
+        font-size: 0.6rem;
+    }
+
+    .wv-add-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 1rem;
+        opacity: 1; /* mobil-on legyen mindig látható, mert nincs hover */
+    }
+
+    /* Calendar daily */
+    .dv-allday-bar {
+        padding: 6px 12px;
+    }
+
+    .dv-allday-chip {
+        font-size: 0.66rem;
+        padding: 2px 8px;
+    }
+
+    .dv-todo-section {
+        padding: 6px 12px;
+    }
+
+    .dv-entry {
+        padding: 9px 11px;
+        gap: 10px;
+    }
+
+    .dv-entry-title {
+        font-size: 0.82rem;
+    }
+
+    .dv-entry-type {
+        font-size: 0.66rem;
+    }
+
+    .dv-body {
+        grid-template-columns: 38px 1fr;
+    }
+
+    .dv-hour-label {
+        font-size: 0.55rem;
+        right: 4px;
+    }
+
+    /* Picker popup */
+    .picker-popup {
+        width: 92vw;
+        max-width: 320px;
+    }
+
+    /* Routine */
+    .routine-tl-toggle {
+        font-size: 0.68rem;
+        padding: 5px;
+    }
+
+    /* Tableten (vagy ha JS isMobile=false) 7-oszlop helyett 2-oszlopos rács —
+       így a kártyák olvasható szélesek maradnak */
+    .routine-week-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .routine-day-col {
+        min-height: 180px;
+    }
+
+    .routine-day-header {
+        padding: 10px 8px;
+    }
+
+    .routine-day-name {
+        font-size: 0.72rem;
+    }
+
+    .routine-day-num {
+        font-size: 1.1rem;
+    }
+
+    .routine-day-count {
+        font-size: 0.66rem;
+    }
+
+    .routine-items-list {
+        padding: 6px;
+    }
+
+    .routine-item-card {
+        padding: 6px 8px;
+        gap: 6px;
+    }
+
+    .routine-item-title {
+        font-size: 0.74rem;
+    }
+
+    .routine-item-time {
+        font-size: 0.62rem;
+    }
+
+    .routine-checkbox {
+        width: 16px;
+        height: 16px;
+    }
+
+    .routine-add-btn-col {
+        font-size: 0.68rem;
+        padding: 7px;
+    }
+
+    .routine-day-detail-view {
+        padding: 14px;
+    }
+
+    .routine-day-detail-header {
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .routine-day-detail-header h2 {
+        font-size: 1.1rem;
+    }
+
+    .routine-day-item {
+        padding: 10px 13px;
+        gap: 10px;
+    }
+
+    .routine-day-item-title {
+        font-size: 0.85rem;
+    }
+
+    .routine-mobile-week {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .routine-mobile-day {
+        background: var(--bg-item);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .routine-mobile-day-header {
+        padding: 11px 14px;
+    }
+
+    /* A nap-kártyán belül a rutin elemek levegővel egymás alatt */
+    .routine-mobile-day .routine-item-card {
+        margin: 6px 10px;
+        background: var(--bg-sidebar);
+        border-radius: 7px;
+    }
+
+    .routine-mobile-day .routine-item-card:first-of-type {
+        margin-top: 8px;
+    }
+
+    .routine-mobile-day .routine-item-card:last-of-type {
+        margin-bottom: 6px;
+    }
+
+    .routine-mobile-day .routine-add-btn-col {
+        border-top: 1px solid var(--border-color);
+        margin-top: 0;
+    }
+
+    .routine-mobile-more {
+        border-top: 1px solid var(--border-color);
+        padding: 7px 10px;
+    }
+
+    /* Form rows */
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .form-row .form-group {
+        margin-bottom: 12px;
+    }
+
+    .modal-body {
+        padding: 16px;
+        gap: 12px;
+    }
+
+    /* Routine summary bar */
+    .routine-summary-bar {
+        flex-wrap: wrap;
+        padding: 7px 12px;
+        gap: 6px;
+        font-size: 0.72rem;
+    }
+
+    .routine-summary-fixed {
+        gap: 12px;
+    }
+
+    .routine-summary-scroll {
+        padding-left: 10px;
+        margin-left: 4px;
+        gap: 9px;
+    }
+
+    .routine-summary-name {
+        font-size: 0.68rem;
+    }
+
+    /* Groups */
+    .groups-wrapper {
+        padding: 16px;
+    }
+
+    .groups-page-header {
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .groups-page-header h2 {
+        font-size: 1.1rem;
+    }
+
+    .groups-layout {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        height: auto;
+        min-height: calc(100% - 70px);
+    }
+
+    .groups-list-panel {
+        max-height: 40vh;
+        overflow-y: auto;
+        flex-shrink: 0;
+    }
+
+    .group-card {
+        padding: 12px;
+    }
+
+    .group-card-name {
+        font-size: 0.9rem;
+    }
+
+    .group-edit-btn {
+        opacity: 1; /* mobilon mindig látható, mert nincs hover */
+    }
+
+    .entries-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .entry-card {
+        padding: 12px;
+    }
+
+    /* Attachments */
+    .att-thumb,
+    .att-add-btn {
+        width: 78px;
+        height: 78px;
+    }
+
+    .att-delete {
+        opacity: 1; /* mobilon mindig látható */
+    }
+
+    /* Day pills */
+    .day-pill {
+        width: 34px;
+        height: 34px;
+        font-size: 0.74rem;
+    }
+
+    /* Routine modal actions */
+    .routine-modal-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .routine-modal-actions .btn-primary,
+    .routine-modal-actions .btn-danger {
+        width: 100%;
+    }
+
+    /* Btn-back */
+    .btn-back {
+        padding: 7px 13px;
+        font-size: 0.78rem;
+    }
+
+    .btn-danger {
+        padding: 9px 16px;
+        font-size: 0.8rem;
+    }
+}
+
+/* ── Mobil (≤ 480px) ── */
+@media (max-width: 480px) {
+    /* Mode overlay */
+    .mode-overlay {
+        top: 50px;
+        font-size: 0.74rem;
+        padding: 7px 12px;
+        gap: 7px;
+    }
+
+    .btn-cancel {
+        padding: 3px 11px;
+        font-size: 0.72rem;
+    }
+
+    /* Calendar nav */
+    .cal-navbar {
+        padding: 7px 9px;
+        gap: 7px;
+    }
+
+    .cal-back-btn {
+        padding: 4px 9px;
+        font-size: 0.72rem;
+    }
+
+    .cal-today-btn {
+        padding: 4px 10px;
+        font-size: 0.68rem;
+    }
+
+    .cal-arrow {
+        width: 26px;
+        height: 26px;
+        font-size: 0.95rem;
+    }
+
+    .cal-title {
+        font-size: 0.86rem;
+    }
+
+    /* Heti nézet — kompakt mobil oszlopok */
+    .wv {
+        padding: 6px;
+    }
+
+    .wv-grid {
+        grid-template-columns: 1fr; /* mobilon egymás alatt a napok */
+        gap: 6px;
+    }
+
+    .wv-day-col {
+        flex-direction: row;
+        align-items: stretch;
+    }
+
+    .wv-day-header {
+        flex-direction: column;
+        justify-content: center;
+        min-width: 56px;
+        border-right: 1px solid var(--border-color);
+        border-bottom: none;
+        padding: 8px 6px;
+    }
+
+    .wv-entries {
+        flex: 1;
+        max-height: none;
+        padding: 5px 6px;
+    }
+
+    .wv-add-btn {
+        width: 22px;
+        height: 22px;
+        font-size: 0.95rem;
+        bottom: 4px;
+        right: 4px;
+    }
+
+    /* Napi nézet */
+    .dv-allday-bar {
+        padding: 5px 10px;
+        gap: 3px;
+    }
+
+    .dv-allday-chip {
+        font-size: 0.62rem;
+        padding: 2px 7px;
+    }
+
+    .dv-todo-section {
+        padding: 5px 10px;
+    }
+
+    .dv-entry {
+        padding: 8px 10px;
+        gap: 9px;
+    }
+
+    .dv-entry-title {
+        font-size: 0.78rem;
+    }
+
+    .dv-entry-type {
+        font-size: 0.62rem;
+    }
+
+    .dv-body {
+        grid-template-columns: 32px 1fr;
+    }
+
+    .dv-hour-label {
+        font-size: 0.5rem;
+        right: 3px;
+    }
+
+    /* Picker popup */
+    .picker-popup {
+        width: 95vw;
+        max-height: 80vh;
+    }
+
+    .picker-search {
+        font-size: 16px; /* prevents iOS zoom */
+    }
+
+    .picker-list {
+        max-height: 230px;
+    }
+
+    .picker-item {
+        padding: 9px 12px;
+        font-size: 0.82rem;
+    }
+
+    /* Routine view — A JS oldali isMobile lehet false ebben a viewportban
+       (pl. ha userAgent-alapú detektálás van). Ezért a desktop layout-ot
+       is reszponzívvá tesszük: a 7-oszlopos rács 1-oszloposra vált. */
+    .routine-tl-toggle {
+        font-size: 0.65rem;
+        padding: 4px;
+    }
+
+    /* Desktop layout fallback — ha a JS nem váltott mobil template-re */
+    .routine-week-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 8px;
+    }
+
+    .routine-day-col {
+        /* A header bal oldalra, az itemek jobbra — kompakt vízszintes kártya */
+        flex-direction: row;
+        align-items: stretch;
+        min-height: auto;
+    }
+
+    .routine-day-col .routine-day-header {
+        flex-shrink: 0;
+        min-width: 78px;
+        max-width: 78px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 8px;
+        border-right: 1px solid var(--border-color);
+        border-bottom: none;
+        gap: 2px;
+    }
+
+    .routine-day-col .routine-items-list {
+        flex: 1;
+        padding: 6px 8px;
+        min-width: 0;
+    }
+
+    .routine-day-col .routine-add-btn-col {
+        border-top: 1px solid var(--border-color);
+    }
+
+    /* Mobil template — routine-mobile-week (ha a JS isMobile=true) */
+    .routine-mobile-week {
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .routine-mobile-day {
+        /* Egyértelmű kártya-elválasztás — minden nap saját, határolt blokk */
+        background: var(--bg-item);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .routine-mobile-day-header {
+        padding: 10px 12px;
+    }
+
+    .routine-mobile-day-name {
+        font-size: 0.86rem;
+    }
+
+    .routine-mobile-day-count {
+        font-size: 0.7rem;
+    }
+
+    /* A nap-kártyán belül a rutin elemek egymás alatt, levegővel,
+       NE folyjanak össze a header-rel és egymással */
+    .routine-mobile-day .routine-item-card {
+        margin: 6px 10px;
+        padding: 8px 10px;
+        background: var(--bg-sidebar);
+        border-radius: 7px;
+        min-height: 38px;
+    }
+
+    .routine-mobile-day .routine-item-card:first-of-type {
+        margin-top: 10px;
+    }
+
+    .routine-mobile-day .routine-item-card:last-of-type {
+        margin-bottom: 8px;
+    }
+
+    .routine-mobile-more {
+        font-size: 0.7rem;
+        padding: 7px 10px;
+        border-top: 1px solid var(--border-color);
+        background: rgba(99, 102, 241, 0.04);
+    }
+
+    .routine-mobile-day .routine-add-btn-col {
+        border-top: 1px solid var(--border-color);
+        margin-top: 0;
+    }
+
+    .routine-day-detail-view {
+        padding: 10px;
+    }
+
+    .routine-day-detail-header {
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .routine-day-detail-header h2 {
+        font-size: 1rem;
+    }
+
+    .routine-day-item {
+        padding: 9px 11px;
+        gap: 9px;
+    }
+
+    .routine-day-item-title {
+        font-size: 0.8rem;
+    }
+
+    .routine-day-item-time {
+        font-size: 0.7rem;
+    }
+
+    /* Routine summary */
+    .routine-summary-bar {
+        font-size: 0.66rem;
+        padding: 6px 9px;
+        gap: 5px;
+        min-height: 34px;
+    }
+
+    .routine-summary-fixed {
+        gap: 9px;
+    }
+
+    .routine-summary-scroll {
+        padding-left: 8px;
+        margin-left: 2px;
+        gap: 7px;
+    }
+
+    .routine-summary-name {
+        font-size: 0.64rem;
+    }
+
+    .routine-summary-dot {
+        width: 7px;
+        height: 7px;
+    }
+
+    /* Groups */
+    .groups-wrapper {
+        padding: 12px;
+    }
+
+    .groups-page-header {
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .groups-page-header h2 {
+        font-size: 1rem;
+    }
+
+    .groups-list-panel {
+        max-height: 36vh;
+    }
+
+    .group-card {
+        padding: 11px;
+    }
+
+    .group-card-name {
+        font-size: 0.86rem;
+    }
+
+    .group-card-stats {
+        font-size: 0.66rem;
+    }
+
+    .groups-entries-panel h3 {
+        font-size: 1rem;
+        margin-bottom: 12px;
+    }
+
+    .entry-card {
+        padding: 11px;
+    }
+
+    .entry-card-title {
+        font-size: 0.83rem;
+    }
+
+    .entry-card-date {
+        font-size: 0.62rem;
+    }
+
+    .entry-card-meta {
+        font-size: 0.66rem;
+    }
+
+    /* Attachments */
+    .att-thumb,
+    .att-add-btn {
+        width: 68px;
+        height: 68px;
+    }
+
+    .att-add-btn {
+        font-size: 1.3rem;
+    }
+
+    .att-add-btn span {
+        font-size: 0.62rem;
+    }
+
+    .att-file-link {
+        font-size: 0.62rem;
+    }
+
+    /* Day pills */
+    .day-pill {
+        width: 30px;
+        height: 30px;
+        font-size: 0.68rem;
+    }
+
+    .routine-day-pills {
+        gap: 5px;
+    }
+
+    /* Modal body */
+    .modal-body {
+        padding: 14px;
+        gap: 10px;
+    }
+
+    /* Buttons */
+    .btn-back {
+        padding: 6px 11px;
+        font-size: 0.74rem;
+    }
+
+    .btn-danger {
+        padding: 8px 14px;
+        font-size: 0.76rem;
+    }
+
+    .btn-cancel {
+        padding: 3px 10px;
+        font-size: 0.7rem;
+    }
+
+    /* Form error */
+    .form-error {
+        padding: 7px 12px;
+        font-size: 0.76rem;
+    }
+
+    /* Mv todo badges */
+    .mv-todo-deadline-badge,
+    .mv-todo-start-badge {
+        font-size: 0.62rem;
+        padding: 2px 6px;
+    }
+}

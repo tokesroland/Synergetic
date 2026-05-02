@@ -115,6 +115,68 @@ const DetailsView = {
       }
       this.loading = false;
     },
+
+      exportMarkdown() {
+          // HTML → plain text konverzió (alapvető tagek eltávolítása)
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = this.editContent;
+
+          // Listák, törések kezelése Markdown-szerűen
+          tempDiv.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+          tempDiv.querySelectorAll('li').forEach(li => {
+            li.prepend('- ');
+            li.append('\n');
+          });
+          tempDiv.querySelectorAll('b, strong').forEach(el => {
+            el.prepend('**'); el.append('**');
+          });
+          tempDiv.querySelectorAll('i, em').forEach(el => {
+            el.prepend('_'); el.append('_');
+          });
+          tempDiv.querySelectorAll('u').forEach(el => {
+            el.prepend('__'); el.append('__');
+          });
+
+          const contentText = tempDiv.innerText || tempDiv.textContent || '';
+
+          // Metaadatok összeállítása
+          const lines = [];
+          lines.push(`# ${this.editTitle}`);
+          lines.push('');
+
+          if (this.currentCatName) {
+            lines.push(`**Kategória:** ${this.currentCatName}`);
+          }
+          if (this.currentTags.length) {
+            lines.push(`**Tagek:** ${this.currentTags.map(t => '#' + t.name).join(' ')}`);
+          }
+          if (this.entry.type) {
+            lines.push(`**Típus:** ${this.typeName}`);
+          }
+
+          lines.push('');
+          lines.push('---');
+          lines.push('');
+          lines.push(contentText.trim());
+
+          const mdContent = lines.join('\n');
+
+          // Fájlnév: entry cím, érvénytelen karakterek eltávolítva
+          const safeTitle = this.editTitle.replace(/[\\/:*?"<>|]/g, '_').trim() || 'entry';
+          const filename = `${safeTitle}.md`;
+
+          // Letöltés
+          const blob = new Blob([mdContent], { type: 'text/markdown;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+      },
+
     fmt(cmd) {
       document.execCommand(cmd, false, null);
     },

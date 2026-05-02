@@ -958,3 +958,437 @@ body {
 .routine-dv-block {
     animation: routineFadeIn 0.25s ease both;
 }
+
+/* ════════════════════════════════════════════════════════════
+   RESZPONZIVITÁS — Rutin tervező tablet és mobil
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Tablet (≤ 1024px) ── */
+@media (max-width: 1024px) {
+    .routine-navbar {
+        padding: 10px 16px;
+    }
+
+    .routine-day-header {
+        padding: 12px 8px 10px;
+    }
+
+    .routine-day-num {
+        font-size: 1.4rem;
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* ── Tablet kicsi / Mobil nagy (≤ 768px) ── */
+@media (max-width: 768px) {
+    .routine-navbar {
+        padding: 8px 12px;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .routine-back-btn {
+        padding: 6px 12px;
+        font-size: 0.78rem;
+    }
+
+    .routine-title {
+        font-size: 1.05rem;
+    }
+
+    .routine-add-btn {
+        padding: 6px 14px;
+        font-size: 0.76rem;
+    }
+
+    .routine-tl-header {
+        padding-left: 50px;
+    }
+
+    .routine-tl-day-label {
+        width: 50px;
+        padding-left: 10px;
+        font-size: 0.6rem;
+    }
+
+    .routine-tl-bar-area {
+        margin-right: 10px;
+    }
+
+    .routine-day-header {
+        padding: 10px 6px 8px;
+    }
+
+    .routine-day-name {
+        font-size: 0.6rem;
+        letter-spacing: 1px;
+    }
+
+    .routine-day-num {
+        font-size: 1.15rem;
+        width: 32px;
+        height: 32px;
+    }
+
+    .routine-items-list {
+        padding: 6px;
+    }
+
+    .routine-item-card {
+        padding: 8px 9px;
+        gap: 8px;
+    }
+
+    .routine-item-title {
+        font-size: 0.78rem;
+    }
+
+    .routine-item-time {
+        font-size: 0.66rem;
+    }
+
+    .routine-checkbox {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* Mobil heti nézet (template v-else) */
+    .routine-mobile-week {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .routine-mobile-day-header {
+        padding: 11px 14px;
+    }
+
+    .routine-mobile-day-name {
+        font-size: 0.92rem;
+    }
+
+    /* Napi részletes nézet */
+    .routine-day-detail-view {
+        padding: 14px;
+    }
+
+    .routine-day-detail-header {
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .routine-day-detail-header h2 {
+        font-size: 1.1rem;
+    }
+
+    .routine-dv-header {
+        padding: 14px 16px;
+        gap: 12px;
+    }
+
+    .routine-dv-date {
+        font-size: 1.2rem;
+    }
+
+    .routine-dv-timeline {
+        grid-template-columns: 44px 1fr;
+    }
+
+    .routine-dv-block {
+        left: 6px;
+        right: 6px;
+        padding: 6px 9px;
+    }
+
+    .routine-dv-block-title {
+        font-size: 0.78rem;
+    }
+
+    .routine-dv-block-time {
+        font-size: 0.65rem;
+    }
+
+    .routine-day-item {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .routine-day-item-title {
+        font-size: 0.88rem;
+    }
+
+    /* Modal */
+    .routine-modal {
+        max-width: 92vw;
+        padding: 20px;
+    }
+
+    .routine-modal-header h2 {
+        font-size: 1.05rem;
+    }
+
+    .routine-form .form-control {
+        font-size: 16px; /* prevents iOS zoom */
+        padding: 9px 12px;
+    }
+
+    .routine-form .time-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .day-pill {
+        width: 34px;
+        height: 34px;
+        font-size: 0.7rem;
+    }
+
+    .routine-summary-bar {
+        font-size: 0.72rem;
+        padding: 8px 12px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+}
+
+/* ── Mobil (≤ 480px) ── */
+@media (max-width: 480px) {
+    .routine-navbar {
+        padding: 7px 10px;
+        gap: 8px;
+    }
+
+    .routine-back-btn {
+        padding: 5px 10px;
+        font-size: 0.74rem;
+    }
+
+    .routine-title {
+        font-size: 0.95rem;
+    }
+
+    .routine-add-btn {
+        padding: 5px 12px;
+        font-size: 0.72rem;
+    }
+
+    .routine-tl-header {
+        padding-left: 42px;
+    }
+
+    .routine-tl-hour-label {
+        font-size: 0.52rem;
+    }
+
+    .routine-tl-day-label {
+        width: 42px;
+        padding-left: 8px;
+        font-size: 0.55rem;
+        letter-spacing: 0.4px;
+    }
+
+    .routine-tl-bar-area {
+        margin-right: 8px;
+        height: 12px;
+    }
+
+    /* Mobil heti nézet (template v-else) */
+    .routine-mobile-week {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .routine-mobile-day-header {
+        padding: 10px 12px;
+    }
+
+    .routine-mobile-day-name {
+        font-size: 0.86rem;
+    }
+
+    .routine-mobile-day-count {
+        font-size: 0.72rem;
+    }
+
+    .routine-mobile-more {
+        font-size: 0.7rem;
+        padding: 5px;
+    }
+
+    .routine-item-card {
+        padding: 7px 8px;
+        gap: 7px;
+    }
+
+    .routine-item-title {
+        font-size: 0.74rem;
+    }
+
+    .routine-item-time {
+        font-size: 0.62rem;
+    }
+
+    .routine-checkbox {
+        width: 16px;
+        height: 16px;
+    }
+
+    .routine-checkbox.checked::after {
+        font-size: 0.55rem;
+    }
+
+    .routine-add-btn-col {
+        font-size: 0.68rem;
+        padding: 7px;
+    }
+
+    /* Napi részletes nézet — mobil */
+    .routine-day-detail-view {
+        padding: 10px;
+    }
+
+    .routine-day-detail-header {
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .routine-day-detail-header h2 {
+        font-size: 1rem;
+    }
+
+    .routine-dv-header {
+        padding: 12px 12px;
+        gap: 10px;
+    }
+
+    .routine-dv-back {
+        padding: 5px 11px;
+        font-size: 0.74rem;
+    }
+
+    .routine-dv-dayname {
+        font-size: 0.62rem;
+    }
+
+    .routine-dv-date {
+        font-size: 1.05rem;
+    }
+
+    .routine-dv-stats {
+        font-size: 0.7rem;
+    }
+
+    .routine-dv-timeline {
+        grid-template-columns: 38px 1fr;
+    }
+
+    .routine-dv-hour-label {
+        font-size: 0.6rem;
+        right: 5px;
+    }
+
+    .routine-dv-block {
+        left: 4px;
+        right: 4px;
+        padding: 5px 8px;
+        border-radius: 6px;
+    }
+
+    .routine-dv-block-title {
+        font-size: 0.72rem;
+    }
+
+    .routine-dv-block-time {
+        font-size: 0.6rem;
+    }
+
+    .routine-dv-block-checkbox {
+        width: 18px;
+        height: 18px;
+        top: 6px;
+        right: 6px;
+    }
+
+    .routine-day-item {
+        padding: 9px 11px;
+        gap: 9px;
+    }
+
+    .routine-day-item-title {
+        font-size: 0.82rem;
+    }
+
+    .routine-day-item-time {
+        font-size: 0.7rem;
+    }
+
+    .routine-empty-day-icon {
+        font-size: 1.6rem;
+    }
+
+    .routine-empty-day-text {
+        font-size: 0.72rem;
+    }
+
+    /* Modal mobilon */
+    .routine-modal {
+        max-width: 95vw;
+        padding: 16px;
+        border-radius: 11px;
+    }
+
+    .routine-modal-header {
+        margin-bottom: 16px;
+    }
+
+    .routine-modal-header h2 {
+        font-size: 0.98rem;
+    }
+
+    .routine-form .form-group {
+        margin-bottom: 12px;
+    }
+
+    .routine-form .form-group label {
+        font-size: 0.76rem;
+    }
+
+    .routine-form .form-control {
+        padding: 9px 11px;
+    }
+
+    .day-pill {
+        width: 30px;
+        height: 30px;
+        font-size: 0.66rem;
+    }
+
+    .routine-day-pills {
+        gap: 5px;
+    }
+
+    .routine-submit-btn {
+        font-size: 0.82rem;
+        padding: 11px;
+    }
+
+    .routine-summary-bar {
+        font-size: 0.68rem;
+        padding: 7px 10px;
+        gap: 10px;
+        min-height: 34px;
+    }
+
+    .routine-summary-fixed {
+        gap: 10px;
+    }
+
+    .routine-summary-name {
+        font-size: 0.68rem;
+    }
+
+    .routine-summary-dot {
+        width: 7px;
+        height: 7px;
+    }
+}
