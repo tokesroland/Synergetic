@@ -466,35 +466,122 @@
           <div class="cal-main">
               <!-- HAVI -->
               <div v-if="view==='month'" class="mv" ref="mvContainer">
-                  <div class="mv-grid-wrap" :style="{ flex:'0 0 '+gridFlex+'%' }">
-                      <div class="mv-daynames"><div v-for="d in DAYS_S" :key="d" class="mv-dayname">{{ d }}</div></div>
-                      <div class="mv-grid">
-                          <div v-for="(cell,idx) in monthCells" :key="idx" class="mv-cell" :class="{ other:cell.isOther,today:cell.isToday,selected:cell.isSelected }" @click="selectCell(cell)">
-                              <div class="mv-cell-num">{{ cell.day }}</div>
-                              <div v-if="cell.dots.length" class="mv-dots"><div v-for="(color,di) in cell.dots" :key="di" class="mv-dot" :style="{ background:color }"></div></div>
-                          </div>
-                      </div>
-                  </div>
-                  <div class="mv-divider" :class="{ dragging:dividerDragging }" @mousedown="startDividerDrag"></div>
-                  <div class="mv-agenda">
-                      <div class="mv-agenda-header"><div class="mv-agenda-day">{{ selected.getDate() }}</div><div class="mv-agenda-meta">{{ MONTHS[selected.getMonth()] }}, {{ DAYS_F[dayIdx(selected)] }}</div></div>
-                      <div v-if="agendaTodos.length===0&&agendaEvents.length===0" class="mv-agenda-empty">Nincs bejegyzés erre a napra</div>
-                      <template v-if="agendaTodos.length"><div class="mv-agenda-section"><div class="mv-agenda-section-label">Teendők</div><div class="mv-agenda-list">
-                          <div v-for="entry in agendaTodos" :key="entry.id" class="mv-agenda-item mv-todo-item" :style="{ borderLeftColor:col(entry.type) }" @click="goToEntry(entry)">
-                              <div class="mv-agenda-item-body"><div class="mv-agenda-item-title">{{ entry.title }}</div><div class="mv-agenda-item-time mv-todo-meta">{{ todoMeta(entry) }}</div></div>
-                              <div v-if="todoRole(entry,selected)==='deadline'||todoRole(entry,selected)==='both'" class="mv-todo-deadline-badge">⏰ Határidő</div>
-                              <div v-else-if="todoRole(entry,selected)==='start'" class="mv-todo-start-badge">▶ Kezdés</div>
-                          </div>
-                      </div></div>
-                    </template>
-                      <template v-if="agendaEvents.length"><div class="mv-agenda-section"><div v-if="agendaTodos.length" class="mv-agenda-section-label">Események</div><div class="mv-agenda-list">
-                          <div v-for="entry in agendaEvents" :key="entry.id" class="mv-agenda-item" :style="{ borderLeftColor:col(entry.type) }" @click="goToEntry(entry)">
-                              <div class="mv-agenda-item-body"><div class="mv-agenda-item-title">{{ entry.title }}</div><div class="mv-agenda-item-time">{{ isAllDay(entry)?'Egész nap':fmtTime(entry.start_datetime)+(entry.end_datetime?' – '+fmtTime(entry.end_datetime):'') }}</div></div>
-                              <div class="mv-agenda-item-badge" :style="{ background:col(entry.type) }">{{ names[entry.type]||entry.type }}</div>
-                          </div>
-                      </div></div>
-                    </template>
-                  </div>
+                <div class="mv-grid-wrap" :style="{ flex:'0 0 '+gridFlex+'%' }">
+                    <div class="mv-daynames"><div v-for="d in DAYS_S" :key="d" class="mv-dayname">{{ d }}</div></div>
+                    <div class="mv-grid-span-container">
+                        <!-- Naptárrács -->
+                        <div class="mv-grid">
+                            <div
+                                v-for="(cell,idx) in monthCells"
+                                :key="idx"
+                                class="mv-cell"
+                                :class="{ other:cell.isOther, today:cell.isToday, selected:cell.isSelected }"
+                                @click="selectCell(cell)"
+                            >
+                                <div class="mv-cell-num">{{ cell.day }}</div>
+                                <div v-if="cell.dots.length" class="mv-dots">
+                                    <div v-for="(color,di) in cell.dots" :key="di" class="mv-dot" :style="{ background:color }"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Span overlay: azonos 7-oszlopos grid, position:absolute a rács felett -->
+                        <div class="mv-spans-overlay" aria-hidden="true">
+                            <div
+                                v-for="(span,si) in multiDaySpans"
+                                :key="'span-'+span.entryId+'-'+span.row+'-'+span.colStart"
+                                class="mv-span-bar"
+                                :class="{
+                                    'mv-span-bar--start': span.isStart,
+                                    'mv-span-bar--end': span.isEnd
+                                }"
+                                :style="{
+                                    gridColumn: (span.colStart+1) + ' / ' + (span.colEnd+2),
+                                    gridRow: (span.row+1),
+                                    '--span-color': span.color,
+                                    '--span-lane': span.lane
+                                }"
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mv-divider" :class="{ dragging:dividerDragging }" @mousedown="startDividerDrag" @touchstart.prevent="startDividerDrag"></div>
+                <div class="mv-agenda">
+                    <div class="mv-agenda-header">
+                        <div class="mv-agenda-day">{{ selected.getDate() }}</div>
+                        <div class="mv-agenda-meta">
+                            <div>{{ DAYS_F[dayIdx(selected)] }}</div>
+                            <div>{{ MONTHS[selected.getMonth()] }} {{ selected.getFullYear() }}</div>
+                        </div>
+                        <!-- Gyors bejegyzés gomb -->
+                        <button class="mv-quick-add-btn" @click="toggleQuickAdd" :class="{ active: quickAddOpen }" title="Új bejegyzés erre a napra">+</button>
+                    </div>
+                    <!-- Gyors bejegyzés form (inline dropdown) -->
+                    <div v-if="quickAddOpen" class="mv-quick-add-form" @click.stop>
+                        <div class="mv-quick-add-row">
+                            <input
+                                ref="quickAddInput"
+                                v-model="quickAddTitle"
+                                class="mv-quick-add-input"
+                                placeholder="Bejegyzés neve..."
+                                @keydown.enter="submitQuickAdd"
+                                @keydown.esc="closeQuickAdd"
+                            />
+                        </div>
+                        <div class="mv-quick-add-row">
+                            <div class="mv-quick-add-types">
+                                <button
+                                    v-for="t in quickAddTypes" :key="t.value"
+                                    class="mv-quick-add-type-btn"
+                                    :class="{ active: quickAddType === t.value }"
+                                    :style="quickAddType === t.value ? { borderColor: col(t.value), color: col(t.value), background: col(t.value)+'18' } : {}"
+                                    @click="quickAddType = t.value"
+                                >{{ t.label }}</button>
+                            </div>
+                        </div>
+                        <!-- Extra mező: event dátum, todo határidő -->
+                        <div v-if="quickAddType === 'event'" class="mv-quick-add-row">
+                            <input type="datetime-local" class="mv-quick-add-dt" v-model="quickAddStart" />
+                            <span class="mv-quick-add-sep">–</span>
+                            <input type="datetime-local" class="mv-quick-add-dt" v-model="quickAddEnd" />
+                        </div>
+                        <div v-if="quickAddType === 'todo'" class="mv-quick-add-row">
+                            <input type="datetime-local" class="mv-quick-add-dt" v-model="quickAddDeadline" placeholder="Határidő (opcionális)" />
+                        </div>
+                        <div class="mv-quick-add-row mv-quick-add-actions">
+                            <div v-if="quickAddError" class="mv-quick-add-error">{{ quickAddError }}</div>
+                            <button class="mv-quick-add-cancel" @click="closeQuickAdd">Mégse</button>
+                            <button class="mv-quick-add-submit" @click="submitQuickAdd" :disabled="quickAddSaving">
+                                {{ quickAddSaving ? 'Mentés...' : 'Létrehozás' }}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mv-agenda-list">
+                        <div v-if="!agendaEvents.length && !agendaTodos.length" class="mv-agenda-empty">Nincs esemény ezen a napon.</div>
+                        <!-- Események -->
+                        <template v-if="agendaEvents.length">
+                            <div class="mv-agenda-section"><div class="mv-agenda-section-label">Események</div>
+                            <div v-for="entry in agendaEvents" :key="entry.id" class="mv-agenda-item" @click="goToEntry(entry)">
+                                <div class="mv-agenda-item-body">
+                                    <div class="mv-agenda-item-title">{{ entry.title }}</div>
+                                    <div class="mv-agenda-item-time">{{ entry.is_all_day==1?'Egész nap':fmtTime(entry.start_datetime)+(entry.end_datetime?' – '+fmtTime(entry.end_datetime):'') }}</div>
+                                </div>
+                                <div class="mv-agenda-item-badge" :style="{ background:col(entry.type) }">{{ names[entry.type]||entry.type }}</div>
+                            </div></div>
+                        </template>
+                        <!-- Teendők -->
+                        <template v-if="agendaTodos.length">
+                            <div class="mv-agenda-section"><div class="mv-agenda-section-label">Teendők</div>
+                            <div v-for="entry in agendaTodos" :key="entry.id" class="mv-agenda-item mv-todo-item" @click="goToEntry(entry)">
+                                <div class="mv-agenda-item-body">
+                                    <div class="mv-agenda-item-title">{{ entry.title }}</div>
+                                    <div class="mv-agenda-item-time mv-todo-meta">{{ todoMeta(entry) }}</div>
+                                </div>
+                                <div v-if="todoRole(entry,selected)==='deadline'||todoRole(entry,selected)==='both'" class="mv-todo-deadline-badge">⏰ Határidő</div>
+                                <div v-else-if="todoRole(entry,selected)==='start'" class="mv-todo-start-badge">▶ Kezdés</div>
+                            </div></div>
+                        </template>
+                    </div>
+                </div>
               </div>
               <!-- HETI - + gomb jobb alsó sarok -->
               <div v-if="view==='week'" class="wv">

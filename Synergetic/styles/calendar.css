@@ -1,1137 +1,1459 @@
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap");
 
-        * {
-            font-family: 'DM Sans', 'Segoe UI', sans-serif;
-        }
+* {
+  font-family: "DM Sans", "Segoe UI", sans-serif;
+}
 
-        body {
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background: var(--bg-app);
-        }
+body {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg-app);
+}
 
-        /* --- NAVBAR --- */
-        .cal-navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            background: var(--bg-sidebar);
-            border-bottom: 1px solid var(--border-color);
-            flex-shrink: 0;
-            z-index: 100;
-            gap: 12px;
-        }
+/* --- NAVBAR --- */
+.cal-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  z-index: 100;
+  gap: 12px;
+}
 
-        .cal-nav-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+.cal-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-        .cal-back-btn {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 6px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.82rem;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
+.cal-back-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
 
-        .cal-back-btn:hover {
-            color: var(--text-primary);
-            border-color: var(--accent-muted);
-            background: var(--bg-item);
-        }
+.cal-back-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent-muted);
+  background: var(--bg-item);
+}
 
-        .cal-nav-arrows {
-            display: flex;
-            gap: 2px;
-        }
+.cal-nav-arrows {
+  display: flex;
+  gap: 2px;
+}
 
-        .cal-arrow {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.15s;
-        }
+.cal-arrow {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
 
-        .cal-arrow:hover {
-            color: var(--text-primary);
-            background: var(--bg-item);
-        }
+.cal-arrow:hover {
+  color: var(--text-primary);
+  background: var(--bg-item);
+}
 
-        .cal-today-btn {
-            background: var(--accent-muted);
-            border: none;
-            color: #fff;
-            padding: 6px 14px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.78rem;
-            font-weight: 700;
-            letter-spacing: 0.4px;
-            transition: all 0.15s;
-        }
+.cal-today-btn {
+  background: var(--accent-muted);
+  border: none;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  transition: all 0.15s;
+}
 
-        .cal-today-btn:hover {
-            background: var(--accent-active);
-        }
+.cal-today-btn:hover {
+  background: var(--accent-active);
+}
 
-        .cal-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: 0.3px;
-            white-space: nowrap;
-        }
+.cal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
 
-        .cal-view-tabs {
-            display: flex;
-            background: var(--bg-app);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
+.cal-view-tabs {
+  display: flex;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
 
-        .cal-view-tab {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            padding: 6px 16px;
-            cursor: pointer;
-            font-size: 0.78rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            letter-spacing: 0.2px;
-        }
+.cal-view-tab {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  letter-spacing: 0.2px;
+}
 
-        .cal-view-tab:hover {
-            color: var(--text-primary);
-        }
+.cal-view-tab:hover {
+  color: var(--text-primary);
+}
 
-        .cal-view-tab.active {
-            background: var(--accent-muted);
-            color: #fff;
-        }
+.cal-view-tab.active {
+  background: var(--accent-muted);
+  color: #fff;
+}
 
-        /* ===== FŐ TARTALOM ===== */
-        .cal-main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+/* ===== FŐ TARTALOM ===== */
+.cal-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-        /* =========================================================
+/* =========================================================
            HAVI NÉZET — Samsung Calendar stílusú
            Felső: kompakt dátumrács pontokkal
            Alsó: agenda lista a kiválasztott naphoz
            ========================================================= */
-        .mv {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+.mv {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-        .mv-grid-wrap {
-            padding: 8px 16px 0;
-            flex: 0 0 55%;
-            overflow-y: auto;
-            transition: height 0.1s ease-out, flex 0.1s ease-out;
-        }
+.mv-grid-wrap {
+  padding: 8px 16px 0;
+  flex: 0 0 55%;
+  overflow-y: auto;
+  transition:
+    height 0.1s ease-out,
+    flex 0.1s ease-out;
+}
 
-        .mv-daynames {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            margin-bottom: 4px;
-            position: sticky;
-            top: 0;
-            background: var(--bg-app);
-            z-index: 10;
-        }
+.mv-daynames {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+  position: sticky;
+  top: 0;
+  background: var(--bg-app);
+  z-index: 10;
+}
 
-        .mv-dayname {
-            text-align: center;
-            font-size: 0.65rem;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            padding: 6px 0;
-        }
+.mv-dayname {
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  padding: 6px 0;
+}
 
-        .mv-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 0;
-        }
+.mv-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+}
 
-        .mv-cell {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2px 0;
-            cursor: pointer;
-            border-radius: 10px;
-            transition: background 0.12s;
-            gap: 2px;
-            justify-content: flex-start;
-        }
+.mv-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 0;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background 0.12s;
+  gap: 2px;
+  justify-content: flex-start;
+}
 
-        .mv-cell:hover {
-            background: var(--bg-item);
-        }
+.mv-cell:hover {
+  background: var(--bg-item);
+}
 
-        .mv-cell-num {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.88rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            border-radius: 50%;
-            transition: all 0.15s;
-        }
+.mv-cell-num {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  border-radius: 50%;
+  transition: all 0.15s;
+}
 
-        .mv-cell.other .mv-cell-num {
-            color: var(--border-color);
-        }
+.mv-cell.other .mv-cell-num {
+  color: var(--border-color);
+}
 
-        .mv-cell.today .mv-cell-num {
-            background: var(--accent-muted);
-            color: #fff;
-            font-weight: 700;
-        }
+.mv-cell.today .mv-cell-num {
+  background: var(--accent-muted);
+  color: #fff;
+  font-weight: 700;
+}
 
-        .mv-cell.selected .mv-cell-num {
-            outline: 2px solid var(--accent-active);
-            outline-offset: 2px;
-        }
+.mv-cell.selected .mv-cell-num {
+  outline: 2px solid var(--accent-active);
+  outline-offset: 2px;
+}
 
-        .mv-cell.selected.today .mv-cell-num {
-            outline-color: #fff;
-        }
+.mv-cell.selected.today .mv-cell-num {
+  outline-color: #fff;
+}
 
-        .mv-dots {
-            display: flex;
-            gap: 3px;
-            height: 6px;
-            align-items: center;
-        }
+.mv-dots {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+  align-items: center;
+}
 
-        .mv-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-        }
+.mv-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
 
-        .mv-divider {
-            height: 12px;
-            background: transparent;
-            margin: 0;
-            flex-shrink: 0;
-            cursor: row-resize;
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            user-select: none;
-            -webkit-user-select: none;
-            position: relative;
-            transition: background 0.2s;
-            /* Mobil: touch események közvetlenül a divider-re érkezzenek
+.mv-divider {
+  height: 12px;
+  background: transparent;
+  margin: 0;
+  flex-shrink: 0;
+  cursor: row-resize;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+  transition: background 0.2s;
+  /* Mobil: touch események közvetlenül a divider-re érkezzenek
                (a böngésző ne kapja el scrollra) */
-            touch-action: none;
-            -ms-touch-action: none;
-        }
+  touch-action: none;
+  -ms-touch-action: none;
+}
 
-        .mv-divider:hover {
-            background: rgba(0, 0, 0, 0.15);
-        }
+.mv-divider:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
 
-        .mv-divider::before {
-            content: '';
-            position: absolute;
-            width: 40px;
-            height: 4px;
-            background: var(--border-color);
-            border-radius: 2px;
-            left: 50%;
-            transform: translateX(-50%);
-            transition: background 0.2s;
-        }
+.mv-divider::before {
+  content: "";
+  position: absolute;
+  width: 40px;
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: background 0.2s;
+}
 
-        .mv-divider:hover::before {
-            background: var(--accent-muted);
-            height: 5px;
-        }
+.mv-divider:hover::before {
+  background: var(--accent-muted);
+  height: 5px;
+}
 
-        .mv-divider.dragging {
-            background: rgba(0, 0, 0, 0.2);
-        }
+.mv-divider.dragging {
+  background: rgba(0, 0, 0, 0.2);
+}
 
-        .mv-divider.dragging::before {
-            background: var(--accent-active);
-            height: 5px;
-        }
+.mv-divider.dragging::before {
+  background: var(--accent-active);
+  height: 5px;
+}
 
-        /* Agenda lista */
-        .mv-agenda {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px 16px;
-        }
+/* Agenda lista */
+.mv-agenda {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 0 16px;
+}
 
-        .mv-agenda::-webkit-scrollbar {
-            width: 5px;
-        }
+.mv-agenda::-webkit-scrollbar {
+  width: 5px;
+}
 
-        .mv-agenda::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 3px;
-        }
+.mv-agenda::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
 
-        .mv-agenda-header {
-            display: flex;
-            align-items: baseline;
-            gap: 10px;
-            margin-bottom: 14px;
-        }
+.mv-agenda-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px 10px;
+  margin-bottom: 0; /* a form-ban van a spacing */
+}
 
-        .mv-agenda-day {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            line-height: 1;
-        }
+.mv-agenda-day {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
 
-        .mv-agenda-meta {
-            font-size: 0.82rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
+.mv-agenda-meta {
+  flex: 1; /* kitölti a helyet, gomb jobb oldalt marad */
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
 
-        .mv-agenda-list {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
+.mv-agenda-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
-        .mv-agenda-item {
-            display: flex;
-            align-items: stretch;
-            gap: 12px;
-            padding: 10px 14px;
-            background: var(--bg-item);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.15s;
-            border-left: 4px solid transparent;
-        }
+.mv-agenda-item {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg-item);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 4px solid transparent;
+}
 
-        .mv-agenda-item:hover {
-            background: var(--bg-item-hover);
-            transform: translateX(3px);
-        }
+.mv-agenda-item:hover {
+  background: var(--bg-item-hover);
+  transform: translateX(3px);
+}
 
-        .mv-agenda-item-body {
-            flex: 1;
-            min-width: 0;
-        }
+.mv-agenda-item-body {
+  flex: 1;
+  min-width: 0;
+}
 
-        .mv-agenda-item-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+.mv-agenda-item-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-        .mv-agenda-item-time {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-top: 2px;
-            font-weight: 500;
-        }
+.mv-agenda-item-time {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  font-weight: 500;
+}
 
-        .mv-agenda-item-badge {
-            font-size: 0.6rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 3px 8px;
-            border-radius: 10px;
-            align-self: center;
-            flex-shrink: 0;
-            color: #fff;
-        }
+.mv-agenda-item-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  align-self: center;
+  flex-shrink: 0;
+  color: #fff;
+}
 
-        .mv-agenda-empty {
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            padding: 30px 0;
-            opacity: 0.7;
-        }
+.mv-agenda-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  padding: 30px 0;
+  opacity: 0.7;
+}
 
-        /* =========================================================
+/* =========================================================
            HETI NÉZET — Saját stílus
            Fejléc napokkal, alatta kártya-sávos idővonal
            ========================================================= */
-        .wv {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+.wv {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-        .wv-header {
-            display: grid;
-            grid-template-columns: 52px repeat(7, 1fr);
-            flex-shrink: 0;
-            border-bottom: 1px solid var(--border-color);
-        }
+.wv-header {
+  display: grid;
+  grid-template-columns: 52px repeat(7, 1fr);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-color);
+}
 
-        .wv-header-corner {
-            border-right: 1px solid var(--border-color);
-        }
+.wv-header-corner {
+  border-right: 1px solid var(--border-color);
+}
 
-        .wv-header-day {
-            text-align: center;
-            padding: 8px 2px;
-            cursor: pointer;
-            transition: background 0.12s;
-            border-right: 1px solid #1a1a1a;
-        }
+.wv-header-day {
+  text-align: center;
+  padding: 8px 2px;
+  cursor: pointer;
+  transition: background 0.12s;
+  border-right: 1px solid #1a1a1a;
+}
 
-        .wv-header-day:last-child {
-            border-right: none;
-        }
+.wv-header-day:last-child {
+  border-right: none;
+}
 
-        .wv-header-day:hover {
-            background: var(--bg-item);
-        }
+.wv-header-day:hover {
+  background: var(--bg-item);
+}
 
-        .wv-header-dayname {
-            font-size: 0.62rem;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+.wv-header-dayname {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
 
-        .wv-header-daynum {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-top: 1px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
-        }
+.wv-header-daynum {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+}
 
-        .wv-header-day.today .wv-header-daynum {
-            background: var(--accent-muted);
-            color: #fff;
-            border-radius: 50%;
-        }
+.wv-header-day.today .wv-header-daynum {
+  background: var(--accent-muted);
+  color: #fff;
+  border-radius: 50%;
+}
 
-        /* Egész napos sáv */
-        .wv-allday {
-            display: grid;
-            grid-template-columns: 52px repeat(7, 1fr);
-            border-bottom: 1px solid var(--border-color);
-            flex-shrink: 0;
-            min-height: 0;
-        }
+/* Egész napos sáv */
+.wv-allday {
+  display: grid;
+  grid-template-columns: 52px repeat(7, 1fr);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  min-height: 0;
+}
 
-        .wv-allday.has-items {
-            min-height: 30px;
-        }
+.wv-allday.has-items {
+  min-height: 30px;
+}
 
-        .wv-allday.day-mode {
-            grid-template-columns: 52px 1fr;
-        }
+.wv-allday.day-mode {
+  grid-template-columns: 52px 1fr;
+}
 
-        .wv-allday-label {
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.55rem;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            line-height: 1.3;
-            text-align: center;
-        }
+.wv-allday-label {
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
+  text-align: center;
+}
 
-        .wv-allday-cell {
-            padding: 2px 3px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2px;
-        }
+.wv-allday-cell {
+  padding: 2px 3px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
 
-        .wv-allday-chip {
-            font-size: 0.65rem;
-            font-weight: 600;
-            padding: 2px 7px;
-            border-radius: 4px;
-            color: #fff;
-            cursor: pointer;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-            transition: filter 0.12s;
-        }
+.wv-allday-chip {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  transition: filter 0.12s;
+}
 
-        .wv-allday-chip:hover {
-            filter: brightness(1.2);
-        }
+.wv-allday-chip:hover {
+  filter: brightness(1.2);
+}
 
-        /* Idővonal */
-        .wv-body {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 52px repeat(7, 1fr);
-            overflow-y: auto;
-            position: relative;
-        }
+/* Idővonal */
+.wv-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 52px repeat(7, 1fr);
+  overflow-y: auto;
+  position: relative;
+}
 
-        .wv-body::-webkit-scrollbar {
-            width: 5px;
-        }
+.wv-body::-webkit-scrollbar {
+  width: 5px;
+}
 
-        .wv-body::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 3px;
-        }
+.wv-body::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
 
-        .wv-gutter {
-            position: relative;
-            border-right: 1px solid var(--border-color);
-        }
+.wv-gutter {
+  position: relative;
+  border-right: 1px solid var(--border-color);
+}
 
-        .wv-hour-label {
-            position: absolute;
-            right: 6px;
-            font-size: 0.6rem;
-            font-weight: 600;
-            color: #555;
-            transform: translateY(-50%);
-        }
+.wv-hour-label {
+  position: absolute;
+  right: 6px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #555;
+  transform: translateY(-50%);
+}
 
-        .wv-col {
-            position: relative;
-            border-right: 1px solid #1a1a1a;
-        }
+.wv-col {
+  position: relative;
+  border-right: 1px solid #1a1a1a;
+}
 
-        .wv-col:last-child {
-            border-right: none;
-        }
+.wv-col:last-child {
+  border-right: none;
+}
 
-        .wv-hour-line {
-            position: absolute;
-            left: 0;
-            right: 0;
-            border-top: 1px solid #1e1e1e;
-        }
+.wv-hour-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid #1e1e1e;
+}
 
-        .wv-half-line {
-            position: absolute;
-            left: 0;
-            right: 0;
-            border-top: 1px solid #151515;
-        }
+.wv-half-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid #151515;
+}
 
-        .wv-now {
-            position: absolute;
-            left: -2px;
-            right: 0;
-            height: 2px;
-            background: #e53935;
-            z-index: 20;
-            border-radius: 1px;
-        }
+.wv-now {
+  position: absolute;
+  left: -2px;
+  right: 0;
+  height: 2px;
+  background: #e53935;
+  z-index: 20;
+  border-radius: 1px;
+}
 
-        .wv-now::before {
-            content: '';
-            position: absolute;
-            left: -4px;
-            top: -3px;
-            width: 8px;
-            height: 8px;
-            background: #e53935;
-            border-radius: 50%;
-        }
+.wv-now::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  background: #e53935;
+  border-radius: 50%;
+}
 
-        /* Esemény blokkok (heti + napi) */
-        .ev-block {
-            position: absolute;
-            left: 2px;
-            right: 2px;
-            border-radius: 6px;
-            padding: 3px 6px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #fff;
-            cursor: pointer;
-            z-index: 10;
-            overflow: hidden;
-            min-height: 18px;
-            transition: filter 0.12s, box-shadow 0.12s;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-        }
+/* Esemény blokkok (heti + napi) */
+.ev-block {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  z-index: 10;
+  overflow: hidden;
+  min-height: 18px;
+  transition:
+    filter 0.12s,
+    box-shadow 0.12s;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
 
-        .ev-block:hover {
-            filter: brightness(1.15);
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
-            z-index: 15;
-        }
+.ev-block:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
+  z-index: 15;
+}
 
-        .ev-block-title {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.3;
-        }
+.ev-block-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
 
-        .ev-block-time {
-            font-size: 0.58rem;
-            opacity: 0.8;
-            font-weight: 400;
-            margin-top: 1px;
-        }
+.ev-block-time {
+  font-size: 0.58rem;
+  opacity: 0.8;
+  font-weight: 400;
+  margin-top: 1px;
+}
 
-        /* =========================================================
+/* =========================================================
            NAPI NÉZET
            ========================================================= */
-        .dv {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+.dv {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-        .dv-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 14px 0 10px;
-            flex-shrink: 0;
-            gap: 14px;
-            border-bottom: 1px solid var(--border-color);
-        }
+.dv-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 0 10px;
+  flex-shrink: 0;
+  gap: 14px;
+  border-bottom: 1px solid var(--border-color);
+}
 
-        .dv-header-dayname {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
+.dv-header-dayname {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
 
-        .dv-header-num {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            line-height: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 52px;
-            height: 52px;
-        }
+.dv-header-num {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+}
 
-        .dv-header.today .dv-header-num {
-            background: var(--accent-muted);
-            color: #fff;
-            border-radius: 50%;
-        }
+.dv-header.today .dv-header-num {
+  background: var(--accent-muted);
+  color: #fff;
+  border-radius: 50%;
+}
 
-        .dv-body {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 52px 1fr;
-            overflow-y: auto;
-            position: relative;
-        }
+.dv-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  overflow-y: auto;
+  position: relative;
+}
 
-        .dv-body::-webkit-scrollbar {
-            width: 5px;
-        }
+.dv-body::-webkit-scrollbar {
+  width: 5px;
+}
 
-        .dv-body::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 3px;
-        }
+.dv-body::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
 
-        .dv-col {
-            position: relative;
-        }
+.dv-col {
+  position: relative;
+}
 
-        /* Animáció */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(6px);
-            }
+/* Animáció */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-        .mv-agenda-item {
-            animation: fadeIn 0.25s ease both;
-        }
+.mv-agenda-item {
+  animation: fadeIn 0.25s ease both;
+}
 
-        .mv-agenda-item:nth-child(1) {
-            animation-delay: 0.03s;
-        }
+.mv-agenda-item:nth-child(1) {
+  animation-delay: 0.03s;
+}
 
-        .mv-agenda-item:nth-child(2) {
-            animation-delay: 0.06s;
-        }
+.mv-agenda-item:nth-child(2) {
+  animation-delay: 0.06s;
+}
 
-        .mv-agenda-item:nth-child(3) {
-            animation-delay: 0.09s;
-        }
+.mv-agenda-item:nth-child(3) {
+  animation-delay: 0.09s;
+}
 
-        .mv-agenda-item:nth-child(4) {
-            animation-delay: 0.12s;
-        }
+.mv-agenda-item:nth-child(4) {
+  animation-delay: 0.12s;
+}
 
-        .mv-agenda-item:nth-child(5) {
-            animation-delay: 0.15s;
-        }
+.mv-agenda-item:nth-child(5) {
+  animation-delay: 0.15s;
+}
 
-        /* ════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════════════
            HAVI NÉZET — LAYOUT FIX
-           A naptár rács kitölti a felső területet (a huzogatható vonalig),
-           és a sorok arányosan nyúlnak a rendelkezésre álló helyhez.
-           Ez biztosítja, hogy ne maradjon üres terület a cellák alatt
-           — a divider húzásával valódi élő szinkron alakul ki.
-           ════════════════════════════════════════════════════════════ */
-        .mv-grid-wrap {
-            display: flex;
-            flex-direction: column;
-            min-height: 0;       /* flexbe ágyazott scrollolhatósághoz */
-            overflow: hidden;    /* a cellák nyúlnak, nem görgetnek */
-            padding-bottom: 6px; /* enyhe levegő a divider felett */
-        }
+*/
+.mv-grid-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* flexbe ágyazott scrollolhatósághoz */
+  overflow: hidden; /* a cellák nyúlnak, nem görgetnek */
+  padding-bottom: 0;
+}
 
-        .mv-daynames {
-            flex-shrink: 0;
-            position: relative;  /* sticky helyett — fix a tetején a flex containerben */
-            top: auto;
-        }
+.mv-daynames {
+  flex-shrink: 0;
+  position: relative; /* sticky helyett — fix a tetején a flex containerben */
+  top: auto;
+}
 
-        .mv-grid {
-            flex: 1;                                /* tölti a rendelkezésre álló helyet */
-            grid-template-rows: repeat(6, 1fr);     /* 6 hét sor — arányosan nyúlnak */
-            min-height: 0;
-        }
+.mv-grid {
+  flex: 1; /* tölti a rendelkezésre álló helyet */
+  grid-template-rows: repeat(6, 1fr); /* 6 hét sor — arányosan nyúlnak */
+  min-height: 0;
+}
 
-        .mv-cell {
-            min-height: 0;       /* hagyja, hogy 1fr-be szoruljon ha kicsi a tér */
-            justify-content: center;  /* a szám középen marad amikor a cella nyúlik */
-            padding: 4px 0;
-        }
+.mv-cell {
+  min-height: 0; /* hagyja, hogy 1fr-be szoruljon ha kicsi a tér */
+  justify-content: center; /* a szám középen marad amikor a cella nyúlik */
+  padding: 4px 0;
+}
 
-        /* Ha sok hely van — a szám továbbra is felül látszódjon mint az eredeti */
-        @media (min-height: 700px) {
-            .mv-cell {
-                justify-content: flex-start;
-                padding-top: 6px;
-            }
-        }
+/* Ha sok hely van — a szám továbbra is felül látszódjon mint az eredeti */
+@media (min-height: 700px) {
+  .mv-cell {
+    justify-content: flex-start;
+    padding-top: 6px;
+  }
+}
 
-        /* ════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════════════
            RESZPONZIVITÁS — Naptár tablet és mobil nézet
            ════════════════════════════════════════════════════════════ */
 
-        /* ── Tablet (≤ 1024px) ── */
-        @media (max-width: 1024px) {
-            .cal-navbar {
-                padding: 9px 14px;
-                gap: 8px;
-            }
+/* ── Tablet (≤ 1024px) ── */
+@media (max-width: 1024px) {
+  .cal-navbar {
+    padding: 9px 14px;
+    gap: 8px;
+  }
 
-            .cal-title {
-                font-size: 1.05rem;
-            }
-        }
+  .cal-title {
+    font-size: 1.05rem;
+  }
+}
 
-        /* ── Tablet kicsi / Mobil nagy (≤ 768px) ── */
-        @media (max-width: 768px) {
-            .cal-navbar {
-                flex-wrap: wrap;
-                padding: 8px 10px;
-                gap: 8px;
-                row-gap: 8px;
-                justify-content: space-between;
-            }
+/* ── Tablet kicsi / Mobil nagy (≤ 768px) ── */
+@media (max-width: 768px) {
+  .cal-navbar {
+    flex-wrap: wrap;
+    padding: 8px 10px;
+    gap: 8px;
+    row-gap: 8px;
+    justify-content: space-between;
+  }
 
-            .cal-nav-left {
-                gap: 6px;
-                order: 1;
-                flex-shrink: 0;
-            }
+  .cal-nav-left {
+    gap: 6px;
+    order: 1;
+    flex-shrink: 0;
+  }
 
-            /* A nézet-tabok (Nap/Hét/Hónap) az 1. sorban a Vissza/Ma mellett —
+  /* A nézet-tabok (Nap/Hét/Hónap) az 1. sorban a Vissza/Ma mellett —
                ha kifutnak, ide törjenek. */
-            .cal-view-tabs {
-                order: 2;
-                flex-shrink: 0;
-            }
+  .cal-view-tabs {
+    order: 2;
+    flex-shrink: 0;
+  }
 
-            /* A cím + nyilak teljes szélességű 2. sorban, középen */
-            .cal-nav-center {
-                order: 3;
-                width: 100%;
-                justify-content: center;
-                gap: 10px;
-                flex-wrap: nowrap;
-                min-width: 0;
-            }
+  /* A cím + nyilak teljes szélességű 2. sorban, középen */
+  .cal-nav-center {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
 
-            .cal-title {
-                font-size: 0.98rem;
-                letter-spacing: 0.2px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                max-width: 100%;
-                min-width: 0;
-            }
+  .cal-title {
+    font-size: 0.98rem;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    min-width: 0;
+  }
 
-            .cal-back-btn {
-                padding: 5px 10px;
-                font-size: 0.76rem;
-            }
+  .cal-back-btn {
+    padding: 5px 10px;
+    font-size: 0.76rem;
+  }
 
-            .cal-today-btn {
-                padding: 5px 11px;
-                font-size: 0.72rem;
-            }
+  .cal-today-btn {
+    padding: 5px 11px;
+    font-size: 0.72rem;
+  }
 
-            .cal-view-tab {
-                padding: 5px 12px;
-                font-size: 0.72rem;
-            }
+  .cal-view-tab {
+    padding: 5px 12px;
+    font-size: 0.72rem;
+  }
 
-            /* Havi nézet */
-            .mv-grid-wrap {
-                padding: 6px 10px 0;
-            }
+  /* Havi nézet */
+  .mv-grid-wrap {
+    padding: 6px 10px 0;
+  }
 
-            /* Havi nézet */
-            .mv-grid-wrap {
-                padding: 6px 10px;
-                padding-bottom: 4px;
-            }
+  /* Havi nézet */
+  .mv-grid-wrap {
+    padding: 6px 10px;
+    padding-bottom: 4px;
+  }
 
-            /* Mobilon vastagabb divider — érintéshez könnyebben elcsípni */
-            .mv-divider {
-                height: 18px;
-                padding: 0 12px;
-            }
+  /* Mobilon vastagabb divider — érintéshez könnyebben elcsípni */
+  .mv-divider {
+    height: 18px;
+    padding: 0 12px;
+  }
 
-            .mv-divider::before {
-                width: 56px;
-                height: 5px;
-            }
+  .mv-divider::before {
+    width: 56px;
+    height: 5px;
+  }
 
-            .mv-cell-num {
-                width: 28px;
-                height: 28px;
-                font-size: 0.82rem;
-            }
+  .mv-cell-num {
+    width: 28px;
+    height: 28px;
+    font-size: 0.82rem;
+  }
 
-            .mv-dot {
-                width: 4px;
-                height: 4px;
-            }
+  .mv-dot {
+    width: 4px;
+    height: 4px;
+  }
 
-            .mv-agenda {
-                padding: 10px 12px;
-            }
+  .mv-agenda {
+    padding: 10px 12px;
+  }
 
-            .mv-agenda-day {
-                font-size: 1.7rem;
-            }
+  .mv-agenda-day {
+    font-size: 1.7rem;
+  }
 
-            .mv-agenda-meta {
-                font-size: 0.76rem;
-            }
+  .mv-agenda-meta {
+    font-size: 0.76rem;
+  }
 
-            .mv-agenda-item {
-                padding: 9px 11px;
-                gap: 9px;
-            }
+  .mv-agenda-item {
+    padding: 9px 11px;
+    gap: 9px;
+  }
 
-            .mv-agenda-item-title {
-                font-size: 0.85rem;
-            }
+  .mv-agenda-item-title {
+    font-size: 0.85rem;
+  }
 
-            .mv-agenda-item-time {
-                font-size: 0.72rem;
-            }
+  .mv-agenda-item-time {
+    font-size: 0.72rem;
+  }
 
-            /* Heti nézet — kompaktabb */
-            .wv-header,
-            .wv-allday,
-            .wv-body {
-                grid-template-columns: 38px repeat(7, 1fr);
-            }
+  /* Heti nézet — kompaktabb */
+  .wv-header,
+  .wv-allday,
+  .wv-body {
+    grid-template-columns: 38px repeat(7, 1fr);
+  }
 
-            .wv-allday.day-mode {
-                grid-template-columns: 38px 1fr;
-            }
+  .wv-allday.day-mode {
+    grid-template-columns: 38px 1fr;
+  }
 
-            .wv-allday-label {
-                font-size: 0.5rem;
-            }
+  .wv-allday-label {
+    font-size: 0.5rem;
+  }
 
-            .wv-header-dayname {
-                font-size: 0.55rem;
-            }
+  .wv-header-dayname {
+    font-size: 0.55rem;
+  }
 
-            .wv-header-daynum {
-                font-size: 1rem;
-                width: 28px;
-                height: 28px;
-            }
+  .wv-header-daynum {
+    font-size: 1rem;
+    width: 28px;
+    height: 28px;
+  }
 
-            .wv-hour-label {
-                font-size: 0.55rem;
-                right: 4px;
-            }
+  .wv-hour-label {
+    font-size: 0.55rem;
+    right: 4px;
+  }
 
-            .ev-block {
-                padding: 2px 4px;
-                font-size: 0.62rem;
-            }
+  .ev-block {
+    padding: 2px 4px;
+    font-size: 0.62rem;
+  }
 
-            .ev-block-time {
-                font-size: 0.52rem;
-            }
+  .ev-block-time {
+    font-size: 0.52rem;
+  }
 
-            /* Napi nézet */
-            .dv-header {
-                padding: 12px 0 8px;
-                gap: 10px;
-            }
+  /* Napi nézet */
+  .dv-header {
+    padding: 12px 0 8px;
+    gap: 10px;
+  }
 
-            .dv-header-num {
-                font-size: 1.8rem;
-                width: 44px;
-                height: 44px;
-            }
+  .dv-header-num {
+    font-size: 1.8rem;
+    width: 44px;
+    height: 44px;
+  }
 
-            .dv-body {
-                grid-template-columns: 38px 1fr;
-            }
-        }
+  .dv-body {
+    grid-template-columns: 38px 1fr;
+  }
+}
 
-        /* ── Mobil (≤ 480px) ── */
-        @media (max-width: 480px) {
-            .cal-navbar {
-                padding: 7px 8px;
-            }
+/* ── Mobil (≤ 480px) ── */
+@media (max-width: 480px) {
+  .cal-navbar {
+    padding: 7px 8px;
+  }
 
-            .cal-back-btn {
-                padding: 4px 8px;
-                font-size: 0.72rem;
-            }
+  .cal-back-btn {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+  }
 
-            .cal-today-btn {
-                padding: 4px 9px;
-                font-size: 0.68rem;
-            }
+  .cal-today-btn {
+    padding: 4px 9px;
+    font-size: 0.68rem;
+  }
 
-            .cal-title {
-                font-size: 0.9rem;
-            }
+  .cal-title {
+    font-size: 0.9rem;
+  }
 
-            .cal-view-tab {
-                padding: 4px 9px;
-                font-size: 0.68rem;
-            }
+  .cal-view-tab {
+    padding: 4px 9px;
+    font-size: 0.68rem;
+  }
 
-            .cal-arrow {
-                width: 28px;
-                height: 28px;
-                font-size: 1rem;
-            }
+  .cal-arrow {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+  }
 
-            /* Havi nézet — még kompaktabb */
-            .mv-grid-wrap {
-                padding: 4px 6px;
-                padding-bottom: 3px;
-            }
+  /* Havi nézet — még kompaktabb */
+  .mv-grid-wrap {
+    padding: 4px 6px;
+    padding-bottom: 3px;
+  }
 
-            /* Mobilon még kontrasztosabb divider */
-            .mv-divider {
-                height: 20px;
-                padding: 0 10px;
-            }
+  /* Mobilon még kontrasztosabb divider */
+  .mv-divider {
+    height: 20px;
+    padding: 0 10px;
+  }
 
-            .mv-divider::before {
-                width: 60px;
-                height: 5px;
-            }
+  .mv-divider::before {
+    width: 60px;
+    height: 5px;
+  }
 
-            .mv-cell-num {
-                width: 24px;
-                height: 24px;
-                font-size: 0.74rem;
-            }
+  .mv-cell-num {
+    width: 24px;
+    height: 24px;
+    font-size: 0.74rem;
+  }
 
-            .mv-dayname {
-                font-size: 0.55rem;
-                padding: 4px 0;
-            }
+  .mv-dayname {
+    font-size: 0.55rem;
+    padding: 4px 0;
+  }
 
-            .mv-dot {
-                width: 4px;
-                height: 4px;
-            }
+  .mv-dot {
+    width: 4px;
+    height: 4px;
+  }
 
-            .mv-dots {
-                gap: 2px;
-            }
+  .mv-dots {
+    gap: 2px;
+  }
 
-            .mv-agenda {
-                padding: 8px 10px;
-            }
+  .mv-agenda {
+    padding: 8px 10px;
+  }
 
-            .mv-agenda-header {
-                gap: 8px;
-                margin-bottom: 10px;
-            }
+  .mv-agenda-header {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
 
-            .mv-agenda-day {
-                font-size: 1.4rem;
-            }
+  .mv-agenda-day {
+    font-size: 1.4rem;
+  }
 
-            .mv-agenda-meta {
-                font-size: 0.72rem;
-            }
+  .mv-agenda-meta {
+    font-size: 0.72rem;
+  }
 
-            .mv-agenda-item {
-                padding: 8px 10px;
-                gap: 8px;
-                border-radius: 8px;
-            }
+  .mv-agenda-item {
+    padding: 8px 10px;
+    gap: 8px;
+    border-radius: 8px;
+  }
 
-            .mv-agenda-item-title {
-                font-size: 0.8rem;
-            }
+  .mv-agenda-item-title {
+    font-size: 0.8rem;
+  }
 
-            .mv-agenda-item-time {
-                font-size: 0.68rem;
-            }
+  .mv-agenda-item-time {
+    font-size: 0.68rem;
+  }
 
-            .mv-agenda-item-badge {
-                font-size: 0.55rem;
-                padding: 2px 6px;
-            }
+  .mv-agenda-item-badge {
+    font-size: 0.55rem;
+    padding: 2px 6px;
+  }
 
-            /* Heti nézet — extra kompakt */
-            .wv-header,
-            .wv-allday,
-            .wv-body {
-                grid-template-columns: 30px repeat(7, 1fr);
-            }
+  /* Heti nézet — extra kompakt */
+  .wv-header,
+  .wv-allday,
+  .wv-body {
+    grid-template-columns: 30px repeat(7, 1fr);
+  }
 
-            .wv-allday.day-mode {
-                grid-template-columns: 30px 1fr;
-            }
+  .wv-allday.day-mode {
+    grid-template-columns: 30px 1fr;
+  }
 
-            .wv-allday-label {
-                font-size: 0.45rem;
-                letter-spacing: 0.2px;
-            }
+  .wv-allday-label {
+    font-size: 0.45rem;
+    letter-spacing: 0.2px;
+  }
 
-            .wv-header-dayname {
-                font-size: 0.5rem;
-            }
+  .wv-header-dayname {
+    font-size: 0.5rem;
+  }
 
-            .wv-header-daynum {
-                font-size: 0.85rem;
-                width: 24px;
-                height: 24px;
-            }
+  .wv-header-daynum {
+    font-size: 0.85rem;
+    width: 24px;
+    height: 24px;
+  }
 
-            .wv-allday-chip {
-                font-size: 0.55rem;
-                padding: 1px 5px;
-            }
+  .wv-allday-chip {
+    font-size: 0.55rem;
+    padding: 1px 5px;
+  }
 
-            .ev-block {
-                padding: 1px 3px;
-                font-size: 0.55rem;
-                border-radius: 4px;
-            }
+  .ev-block {
+    padding: 1px 3px;
+    font-size: 0.55rem;
+    border-radius: 4px;
+  }
 
-            .ev-block-time {
-                font-size: 0.48rem;
-            }
+  .ev-block-time {
+    font-size: 0.48rem;
+  }
 
-            .wv-hour-label {
-                font-size: 0.5rem;
-                right: 3px;
-            }
+  .wv-hour-label {
+    font-size: 0.5rem;
+    right: 3px;
+  }
 
-            /* Napi nézet — mobil */
-            .dv-header {
-                padding: 10px 0 7px;
-                gap: 8px;
-            }
+  /* Napi nézet — mobil */
+  .dv-header {
+    padding: 10px 0 7px;
+    gap: 8px;
+  }
 
-            .dv-header-dayname {
-                font-size: 0.62rem;
-            }
+  .dv-header-dayname {
+    font-size: 0.62rem;
+  }
 
-            .dv-header-num {
-                font-size: 1.5rem;
-                width: 38px;
-                height: 38px;
-            }
+  .dv-header-num {
+    font-size: 1.5rem;
+    width: 38px;
+    height: 38px;
+  }
 
-            .dv-body {
-                grid-template-columns: 32px 1fr;
-            }
+  .dv-body {
+    grid-template-columns: 32px 1fr;
+  }
 
-            .dv-hour-label {
-                font-size: 0.55rem;
-            }
-        }
+  .dv-hour-label {
+    font-size: 0.55rem;
+  }
+}
+/* ════════════════════════════════════════════════════════════
+   HAVI NÉZET — Multi-day EVENT span vonalak
+   ════════════════════════════════════════════════════════════ */
+
+/* Konténer: tartalmazza az mv-grid-et és az overlay-t */
+.mv-grid-span-container {
+  flex: 1;
+  min-height: 0;
+  /* 6 soros, 7 oszlopos grid — mind a mv-grid, mind az overlay
+     ebbe a gridbe ül egymás felett (grid-area overlap).
+     Az overlay subgrid-del örökli a sorok magasságát → pontos igazítás. */
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  grid-template-columns: repeat(7, 1fr);
+  position: relative;
+}
+
+.mv-grid-span-container .mv-grid {
+  /* Az összes cellát foglalja el — belül subgrid örökli a szülő sorait/oszlopait */
+  grid-area: 1 / 1 / 7 / 8;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
+  min-height: 0;
+}
+
+.mv-spans-overlay {
+  /* Ugyanazt a területet foglalja el mint a mv-grid */
+  grid-area: 1 / 1 / 7 / 8;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
+  z-index: 4;
+}
+
+.mv-span-bar {
+  align-self: end;
+  /* Padding a cella oldalaitól (a cella szélétől ne érjen a grid határig) */
+  margin-left: 1px;
+  margin-right: 1px;
+  /* Függőleges pozíció: dots alatti terület.
+       A dots 6px magas + 2px gap → összesen ~10px a cella aljától */
+  margin-bottom: calc(2px + var(--span-lane, 0) * 6px);
+  height: 4px;
+  background: var(--span-color, #888);
+  opacity: 0.88;
+  transition: opacity 0.15s;
+  /* Alapból nincs lekerekítés (középső szakaszon) */
+  border-radius: 0;
+}
+
+/* Kezdő nap: bal oldal lekerekítve */
+.mv-span-bar--start {
+  margin-left: 3px;
+  border-radius: 3px 0 0 3px;
+}
+
+/* Utolsó nap: jobb oldal lekerekítve */
+.mv-span-bar--end {
+  margin-right: 3px;
+  border-radius: 0 3px 3px 0;
+}
+
+/* Ha egyszerre start és end (1 napos — elvileg nem kerül ide, de biztosra) */
+.mv-span-bar--start.mv-span-bar--end {
+  border-radius: 3px;
+}
+
+/* ─── Cella: nincs z-index → nem jön létre stacking context
+   Az overlay z-index:4 így felülre kerül, pointer-events:none
+   miatt a cellák kattinthatók maradnak. ─── */
+.mv-cell {
+  position: relative;
+  background: transparent !important;
+}
+
+.mv-cell:hover {
+  background: var(--bg-item) !important;
+  border-radius: 10px;
+}
+
+/* ─── Mobil ──────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .mv-span-bar {
+    height: 3px;
+  }
+  .mv-span-bar--start {
+    margin-left: 2px;
+  }
+  .mv-span-bar--end {
+    margin-right: 2px;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════
+   GYORS BEJEGYZÉS — mv-agenda-header jobb oldali gomb + inline form
+   ════════════════════════════════════════════════════════════ */
+
+/* Header: flex, space-between a gomb jobb oldalt */
+/* mv-agenda-header és .mv-agenda-meta már fentebb definiálva */
+
+/* + gomb */
+.mv-quick-add-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-color);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.mv-quick-add-btn:hover {
+  border-color: var(--accent-muted);
+  color: var(--accent-active);
+  background: var(--accent-glow);
+}
+
+.mv-quick-add-btn.active {
+  background: var(--accent-muted);
+  border-color: var(--accent-muted);
+  color: #fff;
+  transform: rotate(45deg);
+}
+
+/* Inline form konténer */
+.mv-quick-add-form {
+  margin: 0 16px 12px;
+  background: var(--bg-item);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: qaSlideIn 0.18s ease;
+  box-sizing: border-box;
+  overflow: hidden;      /* tartalom ne lógjon ki */
+  /* Mobilon ne lógjon ki az agenda szélein */
+  max-width: 100%;
+}
+
+@keyframes qaSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.mv-quick-add-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;     /* mobilon törjön ha nem fér el */
+  min-width: 0;
+}
+
+/* Cím input */
+.mv-quick-add-input {
+  flex: 1;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  font-family: 'DM Sans', sans-serif;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.mv-quick-add-input:focus {
+  border-color: var(--accent-muted);
+}
+
+.mv-quick-add-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+/* Típus gombok */
+.mv-quick-add-types {
+  display: flex;
+  gap: 6px;
+}
+
+.mv-quick-add-type-btn {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border-color);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mv-quick-add-type-btn:hover {
+  border-color: var(--accent-muted);
+  color: var(--text-primary);
+}
+
+.mv-quick-add-type-btn.active {
+  font-weight: 700;
+}
+
+/* Datetime input */
+.mv-quick-add-dt {
+  flex: 1;
+  min-width: 0;          /* flex gyerek ne lógjon ki */
+  width: 0;              /* shrink-elhet 0-ig, flex:1 adja vissza */
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-family: 'DM Sans', sans-serif;
+  padding: 5px 6px;
+  outline: none;
+  transition: border-color 0.15s;
+  color-scheme: dark;
+}
+
+.mv-quick-add-dt:focus {
+  border-color: var(--accent-muted);
+}
+
+.mv-quick-add-sep {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* Akció sor */
+.mv-quick-add-actions {
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+
+.mv-quick-add-error {
+  flex: 1;
+  font-size: 0.76rem;
+  color: #f87171;
+}
+
+.mv-quick-add-cancel {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mv-quick-add-cancel:hover {
+  border-color: var(--accent-muted);
+  color: var(--text-primary);
+}
+
+.mv-quick-add-submit {
+  background: var(--accent-muted);
+  border: none;
+  color: #fff;
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mv-quick-add-submit:hover {
+  background: var(--accent-active);
+}
+
+.mv-quick-add-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Quick-add reszponzív (≤ 480px) ─── */
+@media (max-width: 480px) {
+  .mv-quick-add-form {
+    margin: 0 8px 10px;
+    padding: 10px;
+  }
+  .mv-quick-add-types {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .mv-quick-add-type-btn {
+    padding: 3px 10px;
+    font-size: 0.72rem;
+  }
+  /* Datetime sor mobilon egymás alá törik */
+  .mv-quick-add-row:has(.mv-quick-add-dt) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .mv-quick-add-sep {
+    display: none;
+  }
+  .mv-quick-add-dt {
+    width: 100%;
+    font-size: 0.72rem;
+  }
+  .mv-quick-add-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
