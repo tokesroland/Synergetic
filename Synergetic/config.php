@@ -1,5 +1,20 @@
 <?php
 // config.php – Docker-kompatibilis konfiguráció
+
+// Session indítása (jogosultságkezeléshez)
+if (session_status() === PHP_SESSION_NONE) {
+    // Cookie paraméterek beállítása mielőtt a session elindul
+    session_set_cookie_params([
+        'lifetime' => 0,            // Böngésző bezárásáig
+        'path'     => '/',
+        'domain'   => '',
+        'secure'   => false,        // HTTPS esetén true-ra állítandó
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    session_start();
+}
+
 function env(string $key, string $default): string {
     return $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key) ?: $default;
 }

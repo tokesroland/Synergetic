@@ -1,5 +1,5 @@
 /**
- * Synergetic – Store (v5 - Category filter + improved search)
+ * Synergetic – Store (v6 - + Auth támogatás)
  */
 const Store = Vue.reactive({
     groups: [],
@@ -16,6 +16,11 @@ const Store = Vue.reactive({
     sidebarOpen: true,
     modalOpen: false,
 
+    // ── Auth ──
+    currentUser: null,        // { id, username, email } vagy null
+    authModalOpen: false,
+    authModalMode: 'login',   // 'login' | 'register'
+
     // ── Keresés ──
     searchActive: false,
     searchFilters: [],
@@ -30,6 +35,45 @@ const Store = Vue.reactive({
         this.colors.todo  = r.getPropertyValue('--node-task').trim()  || this.colors.todo;
         this.colors.event = r.getPropertyValue('--node-event').trim() || this.colors.event;
         this.colors.note  = r.getPropertyValue('--node-note').trim()  || this.colors.note;
+    },
+
+    // ── Auth metódusok ──
+    get isLoggedIn() { return !!this.currentUser; },
+
+    async loadCurrentUser() {
+        // Védelem: ha valamiért régi api.js van betöltve, ne dobjon kivételt.
+        if (typeof ApiService.getCurrentUser !== 'function') {
+            console.warn('[Store] ApiService.getCurrentUser hiányzik – frissítsd az api.js-t!');
+            this.currentUser = null;
+            return;
+        }
+        const data = await ApiService.getCurrentUser();
+        if (data && data.user) {
+            this.currentUser = data.user;
+        } else {
+            this.currentUser = null;
+        }
+    },
+
+    async logout() {
+        if (typeof ApiService.logout !== 'function') {
+            this.currentUser = null;
+            return null;
+        }
+        const res = await ApiService.logout();
+        if (res && !res.error) {
+            this.currentUser = null;
+        }
+        return res;
+    },
+
+    openAuthModal(mode = 'login') {
+        this.authModalMode = mode;
+        this.authModalOpen = true;
+    },
+
+    closeAuthModal() {
+        this.authModalOpen = false;
     },
 
     async loadGroups() {
@@ -70,7 +114,6 @@ const Store = Vue.reactive({
         // Tag
         const tagTokens = this.searchFilters.filter(f => f.key === 'Tag');
         if (tagTokens.length) {
-            // Ha vannak id nélküli tag tokenek, próbáljuk feloldani név alapján
             const tagIds = [];
             for (const t of tagTokens) {
                 if (t.data?.id) {
@@ -142,7 +185,6 @@ const Store = Vue.reactive({
         const groupTokens = this.searchFilters.filter(f => f.key === 'Csoport');
         if (groupTokens.length) {
             filters.group_ids = groupTokens.map(t => t.data?.id).filter(Boolean);
-            // Ha van group_ids a data-ban tömb
             groupTokens.forEach(t => { if (t.data?.ids) filters.group_ids.push(...t.data.ids); });
             delete filters.group_id;
         }

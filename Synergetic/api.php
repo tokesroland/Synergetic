@@ -1,18 +1,28 @@
 <?php
-// api.php v5
+// api.php v6 – auth routing hozzáadva
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: *");
+
+// CORS – session cookie miatt konkrét origin szükséges (nem *)
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if ($origin) {
+    header("Access-Control-Allow-Origin: $origin");
+    header("Access-Control-Allow-Credentials: true");
+} else {
+    header("Access-Control-Allow-Origin: *");
+}
 header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
 require_once 'EntryController.php';
 require_once 'RoutineController.php';
 require_once 'SearchController.php';
+require_once 'AuthController.php';
 
 $method      = $_SERVER['REQUEST_METHOD'];
 $entryCtrl   = new EntryController();
 $routineCtrl = new RoutineController();
 $searchCtrl  = new SearchController();
+$authCtrl    = new AuthController();
 
 $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
 $isMultipart = strpos($contentType, 'multipart/form-data') !== false;
@@ -28,6 +38,11 @@ try {
             $action = $_GET['action'] ?? '';
 
             switch ($action) {
+                // ─── AUTH ───
+                case 'auth_me':
+                    echo json_encode($authCtrl->me());
+                    break;
+
                 case 'search_entries':
                     $filters = [];
                     if (isset($_GET['group_id']))         $filters['group_id'] = (int)$_GET['group_id'];
@@ -97,6 +112,11 @@ try {
             }
             $action = $input['action'] ?? 'create_entry';
             switch ($action) {
+                // ─── AUTH ───
+                case 'auth_register': echo json_encode($authCtrl->register($input)); break;
+                case 'auth_login':    echo json_encode($authCtrl->login($input)); break;
+                case 'auth_logout':   echo json_encode($authCtrl->logout()); break;
+
                 case 'update_entry': echo json_encode($entryCtrl->update($input)); break;
                 case 'create_routine_item': echo json_encode($routineCtrl->create($input)); break;
                 case 'update_routine_item': echo json_encode($routineCtrl->update($input)); break;

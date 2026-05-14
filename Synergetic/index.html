@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="./styles/routine.css" />
     <link rel="stylesheet" href="./styles/vue-app.css" />
     <link rel="stylesheet" href="./styles/omnibar.css" />
+    <link rel="stylesheet" href="./styles/auth.css" />
   </head>
 
   <body>
@@ -18,6 +19,7 @@
       <button v-if="showHamburger" id="hamburger-btn" @click="toggleSidebar">
         ☰
       </button>
+            <auth-button v-if="showAuthButton"></auth-button>
       <app-sidebar
         v-if="showSidebar"
         :class="{ closed: !sidebarOpen }"
@@ -32,6 +34,7 @@
 
       <omni-bar v-if="showOmniBar"></omni-bar>
       <entry-modal></entry-modal>
+      <auth-modal></auth-modal>
     </div>
 
     <!-- ═══ SIDEBAR ═══ -->
@@ -632,7 +635,13 @@
               <div class="navbar">
                   <button class="filter-btn" @click="goBack">← Vissza a gráfhoz</button>
                   <div class="toolbar">
-                      <button class="filter-btn export-btn" @click="exportMarkdown" title="Exportálás .md fájlba">⬇ Exportálás</button>                  
+                      <button v-if="isLoggedIn" class="filter-btn export-btn" @click="exportMarkdown" title="Exportálás .md fájlba">⬇ Exportálás</button>
+                        <div v-else class="auth-lock-inline" title="Az exportáláshoz be kell jelentkezni">
+                            <button class="filter-btn export-btn">⬇ Exportálás</button>
+                            <div class="auth-lock-inline-cover" @click="openAuthRegister">
+                              <span class="lock-icon">🔒</span> Bejelentkezés szükséges
+                          </div>
+                        </div>
                       <button type="button" @click="fmt('bold')"><b>B</b></button><button type="button" @click="fmt('italic')"><i>I</i></button>
                       <button type="button" @click="fmt('underline')"><u>U</u></button><button type="button" @click="fmt('insertUnorderedList')">• Lista</button>
                       <button type="button" @click="fsize(1)">A+</button><button type="button" @click="fsize(-1)">A-</button>
@@ -680,7 +689,27 @@
 
     <!-- ═══ ROUTINE VIEW ═══ -->
     <script type="text/x-template" id="tpl-routine-view">
-      <div class="routine-full-wrapper">
+      <div class="routine-full-wrapper" style="position:relative;">
+
+          <!-- ÜVEGHATÁSÚ LETAKARÁS: csak nem bejelentkezett usernek látszik -->
+          <div v-if="!isLoggedIn" class="auth-lock-overlay">
+              <div class="auth-lock-card">
+                  <!-- Bezáró X – visszavisz a gráf nézetre -->
+                  <button class="auth-lock-close" @click="goBack" title="Bezárás">&times;</button>
+                  <span class="auth-lock-icon">🔒</span>
+                  <div class="auth-lock-title">A Rutin tervező regisztrációhoz kötött</div>
+                  <div class="auth-lock-text">
+                      A heti rutin tervezés a regisztrált felhasználók funkciója.
+                      Hozz létre egy fiókot, hogy elérhesd és kezelhesd a heti rutinodat.
+                  </div>
+                  <button class="auth-lock-btn" @click="openAuthRegister">
+                      <span>✦</span> Regisztráció
+                  </button>
+                  <!-- Vissza gomb: a user ki tud lépni az értesítésből regisztráció nélkül is -->
+                  <button class="auth-lock-back" @click="goBack">← Vissza a gráfhoz</button>
+              </div>
+          </div>
+
           <header class="routine-navbar">
               <div class="routine-nav-left"><button class="routine-back-btn" @click="goBack">← Vissza</button><span class="routine-title"><span class="routine-title-accent">Heti Rutin</span></span></div>
               <div class="routine-nav-right"><span class="routine-date-display">{{ weekDisplay }}</span><button class="routine-add-btn" @click="openCreateModal()">+ Új rutin</button></div>
@@ -861,6 +890,100 @@
       </div>
     </script>
 
+        <!-- ═══ AUTH BUTTON ═══ -->
+    <script type="text/x-template" id="tpl-auth-button">
+      <div class="auth-button-wrapper">
+          <!-- Nincs bejelentkezve → Bejelentkezés gomb -->
+          <button v-if="!isLoggedIn" class="auth-btn auth-btn-login" @click="openLogin">
+              <span class="auth-btn-icon">→</span> Bejelentkezés
+          </button>
+          <!-- Be van jelentkezve → felhasználónév + Kijelentkezés gomb -->
+          <template v-else>
+              <span class="auth-user-chip">
+                  <span class="auth-user-chip-avatar">{{ username.charAt(0) }}</span>
+                  <span class="auth-user-chip-name">{{ username }}</span>
+              </span>
+              <button class="auth-btn auth-btn-logout" @click="logout" :disabled="loggingOut">
+                  <span class="auth-btn-icon">⏻</span>
+                  {{ loggingOut ? 'Kijelentkezés...' : 'Kijelentkezés' }}
+              </button>
+          </template>
+      </div>
+    </script>
+
+    <!-- ═══ AUTH MODAL (Bejelentkezés / Regisztráció) ═══ -->
+    <script type="text/x-template" id="tpl-auth-modal">
+      <div class="modal-overlay" :class="{ active: isOpen }" @click.self="close">
+          <div class="modal-content auth-modal-content">
+              <div class="auth-modal-header">
+                  <h2>{{ title }}</h2>
+                  <button class="auth-modal-close" @click="close">&times;</button>
+              </div>
+
+              <!-- Üzenetek -->
+              <div v-if="errorMsg" class="auth-message error">{{ errorMsg }}</div>
+              <div v-if="successMsg" class="auth-message success">{{ successMsg }}</div>
+
+              <!-- ── LOGIN FORM ── -->
+              <form v-if="isLogin" class="auth-form" @submit.prevent="submit">
+                  <div class="form-group">
+                      <label>Felhasználónév vagy email</label>
+                      <input type="text" class="form-control" v-model="loginIdentifier"
+                             placeholder="pl. roland vagy roland@example.com" autocomplete="username">
+                  </div>
+                  <div class="form-group">
+                      <label>Jelszó</label>
+                      <input type="password" class="form-control" v-model="loginPassword"
+                             placeholder="••••••••" autocomplete="current-password">
+                  </div>
+                  <button type="submit" class="auth-submit-btn" :disabled="submitting">
+                      {{ submitLabel }}
+                  </button>
+                  <div class="auth-switch-row">
+                      Nincs fiókod?
+                      <button type="button" class="auth-switch-link" @click="switchToRegister">
+                          Regisztrálj.
+                      </button>
+                  </div>
+              </form>
+
+              <!-- ── REGISTER FORM ── -->
+              <form v-else class="auth-form" @submit.prevent="submit">
+                  <div class="form-group">
+                      <label>Email</label>
+                      <input type="email" class="form-control" v-model="regEmail"
+                             placeholder="pl. roland@example.com" autocomplete="email">
+                  </div>
+                  <div class="form-group">
+                      <label>Felhasználónév</label>
+                      <input type="text" class="form-control" v-model="regUsername"
+                             placeholder="Legalább 3 karakter" autocomplete="username">
+                  </div>
+                  <div class="form-group">
+                      <label>Jelszó</label>
+                      <input type="password" class="form-control" v-model="regPassword"
+                             placeholder="Legalább 6 karakter" autocomplete="new-password">
+                  </div>
+                  <div class="form-group">
+                      <label>Jelszó megerősítése</label>
+                      <input type="password" class="form-control" v-model="regPasswordConfirm"
+                             placeholder="Írd be újra a jelszót" autocomplete="new-password">
+                  </div>
+                  <button type="submit" class="auth-submit-btn" :disabled="submitting">
+                      {{ submitLabel }}
+                  </button>
+                  <div class="auth-switch-row">
+                      Van már fiókod?
+                      <button type="button" class="auth-switch-link" @click="switchToLogin">
+                          Jelentkezz be.
+                      </button>
+                  </div>
+              </form>
+          </div>
+      </div>
+    </script>
+
+
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.prod.js"></script>
     <script src="js/api.js"></script>
@@ -874,6 +997,8 @@
     <script src="js/components/RoutineView.js"></script>
     <script src="js/components/GroupsView.js"></script>
     <script src="js/components/EntryModal.js"></script>
+    <script src="js/components/AuthModal.js"></script>
+    <script src="js/components/AuthButton.js"></script>
     <script src="js/router.js"></script>
     <script src="js/app.js"></script>
   </body>

@@ -1,0 +1,470 @@
+/* ============================================================
+   AUTH – Bejelentkezés / Regisztráció UI stílusok
+   ============================================================ */
+
+/* ──────────────────────────────────────────────────────────
+   AUTH GOMB (a fejléc bal felső területén, hamburger mellett)
+   ────────────────────────────────────────────────────────── */
+.auth-button-wrapper {
+    position: fixed;
+    top: 14px;
+    left: 70px;          /* hamburger gomb (≈48px) + kis hézag */
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.auth-button-wrapper > * { pointer-events: auto; }
+
+.auth-btn {
+    background: rgba(14, 14, 20, 0.72);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 9px 18px;
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.82rem;
+    font-family: 'DM Sans', sans-serif;
+    transition: all var(--transition-fast, 0.15s);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.auth-btn:hover {
+    border-color: var(--accent-muted);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.18);
+    transform: translateY(-1px);
+}
+
+.auth-btn:active { transform: translateY(0); }
+
+.auth-btn-login {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(14, 14, 20, 0.72));
+    border-color: rgba(99, 102, 241, 0.35);
+}
+
+.auth-btn-logout {
+    background: rgba(14, 14, 20, 0.72);
+}
+
+.auth-btn-icon {
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.auth-user-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    background: rgba(14, 14, 20, 0.72);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-md, 8px);
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.auth-user-chip-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-muted), #818cf8);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+}
+
+.auth-user-chip-name {
+    color: var(--text-primary);
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Mobil: kisebb gomb, ne lógjon át a mode-selectorra */
+@media (max-width: 768px) {
+    .auth-button-wrapper {
+        top: 10px;
+        left: 56px;
+        gap: 6px;
+    }
+    .auth-btn {
+        padding: 7px 12px;
+        font-size: 0.74rem;
+    }
+    .auth-user-chip {
+        padding: 5px 9px;
+        font-size: 0.72rem;
+    }
+    .auth-user-chip-name { max-width: 80px; }
+    .auth-user-chip-avatar { width: 18px; height: 18px; font-size: 0.66rem; }
+}
+
+@media (max-width: 480px) {
+    .auth-user-chip-name { display: none; }  /* nagyon szűk helyen csak avatar marad */
+}
+
+/* ──────────────────────────────────────────────────────────
+   AUTH MODAL (login + register form)
+   Az alap .modal-overlay és .modal-content a style.css-ből jön
+   ────────────────────────────────────────────────────────── */
+.auth-modal-content {
+    max-width: 420px;
+    width: 92%;
+    padding: 28px 28px 24px;
+}
+
+.auth-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+
+.auth-modal-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.2px;
+}
+
+.auth-modal-close {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.15s;
+}
+
+.auth-modal-close:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.auth-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.auth-form label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.2px;
+}
+
+.auth-form .form-control {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 10px 13px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.auth-form .form-control:focus {
+    border-color: var(--accent-muted);
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.auth-form .form-control::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+.auth-submit-btn {
+    margin-top: 4px;
+    padding: 11px;
+    background: linear-gradient(135deg, var(--accent-muted), var(--accent-active, #6366f1));
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 22px rgba(99, 102, 241, 0.35);
+}
+
+.auth-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.auth-switch-row {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+}
+
+.auth-switch-link {
+    background: none;
+    border: none;
+    color: var(--accent-active, #818cf8);
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.86rem;
+    padding: 0 0 0 4px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font-family: inherit;
+}
+
+.auth-switch-link:hover { color: #a5b4fc; }
+
+.auth-message {
+    padding: 10px 13px;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.auth-message.error {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+}
+
+.auth-message.success {
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #86efac;
+}
+
+/* ──────────────────────────────────────────────────────────
+   AUTH GLASS-LOCK (üveghatású letakarás védett tartalmakon)
+   Routine view és DetailsView export gombján használjuk.
+   ────────────────────────────────────────────────────────── */
+
+/* Az overlay a védett tartalomra kerül full-screen */
+.auth-lock-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(8, 8, 14, 0.55);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    animation: authLockFadeIn 0.25s ease-out;
+}
+
+@keyframes authLockFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.auth-lock-card {
+    max-width: 420px;
+    width: 88%;
+    padding: 32px 28px;
+    background: rgba(20, 20, 28, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    box-shadow:
+        0 24px 60px -10px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    text-align: center;
+    animation: authLockCardIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes authLockCardIn {
+    from { opacity: 0; transform: translateY(8px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+.auth-lock-icon {
+    font-size: 2.4rem;
+    margin-bottom: 10px;
+    display: inline-block;
+    color: var(--accent-muted);
+    filter: drop-shadow(0 4px 16px rgba(99, 102, 241, 0.4));
+}
+
+.auth-lock-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    letter-spacing: 0.2px;
+}
+
+.auth-lock-text {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    margin-bottom: 18px;
+}
+
+.auth-lock-btn {
+    background: linear-gradient(135deg, var(--accent-muted), var(--accent-active, #6366f1));
+    color: #fff;
+    border: none;
+    padding: 11px 26px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.auth-lock-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 26px rgba(99, 102, 241, 0.45);
+}
+
+.auth-lock-btn:active { transform: translateY(0); }
+
+.auth-lock-subtle {
+    margin-top: 12px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+/* Mobil */
+@media (max-width: 768px) {
+    .auth-lock-card {
+        padding: 22px 18px;
+    }
+    .auth-lock-title { font-size: 1rem; }
+    .auth-lock-text  { font-size: 0.82rem; }
+    .auth-lock-btn   { padding: 10px 20px; font-size: 0.84rem; }
+}
+
+/* ──────────────────────────────────────────────────────────
+   KICSI AUTH-LOCK (egyetlen gomb pl. Export Markdown) –
+   csak a gombot takarja, nem az egész nézetet
+   ────────────────────────────────────────────────────────── */
+.auth-lock-inline {
+    position: relative;
+    display: inline-block;
+}
+
+.auth-lock-inline-cover {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 20, 28, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    font-size: 0.78rem;
+    font-weight: 700;
+    gap: 5px;
+    transition: all 0.15s;
+}
+
+.auth-lock-inline-cover:hover {
+    background: rgba(99, 102, 241, 0.25);
+    border-color: var(--accent-muted);
+}
+
+.auth-lock-inline-cover .lock-icon {
+    font-size: 0.85rem;
+}
+
+/* ──────────────────────────────────────────────────────────
+   AUTH-LOCK "Vissza" gomb – a glass-lock kártyában, hogy a user
+   ki tudjon lépni az értesítésből regisztráció nélkül is
+   ────────────────────────────────────────────────────────── */
+.auth-lock-back {
+    margin-top: 14px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    padding: 6px 10px;
+    border-radius: 7px;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.auth-lock-back:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* A glass-lock kártya jobb felső sarkában lévő bezáró X */
+.auth-lock-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    z-index: 2;
+}
+
+.auth-lock-close:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+}
+
+/* A kártya legyen relatív, hogy a bezáró X jól pozicionálódjon */
+.auth-lock-card {
+    position: relative;
+}

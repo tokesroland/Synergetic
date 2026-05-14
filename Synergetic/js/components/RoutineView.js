@@ -1,5 +1,6 @@
 /**
- * RoutineView v3 – Fixed: idővonal, tooltip, multi-day, alsó sáv rutinnevekkel
+ * RoutineView v4 – Auth védelem: nem bejelentkezett user nem használhatja
+ * (üveghatású letakarással, regisztrációs gombbal)
  */
 const RoutineView = {
   template: "#tpl-routine-view",
@@ -48,6 +49,10 @@ const RoutineView = {
   computed: {
     store() {
       return Store;
+    },
+    // ÚJ: Auth védelemhez
+    isLoggedIn() {
+      return Store.isLoggedIn;
     },
     todayDow() {
       const d = this.todayDate.getDay();
@@ -125,7 +130,16 @@ const RoutineView = {
       r.getPropertyValue("--node-task").trim() || this.typeColors.todo;
     this.typeColors.event =
       r.getPropertyValue("--node-event").trim() || this.typeColors.event;
-    await this.loadAll();
+    // Csak bejelentkezett usernek töltjük be a rutin adatokat
+    if (this.isLoggedIn) {
+      await this.loadAll();
+    }
+  },
+  watch: {
+    // Ha közben bejelentkezik a user, töltsük be az adatokat
+    isLoggedIn(val) {
+      if (val) this.loadAll();
+    },
   },
   beforeUnmount() {
     window.removeEventListener("resize", this.checkMobile);
@@ -133,6 +147,10 @@ const RoutineView = {
   methods: {
     checkMobile() {
       this.isMobile = window.innerWidth < 900;
+    },
+    // ÚJ: Auth registration megnyitása
+    openAuthRegister() {
+      Store.openAuthModal('register');
     },
     async loadAll() {
       const [items, completions, cats] = await Promise.all([

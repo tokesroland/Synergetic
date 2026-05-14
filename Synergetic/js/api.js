@@ -1,11 +1,16 @@
 /**
- * Synergetic – API Service v5
+ * Synergetic – API Service v6 (auth támogatással)
+ * – credentials: 'include' minden fetch hívásban (session cookie miatt)
+ * – új: register, login, logout, getCurrentUser
  */
 const ApiService = {
   baseUrl: "api.php",
   async _fetch(url, options = {}) {
     try {
-      const res = await fetch(url, options);
+      // Minden kéréshez automatikusan hozzáadjuk a credentials-t,
+      // hogy a PHP session cookie utazzon a kérésekkel.
+      const finalOptions = { credentials: "include", ...options };
+      const res = await fetch(url, finalOptions);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch (err) {
@@ -13,6 +18,34 @@ const ApiService = {
       return null;
     }
   },
+
+  // ═══ AUTH ═══
+  getCurrentUser() {
+    return this._fetch(`${this.baseUrl}?action=auth_me`);
+  },
+  register(data) {
+    return this._fetch(this.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "auth_register", ...data }),
+    });
+  },
+  login(data) {
+    return this._fetch(this.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "auth_login", ...data }),
+    });
+  },
+  logout() {
+    return this._fetch(this.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "auth_logout" }),
+    });
+  },
+
+  // ═══ Eredeti metódusok (változatlan) ═══
   loadGroups() {
     return this._fetch(`${this.baseUrl}?action=get_groups`);
   },

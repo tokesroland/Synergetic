@@ -1,5 +1,5 @@
 /**
- * DetailsView v3 – Fixed: picker popup, mentés visszajelzés, contenteditable tartalom mentés
+ * DetailsView v4 – Auth védelem az export Markdown funkcióra
  */
 const DetailsView = {
   template: "#tpl-details-view",
@@ -37,6 +37,10 @@ const DetailsView = {
   computed: {
     store() {
       return Store;
+    },
+    // ÚJ: Auth védelemhez
+    isLoggedIn() {
+      return Store.isLoggedIn;
     },
     entryId() {
       return parseInt(this.$route.params.id);
@@ -81,6 +85,10 @@ const DetailsView = {
     await this.loadEntry();
   },
   methods: {
+    // ÚJ: Auth registration megnyitása
+    openAuthRegister() {
+      Store.openAuthModal('register');
+    },
     async loadEntry() {
       this.loading = true;
       const [cats, tags] = await Promise.all([
@@ -117,6 +125,12 @@ const DetailsView = {
     },
 
       exportMarkdown() {
+          // Védett funkció: csak bejelentkezett user használhatja
+          if (!this.isLoggedIn) {
+              Store.openAuthModal('register');
+              return;
+          }
+
           // HTML → plain text konverzió (alapvető tagek eltávolítása)
           const tempDiv = document.createElement('div');
           tempDiv.innerHTML = this.editContent;
@@ -194,7 +208,7 @@ const DetailsView = {
     async save() {
       this.saving = true;
       this.saveSuccess = false;
-      
+
       // Tartalom kiolvasása – ha a contenteditable elérhető, onnan; egyébként editContent fallback
       const editorEl = this.$refs.contentEditor;
       let content;
