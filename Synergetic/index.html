@@ -19,7 +19,7 @@
       <button v-if="showHamburger" id="hamburger-btn" @click="toggleSidebar">
         ☰
       </button>
-            <auth-button v-if="showAuthButton"></auth-button>
+      <auth-button v-if="showAuthButton"></auth-button>
       <app-sidebar
         v-if="showSidebar"
         :class="{ closed: !sidebarOpen }"
@@ -83,7 +83,7 @@
     <!-- ═══ OMNIBAR SEARCH ═══ -->
     <script type="text/x-template" id="tpl-omnibar">
 
-        
+
               <div>
           <!-- Pull-tab: kis vonal a tetején, középen -->
           <div id="omnibar-pull-tab" @click="toggleVisible" :class="{ active: visible }">
@@ -415,6 +415,7 @@
               <option value="graph">Kapcsolatok (Gráf)</option>
               <option value="calendar">Naptár nézet</option>
               <option value="routine">Rutin tervező</option>
+              <option value="archive">Archívum</option>
           </select>
       </div>
     </script>
@@ -516,6 +517,7 @@
                             <div>{{ MONTHS[selected.getMonth()] }} {{ selected.getFullYear() }}</div>
                         </div>
                         <!-- Gyors bejegyzés gomb -->
+                       <small>Új bejegyzés</small>
                         <button class="mv-quick-add-btn" @click="toggleQuickAdd" :class="{ active: quickAddOpen }" title="Új bejegyzés erre a napra">+</button>
                     </div>
                     <!-- Gyors bejegyzés form (inline dropdown) -->
@@ -541,13 +543,15 @@
                                 >{{ t.label }}</button>
                             </div>
                         </div>
-                        <!-- Extra mező: event dátum, todo határidő -->
+                        <!-- Extra mező: event dátum és todo kezdő-/határidő -->
                         <div v-if="quickAddType === 'event'" class="mv-quick-add-row">
                             <input type="datetime-local" class="mv-quick-add-dt" v-model="quickAddStart" />
                             <span class="mv-quick-add-sep">–</span>
                             <input type="datetime-local" class="mv-quick-add-dt" v-model="quickAddEnd" />
                         </div>
                         <div v-if="quickAddType === 'todo'" class="mv-quick-add-row">
+                            <input type="datetime-local" class="mv-quick-add-dt" v-model="quickAddStart" />
+                            <span class="mv-quick-add-sep">–</span>
                             <input type="datetime-local" class="mv-quick-add-dt" v-model="quickAddDeadline" placeholder="Határidő (opcionális)" />
                         </div>
                         <div class="mv-quick-add-row mv-quick-add-actions">
@@ -629,61 +633,154 @@
 
     <!-- ═══ DETAILS VIEW ═══ -->
     <script type="text/x-template" id="tpl-details-view">
-      <div class="details-full-wrapper">
-          <div v-if="loading" class="details-loading">Betöltés...</div>
-          <template v-else-if="entry">
-              <div class="navbar">
-                  <button class="filter-btn" @click="goBack">← Vissza a gráfhoz</button>
-                  <div class="toolbar">
-                      <button v-if="isLoggedIn" class="filter-btn export-btn" @click="exportMarkdown" title="Exportálás .md fájlba">⬇ Exportálás</button>
-                        <div v-else class="auth-lock-inline" title="Az exportáláshoz be kell jelentkezni">
-                            <button class="filter-btn export-btn">⬇ Exportálás</button>
-                            <div class="auth-lock-inline-cover" @click="openAuthRegister">
-                              <span class="lock-icon">🔒</span> Bejelentkezés szükséges
-                          </div>
+            <div class="details-full-wrapper">
+                <div v-if="loading" class="details-loading">Betöltés...</div>
+                <template v-else-if="entry">
+                    <div class="navbar">
+                        <button class="filter-btn" @click="goBack">← Vissza a gráfhoz</button>
+                        <div class="toolbar">
+                            <button v-if="isLoggedIn" class="filter-btn export-btn" @click="exportMarkdown" title="Exportálás .md fájlba">⬇ Exportálás</button>
+                              <div v-else class="auth-lock-inline" title="Az exportáláshoz be kell jelentkezni">
+                                  <button class="filter-btn export-btn">⬇ Exportálás</button>
+                                  <div class="auth-lock-inline-cover" @click="openAuthRegister">
+                                    <span class="lock-icon">🔒</span> Bejelentkezés szükséges
+                                </div>
+                              </div>
+                            <button type="button" @click="fmt('bold')"><b>B</b></button><button type="button" @click="fmt('italic')"><i>I</i></button>
+                            <button type="button" @click="fmt('underline')"><u>U</u></button><button type="button" @click="fmt('insertUnorderedList')">• Lista</button>
+                            <button type="button" @click="fsize(1)">A+</button><button type="button" @click="fsize(-1)">A-</button>
+                            <select @change="changeFont"><option value="'Segoe UI', sans-serif">Alapértelmezett</option><option value="Arial, sans-serif">Arial</option><option value="'Times New Roman', serif">Times New Roman</option><option value="'Courier New', monospace">Courier New</option></select>
                         </div>
-                      <button type="button" @click="fmt('bold')"><b>B</b></button><button type="button" @click="fmt('italic')"><i>I</i></button>
-                      <button type="button" @click="fmt('underline')"><u>U</u></button><button type="button" @click="fmt('insertUnorderedList')">• Lista</button>
-                      <button type="button" @click="fsize(1)">A+</button><button type="button" @click="fsize(-1)">A-</button>
-                      <select @change="changeFont"><option value="'Segoe UI', sans-serif">Alapértelmezett</option><option value="Arial, sans-serif">Arial</option><option value="'Times New Roman', serif">Times New Roman</option><option value="'Courier New', monospace">Courier New</option></select>
-                  </div>
-                  <button class="filter-btn" :class="{ active:!saveSuccess, 'save-success':saveSuccess }" @click="save" :disabled="saving">{{ saveButtonText }}</button>
-              </div>
-              <div class="editor-container">
-                  <div class="badge-row">
-                      <span class="type-badge" :style="{ backgroundColor:typeColor }">{{ typeName }}</span>
-                      <span v-if="currentCatId&&currentCatName" class="category-badge" :style="{ backgroundColor:currentCatColor||'#5c6bc0' }" @click="openCatPicker">📁 {{ currentCatName }}</span>
-                      <button v-else class="add-category-btn" @click="openCatPicker">+ Kategória</button>
-                      <span v-for="tag in currentTags" :key="tag.id" class="tag-badge"><span class="tag-dot" :style="{ background:tag.color_hex||'#888' }"></span>{{ tag.name }}<button class="tag-remove" @click="removeTag(tag.id)">×</button></span>
-                      <button class="add-tag-btn" @click="openTagPicker">+ Tag</button>
-                  </div>
-                  <div class="attachments-section"><div class="attachments-label">Csatolmányok</div>
-                      <div class="attachments-grid">
-                          <div v-for="att in attachments" :key="att.id" class="att-thumb"><img v-if="isImage(att)" :src="att.file_path" @click="openLightbox(att)"><a v-else :href="att.file_path" target="_blank" class="att-file-link">{{ fileIcon(att.file_type) }} {{ att.original_name }}</a><button class="att-delete" @click="deleteAttachment(att)">×</button></div>
-                          <label class="att-add-btn">+<span>Hozzáad</span><input type="file" multiple hidden @change="uploadFile"></label>
-                      </div>
-                  </div>
-                  <input type="text" class="editor-title" v-model="editTitle" placeholder="Bejegyzés címe...">
-                  <div ref="contentEditor" class="editor-content" contenteditable="true"></div>
-                  <div style="margin-top:20px;"><button class="btn-danger" @click="deleteEntry">🗑️ Bejegyzés törlése</button></div>
-              </div>
+                        <button class="filter-btn" :class="{ active:!saveSuccess, 'save-success':saveSuccess }" @click="save" :disabled="saving">{{ saveButtonText }}</button>
+                    </div>
+                    <div class="editor-container">
+                        <div class="badge-row">
+                            <span class="type-badge" :style="{ backgroundColor:typeColor }">{{ typeName }}</span>
+                            <span v-if="currentCatId&&currentCatName" class="category-badge" :style="{ backgroundColor:currentCatColor||'#5c6bc0' }" @click="openCatPicker">📁 {{ currentCatName }}</span>
+                            <button v-else class="add-category-btn" @click="openCatPicker">+ Kategória</button>
+                            <span v-for="tag in currentTags" :key="tag.id" class="tag-badge"><span class="tag-dot" :style="{ background:tag.color_hex||'#888' }"></span>{{ tag.name }}<button class="tag-remove" @click="removeTag(tag.id)">×</button></span>
+                            <button class="add-tag-btn" @click="openTagPicker">+ Tag</button>
+                        </div>
+                        <!-- ═══ EVENT RÉSZLETEK  ═══ -->
+                        <div v-if="isEvent" class="todo-detail-box">
+                            <div v-if="eventIsAllDay === 1" class="todo-detail-row">
+                            <span class="todo-detail-label">Esemény napja:</span>
+                            <input type="date" v-model="eventDate" class="todo-detail-input">
+                            </div>
 
-              <div v-if="pickerOpen" class="picker-popup-overlay" @click.self="closePicker">
-                  <div class="picker-popup open">
-                      <div class="picker-header">
-                          <input class="picker-search" v-model="pickerSearch" placeholder="Keresés... vagy létrehozás">
-                          <button class="picker-create-btn" @click="createPickerItem">+ Új {{ pickerOpen==='cat'?'kategória':'tag' }}</button>
+                            <template v-else>
+                            <div class="todo-detail-row">
+                                <span class="todo-detail-label">Kezdési időpont:</span>
+                                <input type="datetime-local" v-model="eventStartDatetime" class="todo-detail-input">
+                            </div>
+                            <div class="todo-detail-row">
+                                <span class="todo-detail-label">Befejezési időpont:</span>
+                                <input type="datetime-local" v-model="eventEndDatetime" class="todo-detail-input">
+                            </div>
+                            </template>
+                        </div>
+                       <!-- ═══ TODO RÉSZLETEK (csak todo típusnál) ═══ -->
+                        <div v-if="isTodo" class="todo-detail-box">
+                            <div class="todo-detail-row">
+                                <label class="todo-detail-label" for="planned-start-input">▶ Tervezett kezdés:</label>
+                                <input id="planned-start-input" type="datetime-local" class="todo-detail-input" v-model="todoPlannedStart" />
+                            </div>
+                            <div class="todo-detail-row">
+                                <label class="todo-detail-label" for="deadline-input">Határidő:</label>
+                                <input id="deadline-input" type="datetime-local" class="todo-detail-input" v-model="todoDeadline" />
+                            </div>
+                            <div class="todo-detail-row">
+                                <span class="todo-detail-label">Állapot:</span>
+                                <select class="todo-status-select" v-model="todoStatus">
+                                    <option v-for="opt in STATUS_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="attachments-section"><div class="attachments-label">Csatolmányok</div>
+                            <div class="attachments-grid">
+                                <div v-for="att in attachments" :key="att.id" class="att-thumb"><img v-if="isImage(att)" :src="att.file_path" @click="openLightbox(att)"><a v-else :href="att.file_path" target="_blank" class="att-file-link">{{ fileIcon(att.file_type) }} {{ att.original_name }}</a><button class="att-delete" @click="deleteAttachment(att)">×</button></div>
+                                <label class="att-add-btn">+<span>Hozzáad</span><input type="file" multiple hidden @change="uploadFile"></label>
+                            </div>
+                        </div>
+                        <input type="text" class="editor-title" v-model="editTitle" placeholder="Bejegyzés címe...">
+                        <div ref="contentEditor" class="editor-content" contenteditable="true"></div>
+                        <div style="margin-top:20px;"><button class="btn-danger" @click="deleteEntry">🗑️ Bejegyzés törlése</button></div>
+                    </div>
+
+                    <div v-if="pickerOpen" class="picker-popup-overlay" @click.self="closePicker">
+                        <div class="picker-popup open">
+                            <div class="picker-header">
+                                <input class="picker-search" v-model="pickerSearch" placeholder="Keresés... vagy létrehozás">
+                                <button class="picker-create-btn" @click="createPickerItem">+ Új {{ pickerOpen==='cat'?'kategória':'tag' }}</button>
+                            </div>
+                            <div class="picker-list">
+                                <div v-for="item in filteredPickerItems" :key="item.id" class="picker-item" @click="pickerOpen==='cat'?selectCategory(item):selectTag(item)">
+                                    <span class="picker-dot" :style="{ background:item.color_hex||'#888' }"></span>{{ item.name }}
+                                </div>
+                                <div v-if="!filteredPickerItems.length" class="picker-empty">Nincs találat</div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <div v-if="lightboxOpen" class="lightbox open" @click="lightboxOpen=false"><img :src="lightboxSrc"><button class="lightbox-close" @click.stop="lightboxOpen=false">×</button></div>
+            </div>
+    </script>
+
+    <!-- ═══ ARCHIVE VIEW ═══ -->
+    <script type="text/x-template" id="tpl-archive-view">
+      <div class="cal-full-wrapper">
+          <header class="cal-navbar">
+              <div class="cal-nav-left">
+                  <button class="cal-back-btn" @click="goBack">← Vissza</button>
+              </div>
+              <div class="cal-nav-center">
+                  <span class="cal-title">📦 Archívum</span>
+              </div>
+              <div style="min-width:60px;"></div>
+          </header>
+          <div style="flex:1;overflow-y:auto;padding:24px;">
+              <div v-if="loading" class="details-loading">Betöltés...</div>
+              <div v-else-if="!entries.length" class="groups-empty">
+                  Nincsenek archivált feladatok.
+              </div>
+              <div v-else class="entries-grid">
+                  <div v-for="entry in entries" :key="entry.id" class="entry-card"
+                       :style="{ borderLeftColor:'#34d399' }">
+                      <div class="entry-card-top">
+                          <div class="entry-card-title" @click="goToEntry(entry)" style="cursor:pointer;">{{ entry.title }}</div>
+                          <button class="cal-today-btn" style="background:var(--accent-muted);"
+                                  @click="restoreEntry(entry)" title="Visszaállítás aktív állapotba">↩ Visszaállítás</button>
                       </div>
-                      <div class="picker-list">
-                          <div v-for="item in filteredPickerItems" :key="item.id" class="picker-item" @click="pickerOpen==='cat'?selectCategory(item):selectTag(item)">
-                              <span class="picker-dot" :style="{ background:item.color_hex||'#888' }"></span>{{ item.name }}
-                          </div>
-                          <div v-if="!filteredPickerItems.length" class="picker-empty">Nincs találat</div>
+
+                      <div class="badge-row" style="margin-top:10px;">
+                          <span class="type-badge" style="background:#34d399;">Feladat</span>
+                          <span v-if="entry.category_name" class="category-badge"
+                                :style="{ backgroundColor:entry.category_color||'#5c6bc0' }">📁 {{ entry.category_name }}</span>
+                          <span v-if="entry.group_name" class="tag-badge">
+                              <span class="tag-dot" style="background:#6e6e7a;"></span>{{ entry.group_name }}
+                          </span>
+                          <span v-for="tag in entry.tags" :key="tag.id" class="tag-badge">
+                              <span class="tag-dot" :style="{ background:tag.color_hex||'#888' }"></span>{{ tag.name }}
+                          </span>
+                      </div>
+
+                      <div style="margin-top:10px;font-size:0.78rem;color:var(--text-secondary);font-family:'JetBrains Mono',monospace;">
+                          <div v-if="fmtDate(entry.planned_start)">▶ Tervezett kezdés: {{ fmtDate(entry.planned_start) }}</div>
+                          <div v-if="fmtDate(entry.deadline)">⏰ Határidő: {{ fmtDate(entry.deadline) }}</div>
+                          <div v-if="!fmtDate(entry.planned_start) && !fmtDate(entry.deadline)">Nincs megadott időpont.</div>
+                      </div>
+
+                      <div v-if="contentPreview(entry.content)"
+                           style="margin-top:10px;font-size:0.82rem;color:var(--text-primary);line-height:1.5;white-space:pre-wrap;">{{ contentPreview(entry.content) }}</div>
+
+                      <div v-for="att in entry.attachments" :key="att.id"
+                           style="margin-top:6px;font-size:0.72rem;color:var(--text-secondary);">
+                          📎 {{ att.original_name }}
                       </div>
                   </div>
               </div>
-          </template>
-          <div v-if="lightboxOpen" class="lightbox open" @click="lightboxOpen=false"><img :src="lightboxSrc"><button class="lightbox-close" @click.stop="lightboxOpen=false">×</button></div>
+          </div>
       </div>
     </script>
 
@@ -890,7 +987,7 @@
       </div>
     </script>
 
-        <!-- ═══ AUTH BUTTON ═══ -->
+    <!-- ═══ AUTH BUTTON ═══ -->
     <script type="text/x-template" id="tpl-auth-button">
       <div class="auth-button-wrapper">
           <!-- Nincs bejelentkezve → Bejelentkezés gomb -->
@@ -983,7 +1080,6 @@
       </div>
     </script>
 
-
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.prod.js"></script>
     <script src="js/api.js"></script>
@@ -996,6 +1092,7 @@
     <script src="js/components/DetailsView.js"></script>
     <script src="js/components/RoutineView.js"></script>
     <script src="js/components/GroupsView.js"></script>
+    <script src="js/components/ArchiveView.js"></script>
     <script src="js/components/EntryModal.js"></script>
     <script src="js/components/AuthModal.js"></script>
     <script src="js/components/AuthButton.js"></script>

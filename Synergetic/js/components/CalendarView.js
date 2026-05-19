@@ -43,7 +43,6 @@ const CalendarView = {
       quickAddTypes: [
         { value: "event", label: "Esemény" },
         { value: "todo",  label: "Feladat" },
-        { value: "note",  label: "Jegyzet" },
       ],
     };
   },
@@ -391,7 +390,8 @@ const CalendarView = {
           payload.end_datetime   = this.quickAddEnd   || null;
           payload.is_all_day = 0;
         } else if (this.quickAddType === "todo") {
-          payload.deadline = this.quickAddDeadline || null;
+          payload.planned_start = this.quickAddStart || null;
+          payload.deadline      = this.quickAddDeadline || null;
         }
         const res = await ApiService.createEntry(payload);
         if (res && res.error) throw new Error(res.error);

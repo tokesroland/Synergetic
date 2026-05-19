@@ -13,6 +13,9 @@ if ($origin) {
 header("Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
+// Session indítása a bejelentkezéshez
+session_start();
+
 require_once 'EntryController.php';
 require_once 'RoutineController.php';
 require_once 'SearchController.php';
@@ -38,11 +41,9 @@ try {
             $action = $_GET['action'] ?? '';
 
             switch ($action) {
-                // ─── AUTH ───
                 case 'auth_me':
                     echo json_encode($authCtrl->me());
                     break;
-
                 case 'search_entries':
                     $filters = [];
                     if (isset($_GET['group_id']))         $filters['group_id'] = (int)$_GET['group_id'];
@@ -82,6 +83,9 @@ try {
                 case 'get_calendar':
                     echo json_encode($entryCtrl->getCalendarEntries());
                     break;
+                case 'get_archived':
+                    echo json_encode($entryCtrl->getArchivedTodos());
+                    break;
                 case 'get_categories':
                     echo json_encode($entryCtrl->getCategories());
                     break;
@@ -116,7 +120,6 @@ try {
                 case 'auth_register': echo json_encode($authCtrl->register($input)); break;
                 case 'auth_login':    echo json_encode($authCtrl->login($input)); break;
                 case 'auth_logout':   echo json_encode($authCtrl->logout()); break;
-
                 case 'update_entry': echo json_encode($entryCtrl->update($input)); break;
                 case 'create_routine_item': echo json_encode($routineCtrl->create($input)); break;
                 case 'update_routine_item': echo json_encode($routineCtrl->update($input)); break;

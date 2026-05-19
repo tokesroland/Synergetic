@@ -173,6 +173,10 @@ const ApiService = {
   getCalendarEntries() {
     return this._fetch(`${this.baseUrl}?action=get_calendar`);
   },
+  // ÚJ: archivált todo-k lekérése (Archívum nézet)
+  getArchived() {
+    return this._fetch(`${this.baseUrl}?action=get_archived`);
+  },
   uploadAttachment(entryId, file) {
     const fd = new FormData();
     fd.append("entry_id", entryId);

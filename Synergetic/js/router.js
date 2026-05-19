@@ -7,6 +7,7 @@ const routes = [
   { path: "/calendar", name: "calendar", component: CalendarView },
   { path: "/routine", name: "routine", component: RoutineView },
   { path: "/groups", name: "groups", component: GroupsView },
+  { path: "/archive", name: "archive", component: ArchiveView },
   {
     path: "/details/:id",
     name: "details",

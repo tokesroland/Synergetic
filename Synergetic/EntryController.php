@@ -2,26 +2,41 @@
 // EntryController.php
 require_once 'config.php';
 
-class EntryController {
+class EntryController
+{
     private $pdo;
 
     // Engedélyezett MIME típusok csatolmányokhoz (futtatható fájlok KIZÁRVA)
     private const ALLOWED_MIME_TYPES = [
         // Képek
-        'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/svg+xml',
         // Videók
-        'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
+        'video/mp4',
+        'video/webm',
+        'video/ogg',
+        'video/quicktime',
         // Szöveg / Dokumentum
-        'text/plain', 'text/csv', 'text/markdown',
+        'text/plain',
+        'text/csv',
+        'text/markdown',
         'application/pdf',
         // Audio (olvasható, nem futtatható)
-        'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/webm',
+        'audio/mpeg',
+        'audio/ogg',
+        'audio/wav',
+        'audio/webm',
     ];
 
     // Feltöltési könyvtár
     private const UPLOAD_DIR = 'uploads/attachments/';
 
-    public function __construct() {
+    public function __construct()
+    {
         global $host, $dbname, $username, $password;
         try {
             $this->pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
@@ -34,15 +49,18 @@ class EntryController {
     }
 
     // ─── Csoportok ──────────────────────────────────────────────────────────
-    public function getGroups() {
+    // MÓDOSÍTVA: az archivált todo-k nem számítanak bele a todo_count-ba.
+    public function getGroups()
+    {
         $sql = "
             SELECT 
                 g.id, g.name, g.description, g.color_hex,
-                SUM(CASE WHEN e.type = 'todo'  THEN 1 ELSE 0 END) AS todo_count,
+                SUM(CASE WHEN e.type = 'todo'  AND COALESCE(td.status,'active') <> 'archived' THEN 1 ELSE 0 END) AS todo_count,
                 SUM(CASE WHEN e.type = 'event' THEN 1 ELSE 0 END) AS event_count,
                 SUM(CASE WHEN e.type = 'note'  THEN 1 ELSE 0 END) AS note_count
             FROM groups g
             LEFT JOIN entries e ON g.id = e.group_id
+            LEFT JOIN todo_details td ON e.id = td.entry_id AND e.type = 'todo'
             GROUP BY g.id
             ORDER BY g.name ASC
         ";
@@ -50,10 +68,12 @@ class EntryController {
     }
 
     // ─── Csoport összes eleme (gráf) ────────────────────────────────────────
-    public function getAllByGroup($groupId) {
+    // MÓDOSÍTVA: az archivált todo-k (status='archived') NEM jelennek meg (soft-delete).
+    public function getAllByGroup($groupId)
+    {
         // formázás szükséges
         $stmt = $this->pdo->prepare(
-            "SELECT e.id, e.type, e.title, e.category_id, e.pos_x AS x, e.pos_y AS y, td.planned_start AS todo_planned_start, td.deadline AS todo_deadline, ed.start_datetime AS event_start_datetime, ed.end_datetime AS event_end_datetime FROM entries e LEFT JOIN todo_details td ON e.id = td.entry_id AND e.type = 'todo' LEFT JOIN event_details ed ON e.id = ed.entry_id AND e.type = 'event' WHERE e.group_id = ?"
+            "SELECT e.id, e.type, e.title, e.category_id, e.pos_x AS x, e.pos_y AS y, td.planned_start AS todo_planned_start, td.deadline AS todo_deadline, td.status AS todo_status, ed.start_datetime AS event_start_datetime, ed.end_datetime AS event_end_datetime FROM entries e LEFT JOIN todo_details td ON e.id = td.entry_id AND e.type = 'todo' LEFT JOIN event_details ed ON e.id = ed.entry_id AND e.type = 'event' WHERE e.group_id = ? AND NOT (e.type = 'todo' AND td.status = 'archived')"
         );
         $stmt->execute([$groupId]);
         $entries = $stmt->fetchAll();
@@ -81,6 +101,7 @@ class EntryController {
             if ($entry['type'] === 'todo') {
                 $entry['deadline'] = $entry['todo_deadline'] ?? null;
                 $entry['planned_start'] = $entry['todo_planned_start'] ?? null;
+                $entry['status'] = $entry['todo_status'] ?? 'active';
             } elseif ($entry['type'] === 'event') {
                 $entry['start_datetime'] = $entry['event_start_datetime'] ?? null;
                 $entry['end_datetime'] = $entry['event_end_datetime'] ?? null;
@@ -94,8 +115,49 @@ class EntryController {
         return ["entries" => $entries];
     }
 
+    // ─── ÚJ: Archivált todo-k lekérése (Archívum nézet) ──────────────────────
+    public function getArchivedTodos()
+    {
+        $sql = "
+            SELECT e.id, e.title, e.content, e.type, e.category_id, e.group_id,
+                   c.name      AS category_name,
+                   c.color_hex AS category_color,
+                   g.name      AS group_name,
+                   td.status, td.planned_start, td.deadline
+            FROM entries e
+            JOIN todo_details td ON e.id = td.entry_id
+            LEFT JOIN categories c ON e.category_id = c.id
+            LEFT JOIN groups     g ON e.group_id     = g.id
+            WHERE e.type = 'todo' AND td.status = 'archived'
+            ORDER BY td.deadline IS NULL, td.deadline ASC, e.title ASC
+        ";
+        $entries = $this->pdo->query($sql)->fetchAll();
+
+        foreach ($entries as &$entry) {
+            // Tagek
+            $tagStmt = $this->pdo->prepare("
+                SELECT t.id, t.name, t.color_hex
+                FROM tags t JOIN entry_tags et ON t.id = et.tag_id
+                WHERE et.entry_id = ?
+            ");
+            $tagStmt->execute([$entry['id']]);
+            $entry['tags'] = $tagStmt->fetchAll();
+
+            // Csatolmányok
+            $attStmt = $this->pdo->prepare("
+                SELECT id, file_path, file_type, original_name, uploaded_at
+                FROM attachments WHERE entry_id = ? ORDER BY uploaded_at ASC
+            ");
+            $attStmt->execute([$entry['id']]);
+            $entry['attachments'] = $attStmt->fetchAll();
+        }
+
+        return ["entries" => $entries];
+    }
+
     // ─── Egy elem részletes lekérése ────────────────────────────────────────
-    public function getOne($id) {
+    public function getOne($id)
+    {
         $stmt = $this->pdo->prepare("
             SELECT e.id, e.title, e.content, e.type, e.category_id, e.group_id,
                 c.name      AS category_name,
@@ -147,9 +209,10 @@ class EntryController {
         }
         return $entry;
     }
-    
+
     // ─── Új elem létrehozása ────────────────────────────────────────────────
-    public function create($data) {
+    public function create($data)
+    {
         $title       = $data['title']       ?? '';
         $group_id    = $data['group_id']    ?? 1;
         $category_id = !empty($data['category_id']) ? $data['category_id'] : null;
@@ -180,42 +243,143 @@ class EntryController {
     }
 
     // ─── Elem frissítése ────────────────────────────────────────────────────
-    public function update($data) {
+    // MÓDOSÍTVA: todo esetén az állapot (status) mentése is, ha küldték.
+    public function update($data)
+    {
         if (!isset($data['id'])) throw new Exception("Hiányzó azonosító!");
-        
-        $title = $data['title'] ?? '';
+
+        $id      = (int)$data['id'];
+        $title   = $data['title'] ?? '';
         $content = $data['content'] ?? '';
-        $stmt = $this->pdo->prepare("UPDATE entries SET title = ?, content = ? WHERE id = ?");
-        $stmt->execute([$title, $content, $data['id']]);
-        
-        return ["message" => "Sikeres mentés!", "debug_received_content" => $content]; 
+
+        try {
+            $this->pdo->beginTransaction();
+
+            // Alapadatok mentése
+            $stmt = $this->pdo->prepare("UPDATE entries SET title = ?, content = ? WHERE id = ?");
+            $stmt->execute([$title, $content, $id]);
+
+            // todo részletek mentése
+            $typeStmt = $this->pdo->prepare("SELECT type FROM entries WHERE id = ?");
+            $typeStmt->execute([$id]);
+            $row = $typeStmt->fetch();
+
+            if ($row && $row['type'] === 'todo') {
+                // Lekérjük a régi adatokat, hogy részleges frissítésnél ne írjunk felül mindent null-lal
+                $existsStmt = $this->pdo->prepare("SELECT status, planned_start, deadline FROM todo_details WHERE entry_id = ?");
+                $existsStmt->execute([$id]);
+                $existingTodo = $existsStmt->fetch();
+
+                // Státusz beállítása
+                $status = 'active';
+                if (array_key_exists('status', $data) && $data['status'] !== null && $data['status'] !== '') {
+                    $allowed = ['active', 'completed', 'archived'];
+                    $status  = in_array($data['status'], $allowed, true) ? $data['status'] : 'active';
+                } else {
+                    $status = $existingTodo && $existingTodo['status'] ? $existingTodo['status'] : 'active';
+                }
+
+                // Tervezett kezdés beállítása
+                $planned_start = null;
+                if (array_key_exists('planned_start', $data)) {
+                    $planned_start = $this->normalizeDateTime($data['planned_start']);
+                } else {
+                    $planned_start = $existingTodo ? $existingTodo['planned_start'] : null;
+                }
+
+                // Határidő beállítása
+                $deadline = null;
+                if (array_key_exists('deadline', $data)) {
+                    $deadline = $this->normalizeDateTime($data['deadline']);
+                } else {
+                    $deadline = $existingTodo ? $existingTodo['deadline'] : null;
+                }
+
+                // Mentsük is el az adatbázisba
+                if ($existingTodo) {
+                    $upd = $this->pdo->prepare("UPDATE todo_details SET status = ?, planned_start = ?, deadline = ? WHERE entry_id = ?");
+                    $upd->execute([$status, $planned_start, $deadline, $id]);
+                } else {
+                    $ins = $this->pdo->prepare(
+                        "INSERT INTO todo_details (entry_id, status, planned_start, deadline) VALUES (?, ?, ?, ?)"
+                    );
+                    $ins->execute([$id, $status, $planned_start, $deadline]);
+                }
+            }
+            // ── ÚJ: Event (Esemény) részletek mentése ──
+            if ($row && $row['type'] === 'event') {
+                // Lekérjük a meglévő rekordot az event_details táblából
+                $existsStmt = $this->pdo->prepare("SELECT start_datetime, end_datetime, is_all_day FROM event_details WHERE entry_id = ?");
+                $existsStmt->execute([$id]);
+                $existingEvent = $existsStmt->fetch();
+
+                // Az is_all_day értéket NEM írjuk át sehol, megtartjuk a meglévőt (vagy 0 ha valamiért nincs)
+                $is_all_day = $existingEvent ? (int)$existingEvent['is_all_day'] : 0;
+
+                // start_datetime kezelése
+                $start_datetime = null;
+                if (array_key_exists('start_datetime', $data)) {
+                    $start_datetime = $this->normalizeDateTime($data['start_datetime']);
+                } else {
+                    $start_datetime = $existingEvent ? $existingEvent['start_datetime'] : null;
+                }
+
+                // end_datetime kezelése
+                $end_datetime = null;
+                if (array_key_exists('end_datetime', $data)) {
+                    $end_datetime = $this->normalizeDateTime($data['end_datetime']);
+                } else {
+                    $end_datetime = $existingEvent ? $existingEvent['end_datetime'] : null;
+                }
+
+                // Mentés az adatbázisba (UPDATE vagy INSERT)
+                if ($existingEvent) {
+                    $upd = $this->pdo->prepare("UPDATE event_details SET start_datetime = ?, end_datetime = ? WHERE entry_id = ?");
+                    $upd->execute([$start_datetime, $end_datetime, $id]);
+                } else {
+                    $ins = $this->pdo->prepare(
+                        "INSERT INTO event_details (entry_id, start_datetime, end_datetime, is_all_day) VALUES (?, ?, ?, ?)"
+                    );
+                    $ins->execute([$id, $start_datetime, $end_datetime, $is_all_day]);
+                }
+            }
+
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+        return ["message" => "Sikeres mentés!", "debug_received_content" => $content];
     }
 
     // ─── Pozíció mentése ────────────────────────────────────────────────────
-    public function updatePosition($id, $x, $y) {
+    public function updatePosition($id, $x, $y)
+    {
         $stmt = $this->pdo->prepare("UPDATE entries SET pos_x = ?, pos_y = ? WHERE id = ?");
         $stmt->execute([$x, $y, $id]);
         return ["message" => "Pozíció mentve!"];
     }
 
     // ─── Elem áthelyezése másik csoportba ────────────────────────────────────
-    public function moveToGroup($entryId, $groupId) {
-        if (empty($entryId) || empty($groupId)) 
+    public function moveToGroup($entryId, $groupId)
+    {
+        if (empty($entryId) || empty($groupId))
             throw new Exception("Hiányzó azonosító(k).");
-        
+
         // Ellenőrizzük, hogy a csoport létezik
         $check = $this->pdo->prepare("SELECT id FROM `groups` WHERE id = ?");
         $check->execute([$groupId]);
-        if (!$check->fetch()) 
+        if (!$check->fetch())
             throw new Exception("A cél csoport nem létezik.");
-        
+
         $stmt = $this->pdo->prepare("UPDATE entries SET group_id = ? WHERE id = ?");
         $stmt->execute([$groupId, $entryId]);
         return ["message" => "Bejegyzés sikeresen áthelyezve!"];
     }
 
     // ─── Elem törlése ───────────────────────────────────────────────────────
-    public function deleteEntry($id) {
+    public function deleteEntry($id)
+    {
         if (empty($id)) throw new Exception("Hiányzó azonosító.");
 
         // Csatolmányok törlése fájlrendszerről is
@@ -231,7 +395,8 @@ class EntryController {
     }
 
     // ─── Kapcsolatok ────────────────────────────────────────────────────────
-    public function createLink($sourceId, $targetId) {
+    public function createLink($sourceId, $targetId)
+    {
         if (empty($sourceId) || empty($targetId) || $sourceId == $targetId)
             throw new Exception("Érvénytelen kapcsolat azonosítók.");
 
@@ -246,7 +411,8 @@ class EntryController {
         return ["message" => "Kapcsolat sikeresen létrehozva!"];
     }
 
-    public function deleteLink($sourceId, $targetId) {
+    public function deleteLink($sourceId, $targetId)
+    {
         if (empty($sourceId) || empty($targetId)) throw new Exception("Hiányzó azonosítók.");
         $stmt = $this->pdo->prepare(
             "DELETE FROM entry_links WHERE (source_id=? AND target_id=?) OR (source_id=? AND target_id=?)"
@@ -256,43 +422,50 @@ class EntryController {
     }
 
     // ─── Kategóriák ─────────────────────────────────────────────────────────
-    public function getCategories() {
+    public function getCategories()
+    {
         return $this->pdo->query("SELECT * FROM categories ORDER BY name ASC")->fetchAll();
     }
 
-    public function createCategory($data) {
+    public function createCategory($data)
+    {
         if (empty($data['name'])) throw new Exception("A kategória neve kötelező!");
         $stmt = $this->pdo->prepare("INSERT INTO categories (name, color_hex) VALUES (?, ?)");
         $stmt->execute([$data['name'], $data['color_hex'] ?? '#5c6bc0']);
         return ["message" => "Kategória létrehozva!", "id" => $this->pdo->lastInsertId()];
     }
 
-    public function assignCategory($entryId, $categoryId) {
+    public function assignCategory($entryId, $categoryId)
+    {
         $stmt = $this->pdo->prepare("UPDATE entries SET category_id = ? WHERE id = ?");
         $stmt->execute([$categoryId, $entryId]);
         return ["message" => "Kategória hozzárendelve!"];
     }
 
     // ─── Tagek ──────────────────────────────────────────────────────────────
-    public function getTags() {
+    public function getTags()
+    {
         return $this->pdo->query("SELECT * FROM tags ORDER BY name ASC")->fetchAll();
     }
 
-    public function createTag($data) {
+    public function createTag($data)
+    {
         if (empty($data['name'])) throw new Exception("A tag neve kötelező!");
         $stmt = $this->pdo->prepare("INSERT INTO tags (name, color_hex) VALUES (?, ?)");
         $stmt->execute([$data['name'], $data['color_hex'] ?? '#ff9800']);
         return ["message" => "Tag létrehozva!", "id" => $this->pdo->lastInsertId()];
     }
 
-    public function assignTag($entryId, $tagId) {
+    public function assignTag($entryId, $tagId)
+    {
         $stmt = $this->pdo->prepare("INSERT IGNORE INTO entry_tags (entry_id, tag_id) VALUES (?, ?)");
         $stmt->execute([$entryId, $tagId]);
         return ["message" => "Tag hozzárendelve!"];
     }
 
     // ─── ÚJ: Tag eltávolítása ───────────────────────────────────────────────
-    public function unassignTag($entryId, $tagId) {
+    public function unassignTag($entryId, $tagId)
+    {
         if (empty($entryId) || empty($tagId)) throw new Exception("Hiányzó azonosítók.");
         $stmt = $this->pdo->prepare("DELETE FROM entry_tags WHERE entry_id = ? AND tag_id = ?");
         $stmt->execute([$entryId, $tagId]);
@@ -300,19 +473,22 @@ class EntryController {
     }
 
     // ─── Helyszín ───────────────────────────────────────────────────────────
-    public function createLocation($data) {
+    public function createLocation($data)
+    {
         if (empty($data['name'])) throw new Exception("A helyszín neve kötelező!");
         $stmt = $this->pdo->prepare("INSERT INTO locations (name) VALUES (?)");
         $stmt->execute([$data['name']]);
         return ["message" => "Helyszín létrehozva!", "id" => $this->pdo->lastInsertId()];
     }
 
-    public function getLocations() {
+    public function getLocations()
+    {
         return $this->pdo->query("SELECT * FROM locations ORDER BY name ASC")->fetchAll();
     }
 
     // ─── ÚJ: Csatolmány feltöltése ──────────────────────────────────────────
-    public function uploadAttachment($entryId, $file) {
+    public function uploadAttachment($entryId, $file)
+    {
         if (empty($entryId)) throw new Exception("Hiányzó entry azonosító.");
 
         // Entry létezik-e?
@@ -362,7 +538,8 @@ class EntryController {
     }
 
     // ─── ÚJ: Csatolmány törlése ─────────────────────────────────────────────
-    public function deleteAttachment($attachmentId) {
+    public function deleteAttachment($attachmentId)
+    {
         if (empty($attachmentId)) throw new Exception("Hiányzó csatolmány azonosító.");
 
         $stmt = $this->pdo->prepare("SELECT file_path FROM attachments WHERE id = ?");
@@ -383,7 +560,9 @@ class EntryController {
     }
 
     // ─── Naptár ─────────────────────────────────────────────────────────────
-    public function getCalendarEntries() {
+    // MÓDOSÍTVA: az archivált todo-k NEM jelennek meg a naptárban (soft-delete).
+    public function getCalendarEntries()
+    {
         $sql = "
             SELECT 
                 e.id, e.title, e.content, e.type,
@@ -395,13 +574,15 @@ class EntryController {
             LEFT JOIN todo_details  td ON e.id = td.entry_id AND e.type = 'todo'
             WHERE e.type IN ('todo', 'event')
             AND (ed.start_datetime IS NOT NULL OR td.planned_start IS NOT NULL)
+            AND NOT (e.type = 'todo' AND td.status = 'archived')
         ";
         return $this->pdo->query($sql)->fetchAll();
     }
     // ─── Privát segédfüggvények ──────────────────────────────────────────────
 
     // datetime-local input értéke "2025-03-28T14:30" - MySQL-hez "2025-03-28 14:30:00" kell
-    private function normalizeDateTime(?string $val): ?string {
+    private function normalizeDateTime(?string $val): ?string
+    {
         if (empty($val)) return null;
         // T elválasztó cseréje szóközre, másodperc hozzáadása ha hiányzik
         $val = str_replace('T', ' ', $val);
@@ -409,7 +590,8 @@ class EntryController {
         return $val;
     }
 
-    private function saveEventDetails($id, $data) {
+    private function saveEventDetails($id, $data)
+    {
         $start       = $this->normalizeDateTime($data['start_datetime'] ?? null) ?? date('Y-m-d H:i:s');
         $end         = $this->normalizeDateTime($data['end_datetime'] ?? null);
         $is_all_day  = isset($data['is_all_day']) ? (int)$data['is_all_day'] : 0;
@@ -422,7 +604,8 @@ class EntryController {
         $stmt->execute([$id, $start, $end, $is_all_day, $location_id]);
     }
 
-    private function saveTodoDetails($id, $data) {
+    private function saveTodoDetails($id, $data)
+    {
         $planned_start = $this->normalizeDateTime($data['planned_start'] ?? null);
         $deadline      = $this->normalizeDateTime($data['deadline'] ?? null);
         $stmt = $this->pdo->prepare(

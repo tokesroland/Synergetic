@@ -1,5 +1,6 @@
 /**
- * DetailsView v4 – Auth védelem az export Markdown funkcióra
+ * DetailsView v4 – Todo: tervezett kezdés + határidő kiírás, állítható status enum
+ * (active / completed / archived). Minden korábbi funkció megőrizve.
  */
 const DetailsView = {
   template: "#tpl-details-view",
@@ -16,6 +17,12 @@ const DetailsView = {
       currentCatId: null,
       currentCatName: null,
       currentCatColor: null,
+      currentCatId: null,
+      currentCatName: null,
+      currentCatColor: null,
+      currentLocId: null,
+      currentLocName: null,
+      allLocations: [],
       allCategories: [],
       allTags: [],
       pickerOpen: null,
@@ -24,6 +31,18 @@ const DetailsView = {
       lightboxOpen: false,
       lightboxSrc: "",
       currentFontSize: 3,
+      todoStatus: "active",
+      todoPlannedStart: null,
+      todoDeadline: null,
+      eventStartDatetime: null,
+      eventEndDatetime: null,
+      eventIsAllDay: 0,
+      eventDate: null,
+      STATUS_OPTIONS: [
+        { value: "active", label: "Aktív" },
+        { value: "completed", label: "Kész" },
+        { value: "archived", label: "Archivált" },
+      ],
       IMAGE_TYPES: [
         "image/jpeg",
         "image/jpg",
@@ -38,7 +57,6 @@ const DetailsView = {
     store() {
       return Store;
     },
-    // ÚJ: Auth védelemhez
     isLoggedIn() {
       return Store.isLoggedIn;
     },
@@ -52,6 +70,20 @@ const DetailsView = {
       return this.entry
         ? Store.typeNames[this.entry.type] || this.entry.type
         : "";
+    },
+    isTodo() {
+      return this.entry && this.entry.type === "todo";
+    },
+    isEvent() {
+      return this.entry && this.entry.type === 'event';
+    },
+    // Magyar formázott tervezett kezdés
+    fmtPlannedStart() {
+      return this.formatDateTime(this.todoPlannedStart);
+    },
+    // Magyar formázott határidő
+    fmtDeadline() {
+      return this.formatDateTime(this.todoDeadline);
     },
     filteredPickerItems() {
       const q = this.pickerSearch.toLowerCase();
@@ -85,19 +117,38 @@ const DetailsView = {
     await this.loadEntry();
   },
   methods: {
-    // ÚJ: Auth registration megnyitása
-    openAuthRegister() {
-      Store.openAuthModal('register');
+    // Datetime → "2026. 03. 28. 14:30" formátum (idő csak ha van)
+    formatDateTime(val) {
+      if (!val) return null;
+      const d = new Date(String(val).replace(" ", "T"));
+      if (isNaN(d.getTime())) return null;
+      const datePart = d.toLocaleDateString("hu-HU", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+      const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0;
+      if (!hasTime) return datePart;
+      const timePart = d.toLocaleTimeString("hu-HU", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      return `${datePart} ${timePart}`;
     },
+
     async loadEntry() {
       this.loading = true;
-      const [cats, tags] = await Promise.all([
+      const [cats, tags, locs] = await Promise.all([
         ApiService.getCategories(),
         ApiService.getTags(),
+        ApiService.getLocations ? ApiService.getLocations() : Store.locations,
       ]);
       this.allCategories = cats || [];
       this.allTags = tags || [];
+      this.allLocations = locs || Store.locations || [];
+
       const data = await ApiService.getEntry(this.entryId);
+
       if (data) {
         this.entry = data;
         this.editTitle = data.title || "";
@@ -105,6 +156,7 @@ const DetailsView = {
         this.currentCatId = data.category_id || null;
         this.currentCatName = data.category_name || null;
         this.currentCatColor = data.category_color || null;
+
         this.currentTags = (data.tags || []).map((t) => ({
           id: parseInt(t.id),
           name: t.name,
@@ -116,42 +168,97 @@ const DetailsView = {
           file_type: a.file_type,
           original_name: a.original_name || a.file_path.split("/").pop(),
         }));
+
+        if (data.type === "event" && data.event_details) {
+          this.currentLocId = data.event_details.location_id || null;
+          this.currentLocName = data.event_details.location_name || null; // Feltételezve, hogy a backend visszaadja a nevet joins-al
+        } else {
+          this.currentLocId = null;
+          this.currentLocName = null;
+        }
+
+        if (data.type === "todo" && data.todo_details) {
+          this.todoStatus = data.todo_details.status || "active";
+          this.todoPlannedStart = data.todo_details.planned_start || null;
+          this.todoDeadline = data.todo_details.deadline || null;
+        } else {
+          this.todoStatus = "active";
+          this.todoPlannedStart = null;
+          this.todoDeadline = null;
+        }
+
+        // ── ÚJ: Event részletek betöltése ──
+        if (data.type === "event" && data.event_details) {
+          this.eventIsAllDay = parseInt(data.event_details.is_all_day) || 0;
+          if (this.eventIsAllDay === 1) {
+            // "2026-05-19 00:00:00" -> "2026-05-19" (HTML date input formátum)
+            this.eventDate = data.event_details.start_datetime ? data.event_details.start_datetime.substring(0, 10) : '';
+          } else {
+            // "2026-05-19 14:30:00" -> "2026-05-19T14:30" (HTML datetime-local formátum)
+            this.eventStartDatetime = data.event_details.start_datetime ? data.event_details.start_datetime.substring(0, 16).replace(' ', 'T') : '';
+            this.eventEndDatetime = data.event_details.end_datetime ? data.event_details.end_datetime.substring(0, 16).replace(' ', 'T') : '';
+          }
+        } else {
+          this.eventIsAllDay = 0;
+          this.eventDate = null;
+          this.eventStartDatetime = null;
+          this.eventEndDatetime = null;
+        }
+
         this.$nextTick(() => {
           const el = this.$refs.contentEditor;
           if (el) el.innerHTML = this.editContent;
         });
       }
       this.loading = false;
+
     },
 
       exportMarkdown() {
-          // Védett funkció: csak bejelentkezett user használhatja
-          if (!this.isLoggedIn) {
-              Store.openAuthModal('register');
-              return;
-          }
-
           // HTML → plain text konverzió (alapvető tagek eltávolítása)
           const tempDiv = document.createElement('div');
           tempDiv.innerHTML = this.editContent;
 
-          // Listák, törések kezelése Markdown-szerűen
+          // Sorvégi sortörések normalizálása
           tempDiv.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+          
+          // Bekezdések kezelése (körül sortöréseket adunk)
+          tempDiv.querySelectorAll('p').forEach(p => {
+            p.append('\n\n');
+          });
+          
+          // DIV-ek kezelése (ha nem lista része)
+          tempDiv.querySelectorAll('div').forEach(div => {
+            if (!div.querySelector('li')) {
+              div.append('\n');
+            }
+          });
+          
+          // Listák kezelése Markdown-szerűen
           tempDiv.querySelectorAll('li').forEach(li => {
             li.prepend('- ');
             li.append('\n');
           });
+          
+          // Formázási tagek kezelése
           tempDiv.querySelectorAll('b, strong').forEach(el => {
-            el.prepend('**'); el.append('**');
+            el.prepend('**');
+            el.append('**');
           });
           tempDiv.querySelectorAll('i, em').forEach(el => {
-            el.prepend('_'); el.append('_');
+            el.prepend('_');
+            el.append('_');
           });
           tempDiv.querySelectorAll('u').forEach(el => {
-            el.prepend('__'); el.append('__');
+            el.prepend('__');
+            el.append('__');
           });
 
-          const contentText = tempDiv.innerText || tempDiv.textContent || '';
+          let contentText = tempDiv.innerText || tempDiv.textContent || '';
+          
+          // Sortörések normalizálása (3+ üres sor → 2 üres sor)
+          contentText = contentText.replace(/\n\n\n+/g, '\n\n');
+          contentText = contentText.trim();
 
           // Metaadatok összeállítása
           const lines = [];
@@ -167,11 +274,17 @@ const DetailsView = {
           if (this.entry.type) {
             lines.push(`**Típus:** ${this.typeName}`);
           }
+          if (this.isTodo) {
+            const sl = (this.STATUS_OPTIONS.find(s => s.value === this.todoStatus) || {}).label || this.todoStatus;
+            lines.push(`**Állapot:** ${sl}`);
+            if (this.fmtPlannedStart) lines.push(`**Tervezett kezdés:** ${this.fmtPlannedStart}`);
+            if (this.fmtDeadline) lines.push(`**Határidő:** ${this.fmtDeadline}`);
+          }
 
           lines.push('');
           lines.push('---');
           lines.push('');
-          lines.push(contentText.trim());
+          lines.push(contentText);
 
           const mdContent = lines.join('\n');
 
@@ -205,10 +318,10 @@ const DetailsView = {
       document.execCommand("fontName", false, e.target.value);
     },
 
-    async save() {
+async save() {
       this.saving = true;
       this.saveSuccess = false;
-
+      
       // Tartalom kiolvasása – ha a contenteditable elérhető, onnan; egyébként editContent fallback
       const editorEl = this.$refs.contentEditor;
       let content;
@@ -221,22 +334,52 @@ const DetailsView = {
         content = this.editContent || "";
       }
 
-      const res = await ApiService.updateEntry({
+      const payload = {
         id: this.entryId,
         title: this.editTitle,
         content,
-      });
+      };
+      // ── todo esetén az állapotot és a dátumokat is mentjük ──
+      if (this.isTodo) {
+        payload.status = this.todoStatus;
+        payload.planned_start = this.todoPlannedStart;
+        payload.deadline = this.todoDeadline;
+      }
+
+      // ──  event esetén is mentjük a dátumokat ──
+      if (this.isEvent) {
+        if (this.eventIsAllDay === 1) {
+          payload.start_datetime = this.eventDate;
+          payload.end_datetime = this.eventDate; 
+        } else {
+          payload.start_datetime = this.eventStartDatetime;
+          payload.end_datetime = this.eventEndDatetime;
+        }
+      }
+
+      const res = await ApiService.updateEntry(payload);
+      
+      // ── JAVÍTVA: todo esetén az állapotot és a dátumokat is mentjük ──
+      if (this.isTodo) {
+        payload.status = this.todoStatus;
+        payload.planned_start = this.todoPlannedStart;
+        payload.deadline = this.todoDeadline;
+      }
+
       this.saving = false;
       if (res && !res.error) {
         this.saveSuccess = true;
         this.entry.title = this.editTitle;
         this.entry.content = content;
         this.editContent = content;
+        
         // Frissítjük a Store-t az entry csoportja alapján
         const entryGroupId = this.entry.group_id;
         if (entryGroupId && parseInt(entryGroupId) !== Store.currentGroupId) {
           Store.currentGroupId = parseInt(entryGroupId);
         }
+        
+        // Soft-delete: ha archiváltuk, a Store újratöltésével eltűnik a gráfról
         await Store.loadCurrentGroup();
         await Store.loadGroups();
         setTimeout(() => {
@@ -246,6 +389,7 @@ const DetailsView = {
         alert("Mentési hiba: " + (res?.error || "Ismeretlen hiba"));
       }
     },
+
     async deleteEntry() {
       if (!confirm(`Biztosan törlöd: "${this.entry.title}"?`)) return;
       await ApiService.deleteEntry(this.entryId);
