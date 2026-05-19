@@ -159,6 +159,35 @@ const ApiService = {
       body: JSON.stringify({ action: "create_location", ...data }),
     });
   },
+  // ═══ Csoport CRUD ═══
+  createGroup(data) {
+    return this._fetch(this.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "create_group", ...data }),
+    });
+  },
+  updateGroup(data) {
+    return this._fetch(this.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "update_group", ...data }),
+    });
+  },
+  deleteGroup(id) {
+    return this._fetch(this.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete_group", id }),
+    });
+  },
+  bulkMoveToGroup(entryIds, groupId) {
+    return this._fetch(this.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "bulk_move_to_group", entry_ids: entryIds, group_id: groupId }),
+    });
+  },
   moveEntryToGroup(entryId, groupId) {
     return this._fetch(this.baseUrl, {
       method: "PUT",

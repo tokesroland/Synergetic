@@ -67,6 +67,79 @@ class EntryController
         return $this->pdo->query($sql)->fetchAll();
     }
 
+    // ─── Csoport létrehozása ─────────────────────────────────────────────────
+    public function createGroup($data)
+    {
+        if (empty($data['name'])) throw new Exception("A csoport neve kötelező!");
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO `groups` (name, description, color_hex) VALUES (?, ?, ?)"
+        );
+        $stmt->execute([
+            trim($data['name']),
+            trim($data['description'] ?? ''),
+            $data['color_hex'] ?? '#5c6bc0',
+        ]);
+        return ["message" => "Csoport létrehozva!", "id" => (int)$this->pdo->lastInsertId()];
+    }
+
+    // ─── Csoport frissítése ──────────────────────────────────────────────────
+    public function updateGroup($data)
+    {
+        if (empty($data['id']))   throw new Exception("Hiányzó azonosító.");
+        if (empty($data['name'])) throw new Exception("A csoport neve kötelező!");
+        $stmt = $this->pdo->prepare(
+            "UPDATE `groups` SET name = ?, description = ?, color_hex = ? WHERE id = ?"
+        );
+        $stmt->execute([
+            trim($data['name']),
+            trim($data['description'] ?? ''),
+            $data['color_hex'] ?? '#5c6bc0',
+            (int)$data['id'],
+        ]);
+        return ["message" => "Csoport frissítve!"];
+    }
+
+    // ─── Csoport törlése (elemek → Csoportosítatlan, id=1) ───────────────────
+    public function deleteGroup($groupId)
+    {
+        $groupId = (int)$groupId;
+        if ($groupId <= 0) throw new Exception("Érvénytelen azonosító.");
+        if ($groupId === 1) throw new Exception("Az alapértelmezett csoport nem törölhető!");
+
+        $check = $this->pdo->prepare("SELECT id FROM `groups` WHERE id = ?");
+        $check->execute([$groupId]);
+        if (!$check->fetch()) throw new Exception("A csoport nem található.");
+
+        $this->pdo->beginTransaction();
+        try {
+            $this->pdo->prepare("UPDATE entries SET group_id = 1 WHERE group_id = ?")->execute([$groupId]);
+            $this->pdo->prepare("DELETE FROM `groups` WHERE id = ?")->execute([$groupId]);
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+        return ["message" => "Csoport törölve, elemei átkerültek a Csoportosítatlan csoportba."];
+    }
+
+    // ─── Tömeges áthelyezés csoportba ───────────────────────────────────────
+    public function bulkMoveToGroup($entryIds, $groupId)
+    {
+        if (empty($entryIds) || !is_array($entryIds)) throw new Exception("Hiányzó elem-azonosítók.");
+        $groupId = (int)$groupId;
+        if ($groupId <= 0) throw new Exception("Érvénytelen cél-csoport.");
+
+        $check = $this->pdo->prepare("SELECT id FROM `groups` WHERE id = ?");
+        $check->execute([$groupId]);
+        if (!$check->fetch()) throw new Exception("A cél csoport nem létezik.");
+
+        $ids = array_map('intval', $entryIds);
+        $ph  = implode(',', array_fill(0, count($ids), '?'));
+        $params = array_merge([$groupId], $ids);
+        $this->pdo->prepare("UPDATE entries SET group_id = ? WHERE id IN ($ph)")->execute($params);
+        return ["message" => count($ids) . " elem áthelyezve!", "moved" => count($ids)];
+    }
+
     // ─── Csoport összes eleme (gráf) ────────────────────────────────────────
     // MÓDOSÍTVA: az archivált todo-k (status='archived') NEM jelennek meg (soft-delete).
     public function getAllByGroup($groupId)

@@ -132,6 +132,11 @@ try {
                 case 'assign_category': echo json_encode($entryCtrl->assignCategory($input['entry_id'], $input['category_id'])); break;
                 case 'assign_tag': echo json_encode($entryCtrl->assignTag($input['entry_id'], $input['tag_id'])); break;
                 case 'unassign_tag': echo json_encode($entryCtrl->unassignTag($input['entry_id'], $input['tag_id'])); break;
+                // ─── CSOPORT CRUD ───
+                case 'create_group':       echo json_encode($entryCtrl->createGroup($input)); break;
+                case 'update_group':       echo json_encode($entryCtrl->updateGroup($input)); break;
+                case 'delete_group':       echo json_encode($entryCtrl->deleteGroup((int)($input['id'] ?? 0))); break;
+                case 'bulk_move_to_group': echo json_encode($entryCtrl->bulkMoveToGroup($input['entry_ids'] ?? [], (int)($input['group_id'] ?? 0))); break;
                 default: echo json_encode($entryCtrl->create($input));
             }
             break;

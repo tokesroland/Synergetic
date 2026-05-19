@@ -917,33 +917,74 @@
                       </div>
                       <div class="group-card-stats">{{ group.todo_count||0 }} Feladat | {{ group.event_count||0 }} Esemény | {{ group.note_count||0 }} Jegyzet</div>
                   </div>
+                  <!-- Új csoport gomb – mindig a lista alján -->
+                  <button class="group-add-btn" @click="openCreateModal">＋ Új csoport</button>
               </div>
               <div class="groups-entries-panel">
                   <template v-if="selectedGroup">
-                      <h3 :style="{ color:selectedGroup.color_hex }">{{ selectedGroup.name }}</h3>
+                      <div class="groups-entries-header">
+                          <h3 :style="{ color:selectedGroup.color_hex }">{{ selectedGroup.name }}</h3>
+                          <div class="bulk-toolbar" v-if="anySelected">
+                              <span class="bulk-count">{{ selectedEntryIds.length }} kijelölve</span>
+                              <button class="bulk-move-btn" @click="openBulkMove">→ Áthelyezés</button>
+                              <button class="bulk-cancel-btn" @click="clearSelection">✕</button>
+                          </div>
+                      </div>
+                      <div v-if="bulkMoveOpen" class="bulk-move-panel">
+                          <label class="bulk-move-label">Cél csoport:</label>
+                          <select class="form-control bulk-move-select" v-model="bulkTargetGroupId">
+                              <option :value="null" disabled>— válassz —</option>
+                              <option v-for="g in bulkTargetGroups" :key="g.id" :value="g.id">{{ g.name }}</option>
+                          </select>
+                          <button class="bulk-confirm-btn" :disabled="!bulkTargetGroupId||bulkSaving" @click="confirmBulkMove">{{ bulkSaving?'…':'Áthelyezés' }}</button>
+                      </div>
                       <div v-if="entries.length===0" class="groups-empty">Ebben a csoportban még nincsenek elemek.</div>
                       <div class="entries-grid">
-                          <div v-for="entry in entries" :key="entry.id" class="entry-card" :style="{ borderLeftColor:entryColor(entry.type) }" @click="goToEntry(entry)">
+                          <div v-for="entry in entries" :key="entry.id" class="entry-card" :class="{ 'entry-card--selected':isSelected(entry.id) }" :style="{ borderLeftColor:entryColor(entry.type) }" @click="goToEntry(entry)">
                               <div class="entry-card-top">
                                   <div class="entry-card-title">{{ entry.title }}</div>
                                   <div v-if="entry.type==='todo'&&todoDeadline(entry)" class="entry-card-date">{{ todoDeadline(entry) }}</div>
                                   <div v-if="entry.type==='event'&&eventStart(entry)" class="entry-card-date">{{ eventStart(entry) }}</div>
                               </div>
                               <div class="entry-card-meta"><span class="entry-type-badge" :style="{ color:entryColor(entry.type) }">{{ entryTypeName(entry.type) }}</span></div>
+                              <div class="entry-card-checkbox" @click.stop="toggleEntrySelect(entry.id,$event)"><input type="checkbox" :checked="isSelected(entry.id)" @change.stop></div>
                           </div>
                       </div>
                   </template>
               </div>
           </div>
-          <!-- Edit group modal -->
+
+          <!-- Szerkesztés modal -->
           <div v-if="editModalOpen" class="modal-overlay active" @click.self="closeEditModal">
               <div class="modal-content" style="max-width:400px">
                   <div class="modal-header"><h2>Csoport szerkesztése</h2><button class="close-modal-btn" @click="closeEditModal">&times;</button></div>
                   <div class="modal-body">
+                      <div v-if="editError" class="form-error">{{ editError }}</div>
                       <div class="form-group"><label>Név</label><input type="text" class="form-control" v-model="editForm.name"></div>
                       <div class="form-group"><label>Leírás</label><textarea class="form-control" rows="3" v-model="editForm.description"></textarea></div>
                       <div class="form-group"><label>Szín</label><input type="color" class="form-control" v-model="editForm.color_hex" style="height:40px;cursor:pointer"></div>
-                      <button class="btn-primary" style="width:100%" @click="saveGroup">Mentés</button>
+                  </div>
+                  <div class="modal-footer">
+                      <button class="btn-danger" @click="deleteGroup" :disabled="editForm.id===1||editSaving">🗑 Törlés</button>
+                      <button class="btn-cancel" @click="closeEditModal">Mégse</button>
+                      <button class="btn-primary" @click="saveGroup" :disabled="editSaving">{{ editSaving?'…':'Mentés' }}</button>
+                  </div>
+              </div>
+          </div>
+
+          <!-- Új csoport modal -->
+          <div v-if="createModalOpen" class="modal-overlay active" @click.self="closeCreateModal">
+              <div class="modal-content" style="max-width:400px">
+                  <div class="modal-header"><h2>Új csoport</h2><button class="close-modal-btn" @click="closeCreateModal">&times;</button></div>
+                  <div class="modal-body">
+                      <div v-if="createError" class="form-error">{{ createError }}</div>
+                      <div class="form-group"><label>Név</label><input type="text" class="form-control" v-model="createForm.name" placeholder="Csoport neve"></div>
+                      <div class="form-group"><label>Leírás</label><textarea class="form-control" rows="3" v-model="createForm.description"></textarea></div>
+                      <div class="form-group"><label>Szín</label><input type="color" class="form-control" v-model="createForm.color_hex" style="height:40px;cursor:pointer"></div>
+                  </div>
+                  <div class="modal-footer">
+                      <button class="btn-cancel" @click="closeCreateModal">Mégse</button>
+                      <button class="btn-primary" @click="createGroup" :disabled="createSaving">{{ createSaving?'…':'＋ Létrehozás' }}</button>
                   </div>
               </div>
           </div>
