@@ -1,12 +1,9 @@
-/**
- * RoutineView v4 – Auth védelem: nem bejelentkezett user nem használhatja
- * (üveghatású letakarással, regisztrációs gombbal)
- */
 const RoutineView = {
   template: "#tpl-routine-view",
   data() {
     return {
-      items: [],
+      items: [],          // a mai dátumra FELOLDOTT rutinok (megjelenítéshez)
+      rawItems: [],       // nyers routine_items (szerkesztéshez)
       completions: [],
       categories: [],
       currentView: "week",
@@ -23,7 +20,7 @@ const RoutineView = {
         "Szombat",
         "Vasárnap",
       ],
-      TL_START: 5,
+      TL_START: 3,
       TL_END: 23,
       typeColors: {
         todo: "#4caf50",
@@ -44,13 +41,23 @@ const RoutineView = {
         color_hex: "",
       },
       dayPills: [1, 2, 3, 4, 5, 6, 7],
+
+      // ── ÚJ: Kivétel kezelés ──
+      exceptionFormOpen: false,
+      existingExceptions: [],
+      exceptionForm: {
+        mode: "time",        // 'time' = új időpont | 'day' = másik nap | 'skip' = lemondás
+        occurrences: 1,      // a következő N előfordulás
+        new_start_time: "09:00",
+        new_end_time: "10:00",
+        new_day_of_week: null,
+      },
     };
   },
   computed: {
     store() {
       return Store;
     },
-    // ÚJ: Auth védelemhez
     isLoggedIn() {
       return Store.isLoggedIn;
     },
@@ -111,7 +118,6 @@ const RoutineView = {
     totalItems() {
       return this.items.length;
     },
-    // Egyedi rutin nevek összegyűjtése az alsó sávhoz
     uniqueRoutineNames() {
       const map = new Map();
       this.items.forEach((item) => {
@@ -120,6 +126,10 @@ const RoutineView = {
         }
       });
       return Array.from(map, ([name, color]) => ({ name, color }));
+    },
+    // ── ÚJ: a kivétel-űrlap napjai (pill választóhoz) ──
+    exceptionDayPills() {
+      return [1, 2, 3, 4, 5, 6, 7];
     },
   },
   async mounted() {
@@ -130,13 +140,11 @@ const RoutineView = {
       r.getPropertyValue("--node-task").trim() || this.typeColors.todo;
     this.typeColors.event =
       r.getPropertyValue("--node-event").trim() || this.typeColors.event;
-    // Csak bejelentkezett usernek töltjük be a rutin adatokat
     if (this.isLoggedIn) {
       await this.loadAll();
     }
   },
   watch: {
-    // Ha közben bejelentkezik a user, töltsük be az adatokat
     isLoggedIn(val) {
       if (val) this.loadAll();
     },
@@ -148,17 +156,27 @@ const RoutineView = {
     checkMobile() {
       this.isMobile = window.innerWidth < 900;
     },
-    // ÚJ: Auth registration megnyitása
     openAuthRegister() {
       Store.openAuthModal('register');
     },
     async loadAll() {
-      const [items, completions, cats] = await Promise.all([
+      // Háttérben deaktiváljuk a lejárt kivételeket (audit célból megmaradnak)
+      ApiService.deactivateExpiredRoutineExceptions();
+
+      const todayStr     = this.getDateStr();
+      const weekStartStr = this.getDateStr(this.getMondayDate());
+
+      const [items, rawItems, completions, cats] = await Promise.all([
+        // HETI feloldott lista – minden rutin a saját napjának dátumán
+        // kapja a kivétel-feloldást (idő/nap módosítás, skip).
+        ApiService.getRoutineAll(null, weekStartStr),
+        // NYERS lista (szerkesztéshez, kivétel nélkül)
         ApiService.getRoutineAll(),
-        ApiService.getRoutineCompletions(this.getDateStr()),
+        ApiService.getRoutineCompletions(todayStr),
         ApiService.getCategories(),
       ]);
       this.items = items || [];
+      this.rawItems = rawItems || [];
       this.completions = (completions || []).map(
         (c) => c.routine_item_id || c.id,
       );
@@ -220,11 +238,9 @@ const RoutineView = {
     toggleTimeline() {
       this.timelineOpen = !this.timelineOpen;
     },
-    // Tooltip szöveg
     tlTooltip(item) {
       return `${item.title} (${this.fmtTime(item.start_time)}–${this.fmtTime(item.end_time)})`;
     },
-    // Timeline bar pozíció
     tlBarStyle(item) {
       const totalMin = (this.TL_END - this.TL_START) * 60;
       const startMin = this.timeToMin(item.start_time) - this.TL_START * 60;
@@ -237,7 +253,10 @@ const RoutineView = {
         background: this.getItemColor(item),
       };
     },
-    // Modal - multi day selection
+    // ── SEGÉD: a nyers (kivétel nélküli) item megkeresése id alapján ──
+    findRawItem(id) {
+      return this.rawItems.find((i) => i.id == id) || null;
+    },
     openCreateModal(dow) {
       this.editItem = null;
       this.form = {
@@ -249,24 +268,37 @@ const RoutineView = {
         category_id: "",
         color_hex: "",
       };
+      // Kivétel szekció zárva új elemnél (még nincs id)
+      this.exceptionFormOpen = false;
+      this.existingExceptions = [];
       this.modalOpen = true;
     },
-    openEditModal(item) {
-      this.editItem = item;
+    async openEditModal(item) {
+      // Szerkesztésnél MINDIG a nyers ütemezésből indulunk, hogy a
+      // kivétellel feloldott (módosított) idő ne íródjon vissza alapként.
+      const raw = this.findRawItem(item.id) || item;
+      this.editItem = raw;
       this.form = {
-        title: item.title,
-        type: item.type,
-        day_of_week: [item.day_of_week],
-        start_time: item.start_time || "09:00",
-        end_time: item.end_time || "10:00",
-        category_id: item.category_id || "",
-        color_hex: item.color_hex || "",
+        title: raw.title,
+        type: raw.type,
+        day_of_week: [raw.day_of_week],
+        start_time: raw.start_time || "09:00",
+        end_time: raw.end_time || "10:00",
+        category_id: raw.category_id || "",
+        color_hex: raw.color_hex || "",
       };
+      // Kivétel-űrlap alaphelyzet
+      this.exceptionFormOpen = false;
+      this.resetExceptionForm(raw);
       this.modalOpen = true;
+      // Meglévő kivételek betöltése ehhez a rutinhoz
+      await this.loadExceptions(raw.id);
     },
     closeModal() {
       this.modalOpen = false;
       this.editItem = null;
+      this.exceptionFormOpen = false;
+      this.existingExceptions = [];
     },
     toggleDayPill(dow) {
       const idx = this.form.day_of_week.indexOf(dow);
@@ -282,7 +314,6 @@ const RoutineView = {
         return;
       }
       if (this.editItem) {
-        // Edit: csak az eredeti napra
         await ApiService.updateRoutineItem({
           id: this.editItem.id,
           title: this.form.title,
@@ -294,7 +325,6 @@ const RoutineView = {
           color_hex: this.form.color_hex || null,
         });
       } else {
-        // Create: minden kiválasztott napra
         for (const dow of this.form.day_of_week) {
           await ApiService.createRoutineItem({
             title: this.form.title,
@@ -313,6 +343,117 @@ const RoutineView = {
     async deleteItem(item) {
       if (!confirm(`Törlöd: "${item.title}"?`)) return;
       await ApiService.deleteRoutineItem(item.id);
+      await this.loadAll();
+    },
+
+    /* ============================================================
+     *  ===== ÚJ: KIVÉTEL KEZELÉS =====
+     * ============================================================ */
+
+    resetExceptionForm(raw) {
+      const base = raw || this.editItem || {};
+      this.exceptionForm = {
+        mode: "time",
+        occurrences: 1,
+        new_start_time: base.start_time
+          ? base.start_time.substring(0, 5)
+          : "09:00",
+        new_end_time: base.end_time ? base.end_time.substring(0, 5) : "10:00",
+        new_day_of_week: base.day_of_week || this.todayDow,
+      };
+    },
+
+    toggleExceptionForm() {
+      this.exceptionFormOpen = !this.exceptionFormOpen;
+      if (this.exceptionFormOpen) {
+        this.resetExceptionForm(this.editItem);
+      }
+    },
+
+    async loadExceptions(routineItemId) {
+      if (!routineItemId) {
+        this.existingExceptions = [];
+        return;
+      }
+      const list = await ApiService.getRoutineExceptions(routineItemId);
+      this.existingExceptions = list || [];
+    },
+
+    excSummary(ex) {
+      // Olvasható összefoglaló egy kivételhez (lista megjelenítéshez)
+      const used = ex.used != null ? ex.used : ex.occurrences - ex.remaining;
+      const status = ex.is_active == 1 ? "" : " · (lejárt)";
+      if (ex.is_skip == 1) {
+        return `Lemondás · ${ex.occurrences} alkalom (felhasznált: ${used})${status}`;
+      }
+      const parts = [];
+      if (ex.new_day_of_week) {
+        parts.push(`→ ${this.DAYS_FULL[ex.new_day_of_week - 1]}`);
+      }
+      if (ex.new_start_time || ex.new_end_time) {
+        parts.push(
+          `${this.fmtTime(ex.new_start_time)}–${this.fmtTime(ex.new_end_time)}`,
+        );
+      }
+      return `${parts.join(" ")} · ${ex.occurrences} alkalom (felhasznált: ${used})${status}`;
+    },
+
+    async saveException() {
+      if (!this.editItem || !this.editItem.id) {
+        alert("Előbb mentsd el a rutint, utána adhatsz hozzá kivételt!");
+        return;
+      }
+      const occ = parseInt(this.exceptionForm.occurrences, 10);
+      if (!occ || occ < 1) {
+        alert("Az alkalmak száma legalább 1 legyen!");
+        return;
+      }
+
+      const payload = {
+        routine_item_id: this.editItem.id,
+        occurrences: occ,
+        is_skip: 0,
+        new_day_of_week: null,
+        new_start_time: null,
+        new_end_time: null,
+      };
+
+      if (this.exceptionForm.mode === "skip") {
+        payload.is_skip = 1;
+      } else if (this.exceptionForm.mode === "day") {
+        payload.new_day_of_week = this.exceptionForm.new_day_of_week;
+        // napváltáskor az időt is átvihetjük, ha a user módosította
+        payload.new_start_time = this.exceptionForm.new_start_time || null;
+        payload.new_end_time = this.exceptionForm.new_end_time || null;
+      } else {
+        // 'time' – csak időpont
+        payload.new_start_time = this.exceptionForm.new_start_time || null;
+        payload.new_end_time = this.exceptionForm.new_end_time || null;
+      }
+
+      const res = await ApiService.createRoutineException(payload);
+      if (res && res.error) {
+        alert(res.error);
+        return;
+      }
+      this.exceptionFormOpen = false;
+      await this.loadExceptions(this.editItem.id);
+      await this.loadAll();
+    },
+
+    async deactivateExc(ex) {
+      if (!confirm("Biztosan deaktiválod ezt a kivételt? (előzményként megmarad)"))
+        return;
+      await ApiService.deactivateRoutineException(ex.id);
+      await this.loadExceptions(this.editItem.id);
+      await this.loadAll();
+    },
+
+    async deleteExc(ex) {
+      if (!confirm("Véglegesen törlöd ezt a kivételt? Ez nem visszavonható."))
+        return;
+      await ApiService.deleteRoutineException(ex.id);
+      await this.loadExceptions(this.editItem.id);
       await this.loadAll();
     },
   },

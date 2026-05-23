@@ -1,7 +1,7 @@
 /**
- * Synergetic – API Service v6 (auth támogatással)
+ * Synergetic – API Service v7 (routine kivételkezelés támogatással)
  * – credentials: 'include' minden fetch hívásban (session cookie miatt)
- * – új: register, login, logout, getCurrentUser
+ * – új: routine exceptions CRUD + getRoutineAll/getRoutineByDay forDate paraméter
  */
 const ApiService = {
   baseUrl: "api.php",
@@ -217,11 +217,21 @@ const ApiService = {
       method: "DELETE",
     });
   },
-  getRoutineAll() {
-    return this._fetch(`${this.baseUrl}?action=get_routine_all`);
+
+  // ═══ Rutin ═══
+  // forDate    – csak aznap rutinjai, kivételek feloldva (napi nézet / mai lista)
+  // weekStart  – egész hét, minden nap saját dátumán feloldva (heti nézet)
+  // egyik sem  – nyers heti ütemezés (szerkesztéshez)
+  getRoutineAll(forDate, weekStart) {
+    const params = [];
+    if (forDate)   params.push(`for_date=${forDate}`);
+    if (weekStart) params.push(`week_start=${weekStart}`);
+    const q = params.length ? "&" + params.join("&") : "";
+    return this._fetch(`${this.baseUrl}?action=get_routine_all${q}`);
   },
-  getRoutineByDay(day) {
-    return this._fetch(`${this.baseUrl}?action=get_routine_by_day&day=${day}`);
+  getRoutineByDay(day, forDate) {
+    const q = forDate ? `&for_date=${forDate}` : "";
+    return this._fetch(`${this.baseUrl}?action=get_routine_by_day&day=${day}${q}`);
   },
   getRoutineCompletions(date) {
     return this._fetch(
@@ -264,6 +274,47 @@ const ApiService = {
     });
   },
 
+  // ═══ ÚJ: Rutin kivételek (routine_exceptions) ═══
+  getRoutineExceptions(routineItemId) {
+    return this._fetch(
+      `${this.baseUrl}?action=get_routine_exceptions&routine_item_id=${routineItemId}`,
+    );
+  },
+  createRoutineException(data) {
+    // data: { routine_item_id, occurrences, is_skip, new_day_of_week,
+    //         new_start_time, new_end_time, created_on?, valid_until? }
+    return this._fetch(this.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "create_routine_exception", ...data }),
+    });
+  },
+  updateRoutineException(data) {
+    return this._fetch(this.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "update_routine_exception", ...data }),
+    });
+  },
+  deactivateRoutineException(id) {
+    return this._fetch(this.baseUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "deactivate_routine_exception", id }),
+    });
+  },
+  deleteRoutineException(id) {
+    return this._fetch(
+      `${this.baseUrl}?action=delete_routine_exception&id=${id}`,
+      { method: "DELETE" },
+    );
+  },
+  deactivateExpiredRoutineExceptions() {
+    return this._fetch(
+      `${this.baseUrl}?action=deactivate_expired_routine_exceptions`,
+    );
+  },
+
   // ═══ Keresés ═══
   searchEntries(filters = {}) {
     const p = new URLSearchParams({ action: "search_entries" });
@@ -291,4 +342,5 @@ const ApiService = {
   getAttachmentTypes() {
     return this._fetch(`${this.baseUrl}?action=get_attachment_types`);
   },
+  
 };

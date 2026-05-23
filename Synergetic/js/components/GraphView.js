@@ -1,5 +1,10 @@
 /**
- * GraphView v5 – Keresés highlight: node-ok + KAPCSOLATAIK is kitűnnek
+ * GraphView v6 – Tag/keresés highlight bugfix:
+ *  - A Store.highlightedNodeIds most NUMBER ID-kat tárol (lásd Store v7).
+ *  - A draw()-ban Number(node.id)-vel ellenőrzünk, hogy a backend string ID
+ *    vs frontend integer ID különbség ne okozzon hibás dimm-elést.
+ *
+ * v5 örökség: kapcsolatok is kiemelődnek keresésnél, két-pass rajz.
  */
 const GraphView = {
   template: "#tpl-graph-view",
@@ -174,6 +179,17 @@ const GraphView = {
     async finishLink(target) { await ApiService.createLink(this.activeNodeForMenu.id, target.id); this.isLinkingMode = false; this.canvas.style.cursor = "default"; Store.loadCurrentGroup(); },
     async finishUnlink(link) { await ApiService.deleteLink(link.source.id, link.target.id); this.isUnlinkingMode = false; this.canvas.style.cursor = "default"; Store.loadCurrentGroup(); },
 
+    // ─── ÚJ: helper a robusztus highlight ellenőrzéshez ────────────────────
+    // A Store.highlightedNodeIds Number-eket tárol; a node.id lehet string
+    // (backend FETCH_ASSOC) vagy szám. Number()-rel hidaljuk át.
+    _isHighlighted(nodeId) {
+      const hl = Store.highlightedNodeIds;
+      if (!hl) return false;
+      const n = Number(nodeId);
+      if (Number.isNaN(n)) return false;
+      return hl.has(n);
+    },
+
     // ═══ DRAW – Keresési kiemelés: node-ok ÉS kapcsolataik ═══
     draw() {
       if (!this.ctx) return;
@@ -185,21 +201,17 @@ const GraphView = {
 
       const nodes = this.visibleNodes;
       const searchOn = Store.searchActive;
-      const hlIds = Store.highlightedNodeIds;
 
       // ── Kapcsolatok ──
-      // Két pass: 1) dimmed, 2) highlighted
       nodes.forEach(node => {
         if (!node.links) return;
         node.links.forEach(linkId => {
           const target = nodes.find(n => n.id === linkId);
           if (!target) return;
 
-          const srcHl = !searchOn || (hlIds && hlIds.has(node.id));
-          const tgtHl = !searchOn || (hlIds && hlIds.has(target.id));
-          // Kapcsolat akkor tűnik ki, ha LEGALÁBB az egyik végpont kiemelt
+          const srcHl = !searchOn || this._isHighlighted(node.id);
+          const tgtHl = !searchOn || this._isHighlighted(target.id);
           const linkHl = srcHl || tgtHl;
-          // Kapcsolat akkor a LEGFÉNYESEBB, ha mindkét végpont kiemelt
           const linkBright = srcHl && tgtHl;
 
           ctx.beginPath();
@@ -236,12 +248,11 @@ const GraphView = {
         const color = this.colors[node.type] || "#fff";
         const isActive = node === this.draggedNode || node === this.hoveredNode;
         const isSelected = node.id === Store.selectedId;
-        const isHl = !searchOn || (hlIds && hlIds.has(node.id));
+        const isHl = !searchOn || this._isHighlighted(node.id);
         const dimOpacity = searchOn && !isHl ? 0.1 : 1;
 
         ctx.globalAlpha = dimOpacity;
 
-        // Glow körülötte keresés közben
         if (searchOn && isHl) {
           ctx.beginPath();
           ctx.arc(node.x, node.y, this.NODE_RADIUS + 6, 0, Math.PI * 2);
@@ -251,7 +262,6 @@ const GraphView = {
           ctx.globalAlpha = dimOpacity;
         }
 
-        // Node
         ctx.beginPath();
         ctx.arc(node.x, node.y, this.NODE_RADIUS, 0, Math.PI * 2);
         ctx.shadowBlur = isActive || isSelected ? 24 : (isHl && searchOn ? 18 : 8);
@@ -261,7 +271,6 @@ const GraphView = {
 
         if (isSelected) { ctx.lineWidth = 2.5; ctx.strokeStyle = "#fff"; ctx.stroke(); }
 
-        // Kiemelő ring
         if (searchOn && isHl) {
           ctx.lineWidth = 1.8;
           ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
@@ -272,7 +281,6 @@ const GraphView = {
 
         ctx.shadowBlur = 0;
 
-        // Felirat
         ctx.fillStyle = isHl || !searchOn ? "rgba(228,228,234,0.9)" : "rgba(228,228,234,0.1)";
         ctx.font = '600 13px "DM Sans",sans-serif';
         ctx.textAlign = "center";

@@ -1,0 +1,235 @@
+/* ════════════════════════════════════════════════════════════════════
+   DETAILS – BADGE ROW kiegészítések (Helyszín)
+   v5: kategória-szerű kattintható badge + + Helyszín dashed gomb
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Helyszín badge — pontosan úgy mint a category-badge, csak más színnel */
+.location-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  background-color: #ef4444;            /* helyszín saját szín — piros tónus */
+  cursor: pointer;
+  transition:
+    filter 0.2s,
+    box-shadow 0.2s;
+  flex-shrink: 0;
+}
+
+.location-badge:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
+}
+
+/* + Helyszín gomb (mint az add-tag-btn vagy add-category-btn) */
+.add-location-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: transparent;
+  border: 1px dashed var(--border-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.add-location-btn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: var(--bg-item);
+}
+
+/* Mobil kompakt méretek a többi badge mintájára */
+@media (max-width: 768px) {
+  .location-badge,
+  .add-location-btn {
+    padding: 4px 11px;
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .location-badge,
+  .add-location-btn {
+    padding: 3px 9px;
+    font-size: 0.68rem;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   CALENDAR – HETI NÉZET QUICK ADD (popup form a wv-add-btn fölött)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* A wv-day-col-on belül abszolút pozíciójú popup, mely a + gomb fölött jelenik meg.
+   Ugyanaz a glass / dark tónus, mint a havi quick add. */
+.wv-quick-add-form {
+  position: absolute;
+  bottom: 42px;       /* a + gomb fölött */
+  left: 6px;
+  right: 6px;
+  z-index: 30;        /* a wv-add-btn (kb. 5-10) és wv-entries fölött */
+  background: var(--bg-sidebar, #1b1b22);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: wvQuickAddIn 0.15s ease-out;
+}
+
+@keyframes wvQuickAddIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.wv-quick-add-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wv-quick-add-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 9px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.wv-quick-add-input:focus {
+  border-color: var(--accent-muted);
+}
+
+.wv-quick-add-types {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+
+.wv-quick-add-type-btn {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.wv-quick-add-type-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.wv-quick-add-type-btn.active {
+  border-width: 1.5px;
+}
+
+.wv-quick-add-dt {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 7px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.68rem;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  color-scheme: dark;
+}
+
+.wv-quick-add-dt:focus {
+  border-color: var(--accent-muted);
+}
+
+.wv-quick-add-sep {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.wv-quick-add-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.wv-quick-add-error {
+  width: 100%;
+  font-size: 0.7rem;
+  color: #f87171;
+}
+
+.wv-quick-add-cancel {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.wv-quick-add-cancel:hover {
+  border-color: var(--accent-muted);
+  color: var(--text-primary);
+}
+
+.wv-quick-add-submit {
+  background: var(--accent-muted);
+  border: none;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.wv-quick-add-submit:hover {
+  background: var(--accent-active);
+}
+
+.wv-quick-add-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Mobil — a popup szélesebb / kompaktabb */
+@media (max-width: 768px) {
+  .wv-quick-add-form {
+    bottom: 36px;
+    left: 4px;
+    right: 4px;
+    padding: 8px;
+  }
+  .wv-quick-add-input,
+  .wv-quick-add-dt {
+    font-size: 16px; /* iOS zoom prevention */
+  }
+}

@@ -1,9 +1,8 @@
 /**
- * CalendarView v4 – Multi-day EVENT span vonalak a havi nézetben
- * Változások:
- *  - multiDayEvents computed: tól-ig event-ek azonosítása
- *  - multiDaySpans computed: soronkénti vonal adatok (row, colStart, colEnd, lane, color)
- *  - monthCells: multi-day event-ek kizárva a dots-ból (csak vonal jelzi őket)
+ * CalendarView v5 – Hibajavítások:
+ *  - Napi nézet: multi-day event-ek óra-pontosan, az aznapi 00:00–23:59 közé vágva
+ *  - Heti nézet: todo bejegyzések is megjelennek a wv-entry listában
+ *  - Heti nézet: wv-add-btn most csak event/todo gyors hozzáadását engedi a kattintott napra
  */
 const CalendarView = {
   template: "#tpl-calendar-view",
@@ -31,7 +30,7 @@ const CalendarView = {
       dividerDragging: false,
       gridFlex: 55,
       nowInterval: null,
-      // Gyors bejegyzés form
+      // Gyors bejegyzés form (havi + heti közös)
       quickAddOpen: false,
       quickAddTitle: "",
       quickAddType: "event",
@@ -40,6 +39,9 @@ const CalendarView = {
       quickAddDeadline: "",
       quickAddError: "",
       quickAddSaving: false,
+      // Heti nézet quick add: melyik napra nyílt meg (Date objektum vagy null)
+      // Ha null → havi nézet quick add (a sidebar agendában).
+      quickAddWeekDay: null,
       quickAddTypes: [
         { value: "event", label: "Esemény" },
         { value: "todo",  label: "Feladat" },
@@ -88,7 +90,6 @@ const CalendarView = {
         total = Math.ceil((startOfs + dim) / 7) * 7,
         cells = [];
 
-      // Multi-day event ID-k halmaza — ezek NEM jelennek meg pontként
       const multiDayIds = new Set(this.multiDayEvents.map((e) => e.id));
 
       for (let i = 0; i < total; i++) {
@@ -103,7 +104,6 @@ const CalendarView = {
           cellDate = new Date(year, month, i - startOfs + 1);
         }
 
-        // Multi-day event-ek kizárva a dots-ból
         const de = this.entriesForDate(cellDate).filter(
           (e) => !multiDayIds.has(e.id)
         );
@@ -120,16 +120,6 @@ const CalendarView = {
       return cells;
     },
 
-    // ─── Multi-day span vonalak soronként ────────────────────────────────────
-    // Minden span egy vonal-szegmens az adott heti sorban:
-    //   row       : sor index (0-alapú)
-    //   colStart  : oszlop index (0-6) ahol a vonal kezdődik ezen a soron
-    //   colEnd    : oszlop index (0-6) ahol a vonal végződik ezen a soron
-    //   isStart   : ez a szegmens az event valódi kezdőnapján indul
-    //   isEnd     : ez a szegmens az event valódi zárónapján ér véget
-    //   lane      : sáv index (0=legalsó, 1,2...) ha több event átfedi egymást
-    //   color     : az event színe
-    //   entryId   : az event ID-ja
     multiDaySpans() {
       if (!this.monthCells.length) return [];
 
@@ -149,14 +139,11 @@ const CalendarView = {
           const rs = new Date(rowFirstCell); rs.setHours(0, 0, 0, 0);
           const re = new Date(rowLastCell);  re.setHours(0, 0, 0, 0);
 
-          // Az event átfedi ezt a sort?
           if (evEnd < rs || evStart > re) continue;
 
-          // A sor beli tényleges start/end dátum
           const spanStart = evStart >= rs ? evStart : rs;
           const spanEnd   = evEnd   <= re ? evEnd   : re;
 
-          // Oszlop indexek meghatározása
           let colStart = -1, colEnd = -1;
           for (let col = 0; col < 7; col++) {
             const cellD = new Date(cells[row * 7 + col].date);
@@ -174,14 +161,12 @@ const CalendarView = {
             entryId: ev.id,
             isStart: evStart.getTime() === spanStart.getTime(),
             isEnd:   evEnd.getTime()   === spanEnd.getTime(),
-            lane: 0, // lane kiosztás lentebb
+            lane: 0,
           });
         }
       }
 
-      // Lane kiosztás: ugyanazon sorban lévő, átfedő spanok külön lane-re kerülnek
-      // Lane 0 = legalsó sáv (margin-bottom:2px), 1,2... felfelé tolódnak
-      const rowLaneSlots = {}; // row → lane → foglalt intervallumok tömbje
+      const rowLaneSlots = {};
       for (const span of spans) {
         const r = span.row;
         if (!rowLaneSlots[r]) rowLaneSlots[r] = [];
@@ -216,17 +201,26 @@ const CalendarView = {
         );
     },
 
+    // ── Heti nézet: minden napra event+todo+all-day együttesen, idő szerint
     weekDays() {
       const mon = this.getMonday(this.date), days = [];
       for (let i = 0; i < 7; i++) {
         const d = new Date(mon);
         d.setDate(mon.getDate() + i);
+        // event + todo együtt; csak note-okat hagyjuk ki
+        const entries = this.entriesForDate(d)
+          .filter((e) => e.type === "event" || e.type === "todo")
+          .sort((a, b) => {
+            const ta = a.start_datetime ? new Date(a.start_datetime.replace(" ", "T")).getTime() : 0;
+            const tb = b.start_datetime ? new Date(b.start_datetime.replace(" ", "T")).getTime() : 0;
+            return ta - tb;
+          });
         days.push({
           date: d,
           dayName: this.DAYS_S[i],
           dayNum: d.getDate(),
           isToday: this.isToday(d),
-          entries: this.entriesForDate(d).filter((e) => e.type !== "todo"),
+          entries,
         });
       }
       return days;
@@ -347,32 +341,60 @@ const CalendarView = {
     },
     goToday() { this.date = new Date(); this.selected = new Date(); },
     selectCell(cell) { this.selected = cell.date; },
-    setView(v) { this.view = v; },
+    setView(v) {
+      this.view = v;
+      // Nézet váltáskor zárjuk be a quick add-et hogy ne maradjon nyitva tévesen
+      this.closeQuickAdd();
+    },
     goToEntry(entry) { this.$router.push({ name: "details", params: { id: entry.id } }); },
     goBack() { this.$router.push({ name: "graph" }); },
-    addEntryForDate(date) { Store.modalOpen = true; },
-
-    // ─── Gyors bejegyzés ────────────────────────────────────────────────────
-    toggleQuickAdd() {
-      this.quickAddOpen = !this.quickAddOpen;
-      if (this.quickAddOpen) {
-        this.quickAddTitle = "";
-        this.quickAddError = "";
-        // Előre beállítjuk a kiválasztott napot event esetén
-        const d = this.selected;
-        const pad = (n) => String(n).padStart(2, "0");
-        const dateStr = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-        this.quickAddStart = `${dateStr}T09:00`;
-        this.quickAddEnd   = `${dateStr}T10:00`;
-        this.quickAddDeadline = `${dateStr}T23:59`;
-        this.$nextTick(() => { if (this.$refs.quickAddInput) this.$refs.quickAddInput.focus(); });
-      }
+    addEntryForDate(date) {
+      // Heti nézet jobb alsó "+": nyissuk meg az inline gyors hozzáadást az adott napra,
+      // CSAK Event/Todo választással
+      this.openQuickAddForDay(date);
     },
+
+    // ─── Gyors bejegyzés (havi: az agendából; heti: a wv-add-btn-ből) ───────
+    toggleQuickAdd() {
+      // Havi nézet - a kiválasztott napra
+      if (this.quickAddOpen) {
+        this.closeQuickAdd();
+        return;
+      }
+      this.quickAddWeekDay = null; // havi módban
+      this._initQuickAddForDate(this.selected);
+      this.quickAddOpen = true;
+      this.$nextTick(() => { if (this.$refs.quickAddInput) this.$refs.quickAddInput.focus(); });
+    },
+
+    openQuickAddForDay(date) {
+      // Heti nézet - adott napra
+      this.quickAddWeekDay = new Date(date);
+      this._initQuickAddForDate(date);
+      this.quickAddOpen = true;
+      this.$nextTick(() => {
+        if (this.$refs.weekQuickAddInput) this.$refs.weekQuickAddInput.focus();
+      });
+    },
+
+    _initQuickAddForDate(d) {
+      this.quickAddTitle = "";
+      this.quickAddError = "";
+      this.quickAddType = "event";
+      const pad = (n) => String(n).padStart(2, "0");
+      const dateStr = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+      this.quickAddStart    = `${dateStr}T09:00`;
+      this.quickAddEnd      = `${dateStr}T10:00`;
+      this.quickAddDeadline = `${dateStr}T23:59`;
+    },
+
     closeQuickAdd() {
       this.quickAddOpen = false;
+      this.quickAddWeekDay = null;
       this.quickAddTitle = "";
       this.quickAddError = "";
     },
+
     async submitQuickAdd() {
       const title = this.quickAddTitle.trim();
       if (!title) { this.quickAddError = "A cím kötelező!"; return; }
@@ -424,17 +446,54 @@ const CalendarView = {
       document.addEventListener("mouseup", onUp);
     },
 
+    // ─── Napi nézet pozíció: az aznapi 00:00–24:00 közé vágva ──────────────
+    // Multi-day event esetén a vonal csak addig nyúljon, ameddig az aznap tart.
+    // start: aznap 00:00 ha az event kezdete korábbi nap; egyébként a tényleges óra
+    // end:   aznap 24:00 ha az event vége későbbi nap; egyébként a tényleges óra
+    _dayBounds(date) {
+      const d0 = new Date(date); d0.setHours(0, 0, 0, 0);
+      const d1 = new Date(date); d1.setHours(24, 0, 0, 0); // = másnap 00:00
+      return { d0, d1 };
+    },
+
     entryTop(entry) {
       if (!entry.start_datetime) return "0px";
-      const d = new Date(entry.start_datetime.replace(" ", "T"));
-      return ((d.getHours() * 60 + d.getMinutes()) / 60) * this.H + "px";
+      const s = new Date(entry.start_datetime.replace(" ", "T"));
+      const { d0, d1 } = this._dayBounds(this.date);
+      // Ha az event kezdete az aznap 00:00 elé esik (korábbi napon kezdődött), 0px
+      if (s < d0) return "0px";
+      // Ha az event a következő napon kezdődik, ne rajzoljuk (de erre nem szabadna ide jutnia)
+      if (s >= d1) return "0px";
+      return ((s.getHours() * 60 + s.getMinutes()) / 60) * this.H + "px";
     },
+
     entryHeight(entry) {
-      if (!entry.start_datetime || !entry.end_datetime) return this.H + "px";
-      const s = new Date(entry.start_datetime.replace(" ", "T")),
-            e = new Date(entry.end_datetime.replace(" ", "T"));
-      return Math.max(18, ((e - s) / 60000 / 60) * this.H) + "px";
+      if (!entry.start_datetime) return this.H + "px";
+      const s = new Date(entry.start_datetime.replace(" ", "T"));
+      const { d0, d1 } = this._dayBounds(this.date);
+
+      // Az aznap-ra vágott kezdő időpont
+      const drawStart = s < d0 ? d0 : s;
+
+      // Az aznap-ra vágott vég-időpont
+      let drawEnd;
+      if (entry.end_datetime) {
+        const e = new Date(entry.end_datetime.replace(" ", "T"));
+        // Ha az event a következő napon (vagy később) végződik, vágjuk 24:00-ra
+        drawEnd = e > d1 ? d1 : e;
+      } else {
+        // Nincs vége megadva: 1 órás blokk
+        drawEnd = new Date(drawStart.getTime() + 60 * 60 * 1000);
+        if (drawEnd > d1) drawEnd = d1;
+      }
+
+      // Biztonsági ellenőrzés: ha negatív vagy 0 az időtartam, minimum magasság
+      const diffMs = drawEnd - drawStart;
+      if (diffMs <= 0) return "18px";
+
+      return Math.max(18, (diffMs / 60000 / 60) * this.H) + "px";
     },
+
     nowLineTop() {
       const n = new Date();
       return ((n.getHours() * 60 + n.getMinutes()) / 60) * this.H + "px";
@@ -458,6 +517,19 @@ const CalendarView = {
       if (!dt) return "";
       const d = new Date(dt.replace(" ", "T"));
       return d.toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" });
+    },
+
+    // Heti nézet: rövid szöveges idő-cimke todo vs event-hez
+    wvEntryTimeLabel(entry) {
+      if (entry.type === "todo") {
+        // Todo: preferáljuk a tervezett kezdést, ha az aznapra esik, különben határidő
+        if (entry.start_datetime) return "▶ " + this.fmtTime(entry.start_datetime);
+        if (entry.end_datetime)   return "⏰ " + this.fmtTime(entry.end_datetime);
+        return "";
+      }
+      // event
+      if (this.isAllDay(entry)) return "Egész nap";
+      return this.fmtTime(entry.start_datetime);
     },
   },
 

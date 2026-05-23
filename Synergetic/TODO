@@ -68,17 +68,17 @@ Hibajavítások:
 
 
 prioritás 5:
-- ismétlődő entry-k kezelése:
+<!-- - ismétlődő entry-k kezelése:
   - ismétlődő entry-k megjelenítése a naptár nézetben
   - ismétlődő entry-k szerkesztése
-  - ismétlődő entry-k törlése
+  - ismétlődő entry-k törlése -->
 - Csoporthoz csatolás:
-  - csoport eltávolítása (automatikusan az "összes"-be kerül a tartalom)
+  <!-- - csoport eltávolítása (automatikusan az "összes"-be kerül a tartalom) -->
   - Csoportok rendezése
   - Csoportok szűrése
 # - Exportálás .md file-ba
   - importálás .md file-ból.
-- Szűrők elmentése keresésnél.
+<!-- - Szűrők elmentése keresésnél. -->
 - Sidebar entries kiiratás:
   - Ha a sidebarban kiválasztok egy entry-t, akkor egy egész maint lefedő popup ablak legyen
   - rendezések: checkBox --> alkalmazza-e az aktív szűrőt
@@ -89,9 +89,9 @@ prioritás 5:
 #      - módosítás és létrehozás alapján -
 #      - Dátum alapján -
 #      - hely alapján -
-      - ismétlődés alapján
+x      - ismétlődés alapján
 #      - kategóriák alapján..
-      - kapcsolatok alapján
+x      - kapcsolatok alapján
 #      - csoportok alapján..
       - Tartalmaz-e csatolmányt.. --> (csatolmány fajtája alapján.)
 #      - TODO: Sztátusz alapján, lejárt alapján, közelgő alapján (...)
@@ -114,13 +114,13 @@ Fejlesztések:
 - MINDMAP MODE a gráfoknál:
   - ...
 - Keresés tagek alapján
-- .md fájlok importálása és exportálása
+- .md fájlok importálása és # exportálása
 # - Keresés szöveg alapján
 # - Keresés dátum alapján
 # - Keresés hely alapján
 # - Keresés hely és dátum alapján
 - helyek megjelenítése térképen
-- ismétlődés hozzáadása az entry-hez
+# ismétlődés hozzáadása az entry-hez
 # - csatolmányok hozzáadása az entry-hez
 # - kategóriák hozzáadása és szerkesztése az entry-hez
 # - kategóriák szerinti szűrés
@@ -132,13 +132,9 @@ Fejlesztések:
   # - entry szerkesztése
   # - entry törlése
   # - kapcsolatok szerkesztése
-- ismétlődő entry-k kezelése:
-  - ismétlődő entry-k megjelenítése a naptár nézetben
-  - ismétlődő entry-k szerkesztése
-  - ismétlődő entry-k törlése
 - Csoporthoz csatolás:
 #  - gráf húzásával bele lehet húzni (drag & drop)
-  - csoport eltávolítása (automatikusan az "összes"-be kerül a tartalom)
+#  - csoport eltávolítása (automatikusan az "összes"-be kerül a tartalom)
   - Csoportok rendezése
 #  - Csoportok színezése
   - Csoportok szűrése
@@ -150,7 +146,7 @@ Fejlesztések:
 #    - Kibővített filters menü gráf nézetben.
 #   - Nagyobb gráfok
 #   - Zoomolás
-    - Drag and drop támogatás (...)
+#    - Drag and drop támogatás (...)
   # - Gyorsműveletek gomb popup
     - Sidebar entries kiiratás:
       - Ha a sidebarban kiválasztok egy entry-t, akkor egy egész maint lefedő popup ablak legyen
@@ -167,20 +163,20 @@ Fejlesztések:
   #   - havi nézet
   #   - heti nézet
       - éves nézet (...)
-  - Gyorsműveletek a naptár nézetben: (A meglévő entry gyorsművelet menü kiegészítése a naptár nézetben)
-      - új entry létrehozása
-      - entry szerkesztése
-      - entry törlése
-      - kivétel hozzáadása ismétlődő entry-hez
+#  - Gyorsműveletek a naptár nézetben: (A meglévő entry gyorsművelet menü kiegészítése a naptár nézetben)
+#      - új entry létrehozása
+#      - entry szerkesztése
+#      - entry törlése
+#x      - kivétel hozzáadása ismétlődő entry-hez
   - TODO details felület:
-    - Státuszok:
-      - "teendő"
-      - "folyamatban"
-      - "kész"
+#    - Státuszok:
+#      - "teendő"
+#      - "folyamatban"
+#      - "kész"
 #    - Határidő hozzáadása
     - Prioritás hozzáadása (hiearchikus felépítéssel.)
   - EVENT details felület:
-    - helyszín hozzáadása
+#    - helyszín hozzáadása
     - résztvevők hozzáadása
   - Entries details felület:
     - Linkelés!!!
@@ -188,7 +184,7 @@ Fejlesztések:
 #    - kategóriák hozzáadása
 #    - csatolmányok hozzáadása
     - emlékeztetők hozzáadása
-    - ismétlődés hozzáadása
+#    - ismétlődés hozzáadása
     - Kapcsolatok hozzáadása:
       - ha egy entry-nek van kapcsolata egy másik entry-vel, akkor megjelenik egy link, amire kattintva át lehet ugrani a másik entry-re
 #      - kapcsolatok szerkesztése
@@ -205,7 +201,7 @@ Fejlesztések:
      - Toggle opció naptárnézetnél, hogy a rutinok is megjelenjenek a naptárban.
      - Kitöltött idősávokat lehet húzni az időn és írja az adatbázisban.
 
-     - KIVÉTEL HOZZÁADÁS!!!!
+#     - KIVÉTEL HOZZÁADÁS!!!!
 
      - Napi rutin tervező VAGY TODO:
         - Konktrét napot lehet megtervezni és feladatokra bontani

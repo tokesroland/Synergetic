@@ -1,5 +1,5 @@
 <?php
-// api.php v6 – auth routing hozzáadva
+// api.php v7 – routine kivételkezelés (routine_exceptions) végpontok hozzáadva
 header("Content-Type: application/json; charset=UTF-8");
 
 // CORS – session cookie miatt konkrét origin szükséges (nem *)
@@ -66,16 +66,30 @@ try {
                     echo json_encode($searchCtrl->getAttachmentTypes());
                     break;
                 case 'get_routine_all':
-                    echo json_encode($routineCtrl->getAll());
+                    // for_date  → csak aznap rutinjai, kivételek feloldva
+                    // week_start → egész hét, minden nap saját dátumán feloldva
+                    // egyik sem → nyers heti ütemezés (szerkesztéshez)
+                    $forDate   = $_GET['for_date']   ?? null;
+                    $weekStart = $_GET['week_start'] ?? null;
+                    echo json_encode($routineCtrl->getAll($forDate, $weekStart));
                     break;
                 case 'get_routine_by_day':
-                    echo json_encode($routineCtrl->getByDay((int)($_GET['day'] ?? 1)));
+                    // ÚJ: opcionális for_date a kivételek feloldásához
+                    $forDate = $_GET['for_date'] ?? null;
+                    echo json_encode($routineCtrl->getByDay((int)($_GET['day'] ?? 1), $forDate));
                     break;
                 case 'get_routine_completions':
                     echo json_encode($routineCtrl->getCompletions($_GET['date'] ?? date('Y-m-d')));
                     break;
                 case 'get_routine_week_summary':
                     echo json_encode($routineCtrl->getWeekSummary($_GET['week_start'] ?? date('Y-m-d', strtotime('monday this week'))));
+                    break;
+                // ─── ÚJ: RUTIN KIVÉTELEK ───
+                case 'get_routine_exceptions':
+                    echo json_encode($routineCtrl->getExceptions((int)($_GET['routine_item_id'] ?? 0)));
+                    break;
+                case 'deactivate_expired_routine_exceptions':
+                    echo json_encode($routineCtrl->deactivateExpiredExceptions());
                     break;
                 case 'get_groups':
                     echo json_encode($entryCtrl->getGroups());
@@ -124,6 +138,10 @@ try {
                 case 'create_routine_item': echo json_encode($routineCtrl->create($input)); break;
                 case 'update_routine_item': echo json_encode($routineCtrl->update($input)); break;
                 case 'toggle_routine_completion': echo json_encode($routineCtrl->toggleCompletion((int)$input['routine_item_id'], $input['date'])); break;
+                // ─── ÚJ: RUTIN KIVÉTELEK ───
+                case 'create_routine_exception':     echo json_encode($routineCtrl->createException($input)); break;
+                case 'update_routine_exception':     echo json_encode($routineCtrl->updateException($input)); break;
+                case 'deactivate_routine_exception': echo json_encode($routineCtrl->deactivateException((int)($input['id'] ?? 0))); break;
                 case 'create_category': echo json_encode($entryCtrl->createCategory($input)); break;
                 case 'create_tag': echo json_encode($entryCtrl->createTag($input)); break;
                 case 'create_location': echo json_encode($entryCtrl->createLocation($input)); break;
@@ -155,6 +173,7 @@ try {
         case 'DELETE':
             $action = $_GET['action'] ?? '';
             if ($action === 'delete_routine_item') echo json_encode($routineCtrl->delete((int)$_GET['id']));
+            elseif ($action === 'delete_routine_exception') echo json_encode($routineCtrl->deleteException((int)$_GET['id']));
             elseif ($action === 'delete_link') echo json_encode($entryCtrl->deleteLink((int)$_GET['source_id'], (int)$_GET['target_id']));
             elseif ($action === 'delete_entry') echo json_encode($entryCtrl->deleteEntry((int)$_GET['id']));
             elseif ($action === 'delete_attachment') echo json_encode($entryCtrl->deleteAttachment((int)$_GET['id']));
