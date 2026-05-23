@@ -67,7 +67,7 @@ const OmniBar = {
 
         filteredLocations() {
             const q = this.locationSearch.toLowerCase();
-            const locs = Store.locations || [];
+            const locs = (Store.locations || []).map(l => ({ ...l, id: Number(l.id) }));
             if (!q) return locs;
             return locs.filter(l => l.name.toLowerCase().includes(q));
         },
@@ -306,7 +306,8 @@ const OmniBar = {
                 }
 
                 if (matchingTag) {
-                    this.addToken('Tag', `#${matchingTag.name}`, { id: parseInt(matchingTag.id) });
+                    const tagId = Number(matchingTag.id);
+                    this.addToken('Tag', `#${matchingTag.name}`, { id: Number.isNaN(tagId) ? undefined : tagId });
                 } else {
                     this.addToken('Tag', `#${q}`, { name: q });
                 }
@@ -326,7 +327,8 @@ const OmniBar = {
                     t.name.toLowerCase() === q.toLowerCase()
                 );
                 if (match) {
-                    this.addToken('Tag', `#${match.name}`, { id: parseInt(match.id) });
+                    const tagId = Number(match.id);
+                    this.addToken('Tag', `#${match.name}`, { id: Number.isNaN(tagId) ? undefined : tagId });
                 } else {
                     this.addToken('Tag', `#${q}`, { name: q });
                 }
@@ -336,11 +338,11 @@ const OmniBar = {
         },
 
         addTagFilter(tag) {
-            this.addToken('Tag', `#${tag.name}`, { id: parseInt(tag.id) });
+            this.addToken('Tag', `#${tag.name}`, { id: Number(tag.id) });
         },
 
         addCategoryFilter(cat) {
-            this.addToken('Kategória', cat.name, { id: cat.id });
+            this.addToken('Kategória', cat.name, { id: Number(cat.id) });
         },
 
         applyDateOrder(order) {
@@ -370,16 +372,21 @@ const OmniBar = {
         },
 
         toggleLocation(locId) {
-            const idx = this.selectedLocationIds.indexOf(locId);
+            // Normalizálás: az API string-ként adja vissza az id-t (PDO FETCH_ASSOC),
+            // ezért Number()-rel egységesítünk, hogy az includes() strict összehasonlítása működjön.
+            const nId = Number(locId);
+            const idx = this.selectedLocationIds.indexOf(nId);
             if (idx > -1) this.selectedLocationIds.splice(idx, 1);
-            else this.selectedLocationIds.push(locId);
+            else this.selectedLocationIds.push(nId);
         },
 
         applyLocations() {
             if (this.selectedLocationIds.length === 0) return;
             Store.searchFilters = Store.searchFilters.filter(f => f.key !== 'Helyszín');
-            const locs = Store.locations.filter(l => this.selectedLocationIds.includes(l.id));
-            this.addToken('Helyszín', locs.map(l => l.name).join(', '), { ids: [...this.selectedLocationIds] });
+            // Normalizált (Number) ID-kkal szűrünk
+            const locs = Store.locations.filter(l => this.selectedLocationIds.includes(Number(l.id)));
+            const ids = locs.map(l => Number(l.id));
+            this.addToken('Helyszín', locs.map(l => l.name).join(', '), { ids });
             this.selectedLocationIds = [];
         },
 
