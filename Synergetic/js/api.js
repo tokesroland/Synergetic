@@ -11,8 +11,25 @@ const ApiService = {
       // hogy a PHP session cookie utazzon a kérésekkel.
       const finalOptions = { credentials: "include", ...options };
       const res = await fetch(url, finalOptions);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
+      const text = await res.text();
+      let payload = null;
+
+      if (text) {
+        try {
+          payload = JSON.parse(text);
+        } catch {
+          payload = text;
+        }
+      }
+
+      if (!res.ok) {
+        if (payload && typeof payload === "object" && payload.error) {
+          return payload;
+        }
+        return { error: payload || `HTTP ${res.status}` };
+      }
+
+      return payload;
     } catch (err) {
       console.error("[API]", err);
       return null;

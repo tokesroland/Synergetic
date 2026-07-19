@@ -130,8 +130,10 @@ const AuthModal = {
             if (data.error) throw new Error(data.error);
             if (data.user) {
                 Store.currentUser = data.user;
-                this.successMsg = "Sikeres regisztráció!";
+                this.successMsg = data.message || "Sikeres regisztráció!";
                 setTimeout(() => this.close(), 600);
+            } else {
+                throw new Error(data.message || "A regisztráció nem sikerült.");
             }
         },
     },
